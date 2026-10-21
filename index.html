@@ -128,6 +128,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
   border:none;background:#fff;border:1px solid #ddd;border-radius:999px;
   padding:4px 10px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;color:#636e72
 }
+
+/* Leaderboard */
+#overlayBoard .panel{max-width:560px;text-align:left}
+#overlayBoard .panel h1{text-align:center}
+.board-list{max-height:50vh;overflow:auto;margin:12px 0;font-size:.9rem}
+.board-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid #1e4a50;color:#b6d4d4}
+.board-row .rank{font-weight:900;width:2.2em;color:#5eead4;flex-shrink:0}
+.board-row .who{flex:1;font-weight:700;color:#ecfeff;min-width:0}
+.board-row .meta{font-size:.82rem;color:#99b8b8;white-space:nowrap;text-align:right}
+.board-empty,.board-status{text-align:center;color:#7a9a9a;padding:18px 8px}
+.board-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px}
+#cloudStatus{margin-top:8px;font-size:.85rem;color:#5eead4;min-height:1.2em}
 </style>
 </head>
 <body>
@@ -169,8 +181,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
     答對超車 +100 · 答錯／逾時撞車扣命 · 3 lives<br>
     <span class="muted">← → 或點選左右车道 · Primary 4 · 4A Ch.3</span></p>
     <button class="btn" id="btnStart">START RACE ▶</button>
+    <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
     <button class="btn btn-ghost" id="btnChangeName" type="button">Not me? Change name</button>
-    <p class="muted" style="margin-top:14px">老師說明：約 40 題簡單比較句；時間由 ~8s 漸減至 ~3s。可投影；平板點選车道即可。</p>
+    <p class="muted" style="margin-top:14px">老師說明：約 40 題簡單比較句；時間由 ~8s 漸減至 ~3s。可投影；平板點選车道即可。<br>排行榜雲端共用；老師清除密碼 teacher。</p>
   </div>
 </div>
 
@@ -187,8 +200,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
     <h1 id="endTitle">🏁 Race Over</h1>
     <p id="endStats"></p>
     <div class="report" id="endReport"></div>
+    <p id="cloudStatus" class="muted"></p>
     <button class="btn btn-alt" id="btnAgain">Race again 🔄</button>
+    <button class="btn btn-ghost" id="btnBoardEnd" type="button">🏆 Leaderboard</button>
     <button class="btn btn-ghost" id="btnMenu">Main menu</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayBoard">
+  <div class="panel">
+    <h1>🏆 Leaderboard</h1>
+    <p class="muted" style="text-align:center;margin:0 0 4px">Class Top · cloud shared · Primary 4</p>
+    <div class="board-list" id="boardList"><div class="board-status">Loading…</div></div>
+    <div class="board-actions">
+      <button class="btn" id="btnBoardRefresh" type="button">Refresh</button>
+      <button class="btn btn-alt" id="btnBoardClear" type="button">Clear (teacher)</button>
+      <button class="btn btn-ghost" id="btnBoardClose" type="button">Close</button>
+    </div>
   </div>
 </div>
 
@@ -272,6 +300,153 @@ function goNameSelect(){
   showOverlay("overlayName");
 }
 
+
+
+// ---------- Cloud leaderboard (keyvalue.immanuel.co) ----------
+const CLOUD_BASE = "https://keyvalue.immanuel.co/api/KeyVal";
+const CLOUD_APP = "9qeew60c";
+const TEACHER_CLEAR_PW = "teacher";
+let boardReturnOverlay = "overlayStart";
+
+function cloudKey(no){ return "s" + no; }
+function encodeScore(score, correct, lives, when){
+  return [score|0, correct|0, lives|0, when|0].join("-");
+}
+function parseScoreVal(raw){
+  if(raw == null) return null;
+  let s = raw;
+  if(typeof s !== "string"){
+    try{ s = JSON.stringify(s); }catch(e){ return null; }
+  }
+  s = s.trim();
+  // JSON-encoded string e.g. "500-5-2-179"
+  if((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))){
+    try{ s = JSON.parse(s); }catch(e){ s = s.slice(1,-1); }
+  }
+  if(typeof s !== "string") s = String(s);
+  s = s.trim();
+  if(!s || s === "0" || s === '""' || s === "null") return null;
+  const parts = s.split("-");
+  if(parts.length < 4) return null;
+  const score = parseInt(parts[0], 10);
+  const correct = parseInt(parts[1], 10);
+  const lives = parseInt(parts[2], 10);
+  const when = parseInt(parts[3], 10);
+  if(!isFinite(score) || score <= 0) return null;
+  return {
+    score: score||0,
+    correct: isFinite(correct)?correct:0,
+    lives: isFinite(lives)?lives:0,
+    when: isFinite(when)?when:0
+  };
+}
+function isBetterEntry(a, b){
+  // true if a should replace b (a better)
+  if(!b) return true;
+  if(a.score !== b.score) return a.score > b.score;
+  if(a.lives !== b.lives) return a.lives > b.lives;
+  return a.when > b.when;
+}
+async function cloudGet(no){
+  const url = CLOUD_BASE + "/GetValue/" + CLOUD_APP + "/" + cloudKey(no);
+  const res = await fetch(url, {method:"GET", cache:"no-store"});
+  if(!res.ok) throw new Error("GET " + res.status);
+  const txt = await res.text();
+  let parsed = txt;
+  try{ parsed = JSON.parse(txt); }catch(e){ parsed = txt; }
+  return parseScoreVal(parsed);
+}
+async function cloudWrite(no, value){
+  const url = CLOUD_BASE + "/UpdateValue/" + CLOUD_APP + "/" + cloudKey(no) + "/" + encodeURIComponent(value);
+  const res = await fetch(url, {method:"POST", body:""});
+  if(!res.ok) throw new Error("POST " + res.status);
+  return true;
+}
+async function cloudUpsertPlayer(player, score, correct, lives){
+  if(!player || !player.no) return {ok:false, status:"失敗"};
+  const when = Math.floor(Date.now()/1000);
+  const entry = {score:score|0, correct:correct|0, lives:lives|0, when};
+  try{
+    const existing = await cloudGet(player.no);
+    if(existing && !isBetterEntry(entry, existing)){
+      return {ok:true, status:"保持個人最佳", kept:true, existing};
+    }
+    await cloudWrite(player.no, encodeScore(entry.score, entry.correct, entry.lives, entry.when));
+    return {ok:true, status:"已更新", updated:true};
+  }catch(e){
+    console.warn("cloud upsert failed", e);
+    return {ok:false, status:"失敗"};
+  }
+}
+async function cloudFetchAll(){
+  const tasks = CLASS_ROSTER.map(async stu => {
+    try{
+      const ent = await cloudGet(stu.no);
+      if(!ent) return null;
+      return {name:stu.name, no:stu.no, ...ent};
+    }catch(e){
+      return {_err:true, name:stu.name, no:stu.no};
+    }
+  });
+  const rows = await Promise.all(tasks);
+  const errs = rows.filter(r => r && r._err).length;
+  const list = rows.filter(r => r && !r._err);
+  list.sort((a,b)=>{
+    if(b.score !== a.score) return b.score - a.score;
+    if(b.lives !== a.lives) return b.lives - a.lives;
+    return b.when - a.when;
+  });
+  return {list, errs};
+}
+function renderBoardList(list, errs){
+  const el = document.getElementById("boardList");
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML = '<div class="board-empty">尚無紀錄 · No scores yet' +
+      (errs ? '<br><span class="muted">部分讀取失敗 ('+errs+')</span>' : '') + '</div>';
+    return;
+  }
+  el.innerHTML = list.map((r,i)=>{
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
+    return '<div class="board-row"><span class="rank">'+medal+'</span>' +
+      '<span class="who">'+esc(r.name)+' <span class="muted">('+r.no+')</span></span>' +
+      '<span class="meta">⭐ '+r.score+' · ✓ '+r.correct+' · ❤️ '+r.lives+'</span></div>';
+  }).join("") + (errs ? '<div class="board-status muted">部分讀取失敗 ('+errs+')</div>' : '');
+}
+async function refreshBoard(){
+  const el = document.getElementById("boardList");
+  if(el) el.innerHTML = '<div class="board-status">Loading…</div>';
+  try{
+    const {list, errs} = await cloudFetchAll();
+    renderBoardList(list, errs);
+  }catch(e){
+    if(el) el.innerHTML = '<div class="board-status">讀取失敗 · Failed to load</div>';
+  }
+}
+function openBoard(fromId){
+  boardReturnOverlay = fromId || "overlayStart";
+  showOverlay("overlayBoard");
+  refreshBoard();
+}
+function closeBoard(){
+  showOverlay(boardReturnOverlay || "overlayStart");
+}
+async function teacherClearBoard(){
+  const pw = prompt("老師清除密碼 / Teacher password:");
+  if(pw == null) return;
+  if(pw !== TEACHER_CLEAR_PW){
+    alert("密碼錯誤");
+    return;
+  }
+  const el = document.getElementById("boardList");
+  if(el) el.innerHTML = '<div class="board-status">Clearing…</div>';
+  try{
+    await Promise.all(CLASS_ROSTER.map(stu => cloudWrite(stu.no, "0")));
+    await refreshBoard();
+  }catch(e){
+    if(el) el.innerHTML = '<div class="board-status">清除失敗 · Clear failed</div>';
+  }
+}
 
 // ---------- Question bank (2-option for lanes) ----------
 const RAW = [
@@ -526,12 +701,12 @@ function pauseBgmSoft(isPaused){
 }
 
 function showOverlay(id){
-  ["overlayName","overlayStart","overlayPause","overlayEnd"].forEach(x=>{
+  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBoard"].forEach(x=>{
     document.getElementById(x).classList.toggle("hidden", x!==id);
   });
 }
 function hideOverlays(){
-  ["overlayName","overlayStart","overlayPause","overlayEnd"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBoard"].forEach(x=>document.getElementById(x).classList.add("hidden"));
 }
 
 function startRace(){
@@ -670,14 +845,23 @@ function endRace(){
     rep.innerHTML = "<div class='muted'>Wrong / timeout review:</div>" +
       wrongLog.map(w => `<div class="row"><b>Q:</b> ${esc(w.q)}<br>Your: ${esc(w.your)} · <span class="okb">Answer: ${esc(w.right)}</span></div>`).join("");
   }
-  // save best
+  // save best (local)
   try{
     const key="sm_race_best_v1";
     const prev=JSON.parse(localStorage.getItem(key)||"null");
     if(!prev || score>prev.score) localStorage.setItem(key, JSON.stringify({score, when:Date.now(), player: currentPlayer}));
   }catch(e){}
   stopBgm();
+  const cloudEl = document.getElementById("cloudStatus");
+  if(cloudEl) cloudEl.textContent = currentPlayer ? "雲端榜：上傳中…" : "";
   showOverlay("overlayEnd");
+  if(currentPlayer){
+    cloudUpsertPlayer(currentPlayer, score, correctCount, lives).then(r=>{
+      if(cloudEl) cloudEl.textContent = "雲端榜：" + (r && r.status ? r.status : "失敗");
+    }).catch(()=>{
+      if(cloudEl) cloudEl.textContent = "雲端榜：失敗";
+    });
+  }
 }
 
 function esc(s){ return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
@@ -717,6 +901,11 @@ document.getElementById("btnPause").onclick = ()=>{
 document.getElementById("btnMute").onclick = function(){
   setMuted(!muted);
 };
+document.getElementById("btnBoardStart").onclick = ()=>openBoard("overlayStart");
+document.getElementById("btnBoardEnd").onclick = ()=>openBoard("overlayEnd");
+document.getElementById("btnBoardClose").onclick = closeBoard;
+document.getElementById("btnBoardRefresh").onclick = ()=>refreshBoard();
+document.getElementById("btnBoardClear").onclick = ()=>teacherClearBoard();
 document.getElementById("btnLeft").onclick = ()=>choose("L");
 document.getElementById("btnRight").onclick = ()=>choose("R");
 
