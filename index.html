@@ -177,13 +177,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
   <div class="panel">
     <h1>🛒 SUPERMARKET DASH</h1>
     <p id="startPlayerLine" style="font-weight:800;color:#5eead4;margin-bottom:4px">Playing as: —</p>
-    <p>Aisle Race · <b>cheaper / more expensive</b> · <b>the cheapest / the most expensive</b><br>
+    <p>Aisle Race · <b>Which sentence is true?</b><br>
+    cheaper / more expensive · the cheapest / the most expensive<br>
     答對超車 +100 · 答錯／逾時撞車扣命 · 3 lives<br>
-    <span class="muted">← → 或點選左右车道 · Primary 4 · 4A Ch.3</span></p>
+    <span class="muted">← → 或點選左右句子 · Primary 4 · 4A Ch.3</span></p>
     <button class="btn" id="btnStart">START RACE ▶</button>
     <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
     <button class="btn btn-ghost" id="btnChangeName" type="button">Not me? Change name</button>
-    <p class="muted" style="margin-top:14px">老師說明：約 40 題簡單比較句；時間由 ~8s 漸減至 ~3s。可投影；平板點選车道即可。<br>排行榜雲端共用（累積多局總分）；老師清除密碼 teacher。</p>
+    <p class="muted" style="margin-top:14px">老師說明：約 40 題 Which sentence is true?（左右兩句選正確句）；時間由 ~8s 漸減至 ~3s。可投影；平板點選即可。<br>排行榜雲端共用（累積多局總分）；老師清除密碼 teacher。</p>
   </div>
 </div>
 
@@ -490,48 +491,48 @@ async function teacherClearBoard(){
 
 // ---------- Question bank (2-option for lanes) ----------
 const RAW = [
-  // Comparative + than (two things)
-  {q:"Yummy raisins ($25) and Natural raisins ($28). Which is true?", a:"Yummy is cheaper than Natural.", b:"Yummy is more expensive than Natural.", topic:"comp"},
-  {q:"Natural raisins ($28) and Yummy raisins ($25). Which is true?", a:"Natural is more expensive than Yummy.", b:"Natural is cheaper than Yummy.", topic:"comp"},
-  {q:"Super raisins ($32) and Yummy raisins ($25). Which is true?", a:"Super is more expensive than Yummy.", b:"Super is cheaper than Yummy.", topic:"comp"},
-  {q:"Yummy raisins ($25) and Super raisins ($32). Which is true?", a:"Yummy is cheaper than Super.", b:"Yummy is more expensive than Super.", topic:"comp"},
-  {q:"Natural raisins ($28) and Super raisins ($32). Which is true?", a:"Natural is cheaper than Super.", b:"Natural is more expensive than Super.", topic:"comp"},
-  {q:"Super raisins ($32) and Natural raisins ($28). Which is true?", a:"Super is more expensive than Natural.", b:"Super is cheaper than Natural.", topic:"comp"},
-  {q:"Jolly juice ($9.20) and Fruity juice ($10.50). Which is true?", a:"Jolly is cheaper than Fruity.", b:"Jolly is more expensive than Fruity.", topic:"comp"},
-  {q:"Fruity juice ($10.50) and Jolly juice ($9.20). Which is true?", a:"Fruity is more expensive than Jolly.", b:"Fruity is cheaper than Jolly.", topic:"comp"},
-  {q:"Pure juice ($11.80) and Jolly juice ($9.20). Which is true?", a:"Pure is more expensive than Jolly.", b:"Pure is cheaper than Jolly.", topic:"comp"},
-  {q:"Jolly juice ($9.20) and Pure juice ($11.80). Which is true?", a:"Jolly is cheaper than Pure.", b:"Jolly is more expensive than Pure.", topic:"comp"},
-  {q:"Fruity juice ($10.50) and Pure juice ($11.80). Which is true?", a:"Fruity is cheaper than Pure.", b:"Fruity is more expensive than Pure.", topic:"comp"},
-  {q:"Pure juice ($11.80) and Fruity juice ($10.50). Which is true?", a:"Pure is more expensive than Fruity.", b:"Pure is cheaper than Fruity.", topic:"comp"},
-  {q:"Sunny bread ($14) and Lucky bread ($18). Which is true?", a:"Sunny is cheaper than Lucky.", b:"Sunny is more expensive than Lucky.", topic:"comp"},
-  {q:"Lucky bread ($18) and Sunny bread ($14). Which is true?", a:"Lucky is more expensive than Sunny.", b:"Lucky is cheaper than Sunny.", topic:"comp"},
-  {q:"Merry bread ($20) and Sunny bread ($14). Which is true?", a:"Merry is more expensive than Sunny.", b:"Merry is cheaper than Sunny.", topic:"comp"},
-  {q:"Sunny bread ($14) and Merry bread ($20). Which is true?", a:"Sunny is cheaper than Merry.", b:"Sunny is more expensive than Merry.", topic:"comp"},
-  {q:"Lucky bread ($18) and Merry bread ($20). Which is true?", a:"Lucky is cheaper than Merry.", b:"Lucky is more expensive than Merry.", topic:"comp"},
-  {q:"Merry bread ($20) and Lucky bread ($18). Which is true?", a:"Merry is more expensive than Lucky.", b:"Merry is cheaper than Lucky.", topic:"comp"},
-  {q:"A watermelon (5 kg) and pears (300 g). Which is true?", a:"The watermelon is heavier than the pears.", b:"The watermelon is lighter than the pears.", topic:"comp"},
-  {q:"Pears (300 g) and a watermelon (5 kg). Which is true?", a:"The pears are lighter than the watermelon.", b:"The pears are heavier than the watermelon.", topic:"comp"},
-  {q:"Grapes (250 g) and a watermelon (5 kg). Which is true?", a:"The grapes are lighter than the watermelon.", b:"The grapes are heavier than the watermelon.", topic:"comp"},
-  {q:"A watermelon (5 kg) and grapes (250 g). Which is true?", a:"The watermelon is heavier than the grapes.", b:"The watermelon is lighter than the grapes.", topic:"comp"},
-  {q:"Grapes (250 g) and pears (300 g). Which is true?", a:"The grapes are lighter than the pears.", b:"The grapes are heavier than the pears.", topic:"comp"},
-  {q:"Pears (300 g) and grapes (250 g). Which is true?", a:"The pears are heavier than the grapes.", b:"The pears are lighter than the grapes.", topic:"comp"},
-  {q:"Soya milk (1 g sugar) and cola (10.6 g sugar). Which is true?", a:"Soya milk is healthier than cola.", b:"Soya milk is unhealthier than cola.", topic:"comp"},
-  {q:"Cola (10.6 g sugar) and soya milk (1 g sugar). Which is true?", a:"Cola is unhealthier than soya milk.", b:"Cola is healthier than soya milk.", topic:"comp"},
-  // Superlative (three things)
-  {q:"Raisins: Yummy $25 · Natural $28 · Super $32. Which is true?", a:"Yummy is the cheapest.", b:"Yummy is the most expensive.", topic:"sup"},
-  {q:"Raisins: Yummy $25 · Natural $28 · Super $32. Which is true?", a:"Super is the most expensive.", b:"Super is the cheapest.", topic:"sup"},
-  {q:"Raisins: Yummy $25 · Natural $28 · Super $32. Which is true?", a:"Natural is not the cheapest.", b:"Natural is the cheapest.", topic:"sup"},
-  {q:"Juice: Jolly $9.20 · Fruity $10.50 · Pure $11.80. Which is true?", a:"Jolly is the cheapest.", b:"Jolly is the most expensive.", topic:"sup"},
-  {q:"Juice: Jolly $9.20 · Fruity $10.50 · Pure $11.80. Which is true?", a:"Pure is the most expensive.", b:"Pure is the cheapest.", topic:"sup"},
-  {q:"Juice: Jolly $9.20 · Fruity $10.50 · Pure $11.80. Which is true?", a:"Fruity is not the most expensive.", b:"Fruity is the most expensive.", topic:"sup"},
-  {q:"Bread: Sunny $14 · Lucky $18 · Merry $20. Which is true?", a:"Sunny is the cheapest.", b:"Sunny is the most expensive.", topic:"sup"},
-  {q:"Bread: Sunny $14 · Lucky $18 · Merry $20. Which is true?", a:"Merry is the most expensive.", b:"Merry is the cheapest.", topic:"sup"},
-  {q:"Bread: Sunny $14 · Lucky $18 · Merry $20. Which is true?", a:"Lucky is not the cheapest.", b:"Lucky is the cheapest.", topic:"sup"},
-  {q:"Fruit: watermelon 5 kg · pears 300 g · grapes 250 g. Which is true?", a:"The watermelon is the heaviest.", b:"The watermelon is the lightest.", topic:"sup"},
-  {q:"Fruit: watermelon 5 kg · pears 300 g · grapes 250 g. Which is true?", a:"The grapes are the lightest.", b:"The grapes are the heaviest.", topic:"sup"},
-  {q:"Sugar: soya 1 g · chocolate milk 5 g · cola 10.6 g. Which is true?", a:"Soya milk has the least sugar.", b:"Soya milk has the most sugar.", topic:"sup"},
-  {q:"Sugar: soya 1 g · chocolate milk 5 g · cola 10.6 g. Which is true?", a:"Cola has the most sugar.", b:"Cola has the least sugar.", topic:"sup"},
-  {q:"Prices $14, $18 and $20. Which is true?", a:"$14 is the cheapest.", b:"$14 is the most expensive.", topic:"sup"}
+  // Comparative + than (two things) — Which sentence is true?
+  {q:"Which sentence is true?", a:"Yummy raisins ($25) are cheaper than Natural raisins ($28).", b:"Yummy raisins ($25) are more expensive than Natural raisins ($28).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Natural raisins ($28) are more expensive than Yummy raisins ($25).", b:"Natural raisins ($28) are cheaper than Yummy raisins ($25).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Super raisins ($32) are more expensive than Yummy raisins ($25).", b:"Super raisins ($32) are cheaper than Yummy raisins ($25).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Yummy raisins ($25) are cheaper than Super raisins ($32).", b:"Yummy raisins ($25) are more expensive than Super raisins ($32).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Natural raisins ($28) are cheaper than Super raisins ($32).", b:"Natural raisins ($28) are more expensive than Super raisins ($32).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Super raisins ($32) are more expensive than Natural raisins ($28).", b:"Super raisins ($32) are cheaper than Natural raisins ($28).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Jolly juice ($9.20) is cheaper than Fruity juice ($10.50).", b:"Jolly juice ($9.20) is more expensive than Fruity juice ($10.50).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Fruity juice ($10.50) is more expensive than Jolly juice ($9.20).", b:"Fruity juice ($10.50) is cheaper than Jolly juice ($9.20).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Pure juice ($11.80) is more expensive than Jolly juice ($9.20).", b:"Pure juice ($11.80) is cheaper than Jolly juice ($9.20).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Jolly juice ($9.20) is cheaper than Pure juice ($11.80).", b:"Jolly juice ($9.20) is more expensive than Pure juice ($11.80).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Fruity juice ($10.50) is cheaper than Pure juice ($11.80).", b:"Fruity juice ($10.50) is more expensive than Pure juice ($11.80).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Pure juice ($11.80) is more expensive than Fruity juice ($10.50).", b:"Pure juice ($11.80) is cheaper than Fruity juice ($10.50).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Sunny bread ($14) is cheaper than Lucky bread ($18).", b:"Sunny bread ($14) is more expensive than Lucky bread ($18).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Lucky bread ($18) is more expensive than Sunny bread ($14).", b:"Lucky bread ($18) is cheaper than Sunny bread ($14).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Merry bread ($20) is more expensive than Sunny bread ($14).", b:"Merry bread ($20) is cheaper than Sunny bread ($14).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Sunny bread ($14) is cheaper than Merry bread ($20).", b:"Sunny bread ($14) is more expensive than Merry bread ($20).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Lucky bread ($18) is cheaper than Merry bread ($20).", b:"Lucky bread ($18) is more expensive than Merry bread ($20).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Merry bread ($20) is more expensive than Lucky bread ($18).", b:"Merry bread ($20) is cheaper than Lucky bread ($18).", topic:"comp"},
+  {q:"Which sentence is true?", a:"The watermelon (5 kg) is heavier than the pears (300 g).", b:"The watermelon (5 kg) is lighter than the pears (300 g).", topic:"comp"},
+  {q:"Which sentence is true?", a:"The pears (300 g) are lighter than the watermelon (5 kg).", b:"The pears (300 g) are heavier than the watermelon (5 kg).", topic:"comp"},
+  {q:"Which sentence is true?", a:"The grapes (250 g) are lighter than the watermelon (5 kg).", b:"The grapes (250 g) are heavier than the watermelon (5 kg).", topic:"comp"},
+  {q:"Which sentence is true?", a:"The watermelon (5 kg) is heavier than the grapes (250 g).", b:"The watermelon (5 kg) is lighter than the grapes (250 g).", topic:"comp"},
+  {q:"Which sentence is true?", a:"The grapes (250 g) are lighter than the pears (300 g).", b:"The grapes (250 g) are heavier than the pears (300 g).", topic:"comp"},
+  {q:"Which sentence is true?", a:"The pears (300 g) are heavier than the grapes (250 g).", b:"The pears (300 g) are lighter than the grapes (250 g).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Soya milk (1 g sugar) is healthier than cola (10.6 g sugar).", b:"Soya milk (1 g sugar) is unhealthier than cola (10.6 g sugar).", topic:"comp"},
+  {q:"Which sentence is true?", a:"Cola (10.6 g sugar) is unhealthier than soya milk (1 g sugar).", b:"Cola (10.6 g sugar) is healthier than soya milk (1 g sugar).", topic:"comp"},
+  // Superlative
+  {q:"Which sentence is true?", a:"Among Yummy ($25), Natural ($28) and Super ($32) raisins, Yummy is the cheapest.", b:"Among Yummy ($25), Natural ($28) and Super ($32) raisins, Yummy is the most expensive.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among Yummy ($25), Natural ($28) and Super ($32) raisins, Super is the most expensive.", b:"Among Yummy ($25), Natural ($28) and Super ($32) raisins, Super is the cheapest.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among Yummy ($25), Natural ($28) and Super ($32) raisins, Natural is not the cheapest.", b:"Among Yummy ($25), Natural ($28) and Super ($32) raisins, Natural is the cheapest.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among Jolly ($9.20), Fruity ($10.50) and Pure ($11.80) juice, Jolly is the cheapest.", b:"Among Jolly ($9.20), Fruity ($10.50) and Pure ($11.80) juice, Jolly is the most expensive.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among Jolly ($9.20), Fruity ($10.50) and Pure ($11.80) juice, Pure is the most expensive.", b:"Among Jolly ($9.20), Fruity ($10.50) and Pure ($11.80) juice, Pure is the cheapest.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among Jolly ($9.20), Fruity ($10.50) and Pure ($11.80) juice, Fruity is not the most expensive.", b:"Among Jolly ($9.20), Fruity ($10.50) and Pure ($11.80) juice, Fruity is the most expensive.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among Sunny ($14), Lucky ($18) and Merry ($20) bread, Sunny is the cheapest.", b:"Among Sunny ($14), Lucky ($18) and Merry ($20) bread, Sunny is the most expensive.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among Sunny ($14), Lucky ($18) and Merry ($20) bread, Merry is the most expensive.", b:"Among Sunny ($14), Lucky ($18) and Merry ($20) bread, Merry is the cheapest.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among Sunny ($14), Lucky ($18) and Merry ($20) bread, Lucky is not the cheapest.", b:"Among Sunny ($14), Lucky ($18) and Merry ($20) bread, Lucky is the cheapest.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among watermelon (5 kg), pears (300 g) and grapes (250 g), the watermelon is the heaviest.", b:"Among watermelon (5 kg), pears (300 g) and grapes (250 g), the watermelon is the lightest.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among watermelon (5 kg), pears (300 g) and grapes (250 g), the grapes are the lightest.", b:"Among watermelon (5 kg), pears (300 g) and grapes (250 g), the grapes are the heaviest.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among soya milk (1 g), chocolate milk (5 g) and cola (10.6 g) sugar, soya milk has the least sugar.", b:"Among soya milk (1 g), chocolate milk (5 g) and cola (10.6 g) sugar, soya milk has the most sugar.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among soya milk (1 g), chocolate milk (5 g) and cola (10.6 g) sugar, cola has the most sugar.", b:"Among soya milk (1 g), chocolate milk (5 g) and cola (10.6 g) sugar, cola has the least sugar.", topic:"sup"},
+  {q:"Which sentence is true?", a:"Among $14, $18 and $20, $14 is the cheapest.", b:"Among $14, $18 and $20, $14 is the most expensive.", topic:"sup"}
 ];
 
 function shuffle(arr){
