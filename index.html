@@ -348,21 +348,65 @@ function isBetterEntry(a, b){
   if(a.lives !== b.lives) return a.lives > b.lives;
   return a.when > b.when;
 }
+
+async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 async function cloudGet(no){
   const url = CLOUD_BASE + "/GetValue/" + CLOUD_APP + "/" + cloudKey(no);
-  const res = await fetch(url, {method:"GET", cache:"no-store"});
-  if(!res.ok) throw new Error("GET " + res.status);
-  const txt = await res.text();
-  let parsed = txt;
-  try{ parsed = JSON.parse(txt); }catch(e){ parsed = txt; }
-  return parseScoreVal(parsed);
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"GET", cache:"no-store"});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("GET " + res.status);
+        await sleep(200 + attempt * 250 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("GET " + res.status);
+      const txt = await res.text();
+      let parsed = txt;
+      try{ parsed = JSON.parse(txt); }catch(e){ parsed = txt; }
+      return parseScoreVal(parsed);
+    }catch(e){
+      lastErr = e;
+      await sleep(200 + attempt * 250);
+    }
+  }
+  throw lastErr || new Error("GET failed");
 }
 async function cloudWrite(no, value){
   const url = CLOUD_BASE + "/UpdateValue/" + CLOUD_APP + "/" + cloudKey(no) + "/" + encodeURIComponent(value);
-  const res = await fetch(url, {method:"POST", body:""});
-  if(!res.ok) throw new Error("POST " + res.status);
-  return true;
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"POST", body:""});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("POST " + res.status);
+        await sleep(250 + attempt * 300 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("POST " + res.status);
+      return true;
+    }catch(e){
+      lastErr = e;
+      await sleep(250 + attempt * 300);
+    }
+  }
+  throw lastErr || new Error("POST failed");
 }
+async function mapPool(items, limit, fn){
+  const out = new Array(items.length);
+  let i = 0;
+  async function worker(){
+    while(i < items.length){
+      const idx = i++;
+      out[idx] = await fn(items[idx], idx);
+    }
+  }
+  const n = Math.max(1, Math.min(limit, items.length));
+  await Promise.all(Array.from({length:n}, () => worker()));
+  return out;
+}
+
 async function cloudUpsertPlayer(player, score, correct, lives){
   if(!player || !player.no) return {ok:false, status:"失敗"};
   const when = Math.floor(Date.now()/1000);
@@ -380,7 +424,7 @@ async function cloudUpsertPlayer(player, score, correct, lives){
   }
 }
 async function cloudFetchAll(){
-  const tasks = CLASS_ROSTER.map(async stu => {
+  const rows = await mapPool(CLASS_ROSTER, 3, async stu => {
     try{
       const ent = await cloudGet(stu.no);
       if(!ent) return null;
@@ -389,7 +433,6 @@ async function cloudFetchAll(){
       return {_err:true, name:stu.name, no:stu.no};
     }
   });
-  const rows = await Promise.all(tasks);
   const errs = rows.filter(r => r && r._err).length;
   const list = rows.filter(r => r && !r._err);
   list.sort((a,b)=>{
@@ -442,7 +485,7 @@ async function teacherClearBoard(){
   const el = document.getElementById("boardList");
   if(el) el.innerHTML = '<div class="board-status">Clearing…</div>';
   try{
-    await Promise.all(CLASS_ROSTER.map(stu => cloudWrite(stu.no, "0")));
+    await mapPool(CLASS_ROSTER, 2, stu => cloudWrite(stu.no, "0"));
     await refreshBoard();
   }catch(e){
     if(el) el.innerHTML = '<div class="board-status">清除失敗 · Clear failed</div>';
