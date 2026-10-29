@@ -183,7 +183,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
     <button class="btn" id="btnStart">START RACE ▶</button>
     <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
     <button class="btn btn-ghost" id="btnChangeName" type="button">Not me? Change name</button>
-    <p class="muted" style="margin-top:14px">老師說明：約 40 題簡單比較句；時間由 ~8s 漸減至 ~3s。可投影；平板點選车道即可。<br>排行榜雲端共用；老師清除密碼 teacher。</p>
+    <p class="muted" style="margin-top:14px">老師說明：約 40 題簡單比較句；時間由 ~8s 漸減至 ~3s。可投影；平板點選车道即可。<br>排行榜雲端共用（累積多局總分）；老師清除密碼 teacher。</p>
   </div>
 </div>
 
@@ -310,8 +310,8 @@ const TEACHER_CLEAR_PW = "teacher";
 let boardReturnOverlay = "overlayStart";
 
 function cloudKey(no){ return "s" + no; }
-function encodeScore(score, correct, lives, when){
-  return [score|0, correct|0, lives|0, when|0].join("-");
+function encodeScore(sumScore, games, totalCorrect, when){
+  return [sumScore|0, games|0, totalCorrect|0, when|0].join("-");
 }
 function parseScoreVal(raw){
   if(raw == null) return null;
@@ -320,7 +320,6 @@ function parseScoreVal(raw){
     try{ s = JSON.stringify(s); }catch(e){ return null; }
   }
   s = s.trim();
-  // JSON-encoded string e.g. "500-5-2-179"
   if((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))){
     try{ s = JSON.parse(s); }catch(e){ s = s.slice(1,-1); }
   }
@@ -329,24 +328,17 @@ function parseScoreVal(raw){
   if(!s || s === "0" || s === '""' || s === "null") return null;
   const parts = s.split("-");
   if(parts.length < 4) return null;
-  const score = parseInt(parts[0], 10);
-  const correct = parseInt(parts[1], 10);
-  const lives = parseInt(parts[2], 10);
+  const score = parseInt(parts[0], 10); // cumulative total
+  const games = parseInt(parts[1], 10);
+  const correct = parseInt(parts[2], 10); // cumulative correct
   const when = parseInt(parts[3], 10);
   if(!isFinite(score) || score <= 0) return null;
   return {
     score: score||0,
+    games: isFinite(games)?games:0,
     correct: isFinite(correct)?correct:0,
-    lives: isFinite(lives)?lives:0,
     when: isFinite(when)?when:0
   };
-}
-function isBetterEntry(a, b){
-  // true if a should replace b (a better)
-  if(!b) return true;
-  if(a.score !== b.score) return a.score > b.score;
-  if(a.lives !== b.lives) return a.lives > b.lives;
-  return a.when > b.when;
 }
 
 async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
@@ -410,14 +402,18 @@ async function mapPool(items, limit, fn){
 async function cloudUpsertPlayer(player, score, correct, lives){
   if(!player || !player.no) return {ok:false, status:"失敗"};
   const when = Math.floor(Date.now()/1000);
-  const entry = {score:score|0, correct:correct|0, lives:lives|0, when};
+  const addScore = score|0;
+  const addCorrect = correct|0;
   try{
     const existing = await cloudGet(player.no);
-    if(existing && !isBetterEntry(entry, existing)){
-      return {ok:true, status:"保持個人最佳", kept:true, existing};
+    const sum = (existing ? existing.score : 0) + addScore;
+    const games = (existing ? (existing.games||0) : 0) + 1;
+    const totalCorrect = (existing ? existing.correct : 0) + addCorrect;
+    if(addScore <= 0 && !existing){
+      return {ok:true, status:"無分數可累積", kept:true};
     }
-    await cloudWrite(player.no, encodeScore(entry.score, entry.correct, entry.lives, entry.when));
-    return {ok:true, status:"已更新", updated:true};
+    await cloudWrite(player.no, encodeScore(sum, games, totalCorrect, when));
+    return {ok:true, status:"已累積更新", updated:true, sum, games};
   }catch(e){
     console.warn("cloud upsert failed", e);
     return {ok:false, status:"失敗"};
@@ -437,7 +433,7 @@ async function cloudFetchAll(){
   const list = rows.filter(r => r && !r._err);
   list.sort((a,b)=>{
     if(b.score !== a.score) return b.score - a.score;
-    if(b.lives !== a.lives) return b.lives - a.lives;
+    if((b.games||0) !== (a.games||0)) return (b.games||0) - (a.games||0);
     return b.when - a.when;
   });
   return {list, errs};
@@ -454,7 +450,7 @@ function renderBoardList(list, errs){
     const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
     return '<div class="board-row"><span class="rank">'+medal+'</span>' +
       '<span class="who">'+esc(r.name)+' <span class="muted">('+r.no+')</span></span>' +
-      '<span class="meta">⭐ '+r.score+' · ✓ '+r.correct+' · ❤️ '+r.lives+'</span></div>';
+      '<span class="meta">⭐ '+r.score+' · '+((r.games||0))+'局 · ✓ '+r.correct+'</span></div>';
   }).join("") + (errs ? '<div class="board-status muted">部分讀取失敗 ('+errs+')</div>' : '');
 }
 async function refreshBoard(){
