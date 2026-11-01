@@ -154,9 +154,9 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
 .ekey-row:last-child{margin-bottom:0}
 .ekey-row.phrases{flex-wrap:nowrap;gap:6px}
 .ekey-btn{
-  flex:1 1 0;min-width:0;min-height:2.75rem;padding:8px 4px;
+  flex:1 1 0;min-width:0;min-height:3.05rem;padding:10px 6px;
   background:#fffef8;border:3px solid var(--ink);border-bottom-width:5px;
-  border-radius:10px;font-weight:900;font-size:clamp(1.05rem,2.2vw,1.45rem);line-height:1;
+  border-radius:12px;font-weight:900;font-size:clamp(1.12rem,2.4vw,1.55rem);line-height:1;
 }
 .ekey-btn:active{transform:translateY(2px);border-bottom-width:3px}
 .ekey-btn.wide{flex:1.5 1 0;font-size:clamp(.95rem,2vw,1.2rem);min-height:2.9rem}
@@ -321,7 +321,7 @@ const LS_PLAYER = "atc3a_player_v1";
 const LS_BEST = "atc3a_best_";
 const LS_BOARD = "atc3a_board_v1";
 const LS_ADMIN = "atc3a_admin_v1";
-const ADMIN_PASS = "teacher";
+const ADMIN_PASS = "31510323";
 
 const LOOKS = [
   { skin:"#f6c7a1", hair:"#3b2416", shirt:"#ef476f" },
@@ -445,10 +445,22 @@ function matchesAnswer(raw, phrases){
   n = n.replace(/\b(and|please|thanks)\b/g," ").replace(/\bthank you\b/g," ").replace(/\s+/g," ").trim();
   return n.length===0;
 }
-function buildOrders(){
-  const items = shuffle(ITEMS);
+function isQuantityPhrase(item){
+  return /\bof\b/i.test(item.phrase || "");
+}
+function buildOrders(mode){
+  const hard = mode==="hard";
+  const pool = hard ? ITEMS.filter(isQuantityPhrase) : ITEMS.slice();
+  const items = shuffle(pool);
   const orders = [];
   let i=0;
+  if(hard){
+    // Hard: one quantity phrase per customer only
+    for(let p=0;p<8;p++){
+      orders.push([items[i++ % items.length]]);
+    }
+    return orders;
+  }
   for(let p=0;p<ROUND_PATTERN.length;p++){
     if(ROUND_PATTERN[p]==="S") orders.push([items[i++ % items.length]]);
     else {
@@ -763,7 +775,7 @@ function startHTML(){
     '<div class="parade" aria-hidden="true">'+ITEMS.map(function(it){ return foodSVG(it,56); }).join("")+'</div>'+
     '<div class="modes">'+
       '<button type="button" class="mode-card mode-easy" data-action="easy"><h2>Easy</h2><p class="mode-name">Listen and pick</p><p>The customer says the order. Tap the pictures. Sometimes they want two items. Then press Serve. Last 4 customers: pictures shuffled, no English labels.</p><span class="keyhint">Key E</span></button>'+
-      '<button type="button" class="mode-card mode-hard" data-action="hard"><h2>Hard</h2><p class="mode-name">Picture and type</p><p>The customer shows pictures, not words. Type the full phrase (or tap the on-screen keyboard). Example: a packet of French fries. Two pictures? Type both phrases with and. No timer.</p><span class="keyhint">Key H</span></button>'+
+      '<button type="button" class="mode-card mode-hard" data-action="hard"><h2>Hard</h2><p class="mode-name">Picture and type</p><p>The customer shows one picture. Type one quantity phrase (or tap the on-screen keyboard). Example: a packet of French fries. Only phrases with of (a box of…, two cups of…). No timer.</p><span class="keyhint">Key H</span></button>'+
     '</div>'+
     '<p class="rules">You have 3 lives. Easy: the timer gets faster. Hard: no timer · use the on-screen keyboard.</p>'+
     '<p class="bests">Best Easy: '+readBest("easy")+' · Best Hard: '+readBest("hard")+'</p>'+
@@ -811,7 +823,6 @@ function eKeyboardHTML(){
     ["a","s","d","f","g","h","j","k","l"],
     ["z","x","c","v","b","n","m"]
   ];
-  const phrases = ["a ","two ","three ","of ","and ","please"];
   function row(keys, extraClass){
     return '<div class="ekey-row">'+keys.map(function(k){
       const cls = "ekey-btn"+(extraClass?" "+extraClass:"");
@@ -821,9 +832,6 @@ function eKeyboardHTML(){
     }).join("")+'</div>';
   }
   let html = '<div class="ekey" aria-label="On-screen keyboard">';
-  html += '<div class="ekey-row phrases">'+phrases.map(function(p){
-    return '<button type="button" class="ekey-btn phrase" data-action="ekey" data-key="phrase:'+encodeURIComponent(p)+'">'+esc(p.trim())+'</button>';
-  }).join("")+'</div>';
   letters.forEach(function(r){ html += row(r); });
   html += '<div class="ekey-row">'+
     '<button type="button" class="ekey-btn back" data-action="ekey" data-key="back">⌫</button>'+
@@ -873,7 +881,6 @@ function handleEKey(code){
     return;
   }
   if(code==="space"){ insertAtAnswer(" "); return; }
-  if(code.indexOf("phrase:")===0){ try{ insertAtAnswer(decodeURIComponent(code.slice(7))); }catch(e){ insertAtAnswer(code.slice(7)); } return; }
   if(code.length===1){ insertAtAnswer(code); return; }
 }
 function playHTML(){
@@ -883,7 +890,7 @@ function playHTML(){
   // Easy customers 5–8 (index 4–7): shuffled shelf + hide English labels under pictures
   const easyChallenge = !hard && state.index >= 4;
   const tip = hard
-    ? (order.length===2 ? "Type both full phrases. Use and." : "Type the full phrase.")
+    ? "Type the full quantity phrase."
     : (easyChallenge
       ? "No English labels · pictures shuffled. Listen carefully!"
       : "Tap the pictures. Keys 1–0, Q/W/E/R/T. Enter serves.");
@@ -995,7 +1002,7 @@ function beginGame(mode){
   unlockAudio();
   stopSpeech();
   state.mode = mode;
-  state.orders = buildOrders();
+  state.orders = buildOrders(state.mode);
   state.index = 0;
   state.picked = [];
   state.lives = 3;
