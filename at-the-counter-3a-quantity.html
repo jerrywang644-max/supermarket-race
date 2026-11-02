@@ -182,51 +182,47 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
 .item.is-in{background:#c8f7c5;border-color:#1b7a3a}
 .item.is-bad{animation:bad .32s ease;background:#ffd0d0}
 @keyframes bad{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.type-action{max-width:min(1400px,100%);width:100%;margin:0 auto;padding:4px 6px 6px}
 .timer.hidden{display:none}
-.ekey{
-  margin-top:6px;width:100%;max-width:100%;padding:8px 6px 8px;
-  background:#fff3e0;border:3px solid #7a3e1d;border-radius:14px;
-  user-select:none;-webkit-user-select:none;
+.match-board{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:960px;margin:0 auto;padding:2px 4px 4px;
 }
-.ekey-row{display:flex;flex-wrap:nowrap;gap:6px;justify-content:stretch;margin:0 0 6px;width:100%}
-.ekey-row:last-child{margin-bottom:0}
-.ekey-row.phrases{flex-wrap:nowrap;gap:6px}
-.ekey-btn{
-  flex:1 1 0;min-width:0;min-height:3.05rem;padding:10px 6px;
-  background:#fffef8;border:3px solid var(--ink);border-bottom-width:5px;
-  border-radius:12px;font-weight:900;font-size:clamp(1.12rem,2.4vw,1.55rem);line-height:1;
+.match-col{
+  background:#fffef8;border:4px solid var(--ink);border-radius:16px;padding:8px 8px 10px;
+  display:flex;flex-direction:column;gap:8px;min-width:0;
 }
-.ekey-btn:active{transform:translateY(2px);border-bottom-width:3px}
-.ekey-btn.wide{flex:1.5 1 0;font-size:clamp(.95rem,2vw,1.2rem);min-height:2.9rem}
-.ekey-btn.space{flex:3.2 1 0;min-width:0;font-size:clamp(1rem,2.2vw,1.3rem)}
-.ekey-btn.back{background:#ffd0d0;flex:1.2 1 0;font-size:clamp(1rem,2.2vw,1.3rem)}
-.ekey-btn.phrase{background:#dceeff;flex:1 1 0;min-width:0;font-size:clamp(.8rem,1.6vw,1.05rem);padding:8px 4px;white-space:nowrap}
-.ekey-btn.clear{background:#ffe66d;flex:1.2 1 0;font-size:clamp(.95rem,2vw,1.2rem)}
-@media (max-width:720px){
-  .ekey{padding:6px 4px 6px}
-  .ekey-row{gap:4px;margin:0 0 4px}
-  .ekey-btn{min-height:2.55rem;font-size:clamp(1rem,3.8vw,1.25rem);padding:6px 2px;border-width:2.5px;border-bottom-width:4px}
-  .ekey-btn.phrase{flex:1 1 0;min-width:0;white-space:nowrap;font-size:clamp(.72rem,2.8vw,.95rem);padding:6px 2px}
-  .type-action{max-width:100%;padding:2px 2px 4px}
-  .answer{min-height:48px;font-size:1.02rem}
+.match-col h3{
+  margin:0;text-align:center;font-size:clamp(.95rem,2vw,1.15rem);font-weight:900;
+  letter-spacing:.02em;
 }
-@media (min-width:900px){
-  .ekey-btn{min-height:3rem;padding:10px 6px;font-size:clamp(1.15rem,1.8vw,1.5rem)}
-  .ekey-row{gap:8px}
-  .ekey-btn.phrase{font-size:clamp(.95rem,1.4vw,1.15rem)}
+.match-col.qty{background:#efe4ff}
+.match-col.food{background:#e5f8df}
+.match-btn{
+  width:100%;min-height:3.2rem;padding:12px 10px;text-align:center;
+  background:#fff;border:3px solid var(--ink);border-bottom-width:6px;border-radius:14px;
+  font-weight:900;font-size:clamp(1rem,2.2vw,1.35rem);line-height:1.15;
 }
-/* Hard mode: less vertical scroll — compact top, hide unused basket, sticky keyboard */
+.match-btn:active{transform:translateY(2px);border-bottom-width:3px}
+.match-btn.selected{background:#ffe66d;border-color:#1b7a3a}
+.match-btn.is-bad{animation:bad .32s ease;background:#ffd0d0}
+.match-preview{
+  text-align:center;font-weight:900;font-size:clamp(1rem,2.2vw,1.25rem);
+  margin:6px 0 2px;min-height:1.4em;color:var(--navy);
+}
+/* Hard mode: compact stage, hide basket */
 .play.hard .basket-wrap{display:none}
-.play.hard .stage{padding:4px 8px 2px;gap:8px}
+.play.hard .stage{padding:4px 8px 2px;gap:8px;min-height:110px}
 .play.hard .who{width:78px}
 .play.hard .person{width:78px}
 .play.hard .held-card{width:min(132px,28vw);padding:4px}
 .play.hard .counter{padding:8px 6px 0}
-.play.hard .action{overflow:visible}
-.play.hard .answer{min-height:48px;resize:none;padding:8px 10px;font-size:1.08rem}
+.play.hard .action{overflow:auto;padding:4px 2px 6px}
 .play.hard .serve-bar{padding:4px 8px 8px}
-.play.hard .serve{min-height:48px;font-size:1.2rem}
+.play.hard .serve{min-height:52px;font-size:1.25rem}
+@media (max-width:720px){
+  .match-board{gap:8px;padding:0 2px}
+  .match-btn{min-height:2.85rem;padding:10px 6px;font-size:clamp(.92rem,3.4vw,1.15rem);border-width:2.5px;border-bottom-width:5px}
+  .match-col{padding:6px}
+}
 .admin-chip{
   display:inline-flex;align-items:center;gap:6px;flex:1 1 160px;min-width:0;
   background:#ffe66d;color:#1f140e;border:2px solid #1f140e;border-radius:10px;
@@ -237,11 +233,6 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
 .hud .icon-btn.admin-on{background:#ffe66d;color:#1f140e;border-color:#1f140e}
 .start-admin{margin:8px auto 0;display:block}
 
-.type-action label{display:block;font-weight:800;margin-bottom:4px}
-.answer{
-  width:100%;min-height:72px;resize:vertical;border:4px solid var(--ink);border-radius:14px;
-  padding:10px 12px;font-size:1.15rem;font-weight:700;background:#fff;
-}
 .serve-bar{flex:none;background:#9a5b2e;padding:6px 10px 10px;border-radius:12px 12px 0 0}
 .serve{
   width:100%;min-height:56px;border:4px solid var(--ink);border-radius:16px;
@@ -393,6 +384,9 @@ const state = {
   orders:[],
   index:0,
   picked:[],
+  hardQty:null,
+  hardFood:null,
+  hardOpts:null,
   lives:3,
   score:0,
   served:0,
@@ -493,6 +487,47 @@ function matchesAnswer(raw, phrases){
 }
 function isQuantityPhrase(item){
   return /\bof\b/i.test(item.phrase || "");
+}
+function splitQuantity(item){
+  const phrase = item.phrase || "";
+  const m = phrase.match(/^(.+?\bof)\s+(.+)$/i);
+  if(m) return { qty:m[1].trim(), food:m[2].trim() };
+  return { qty:phrase, food:item.short || phrase };
+}
+function allQtyParts(){
+  const seen = {};
+  const out = [];
+  ITEMS.filter(isQuantityPhrase).forEach(function(it){
+    const q = splitQuantity(it).qty;
+    if(!seen[q]){ seen[q]=1; out.push(q); }
+  });
+  return out;
+}
+function allFoodParts(){
+  const seen = {};
+  const out = [];
+  ITEMS.filter(isQuantityPhrase).forEach(function(it){
+    const f = splitQuantity(it).food;
+    if(!seen[f]){ seen[f]=1; out.push(f); }
+  });
+  return out;
+}
+function buildHardOptions(item){
+  const parts = splitQuantity(item);
+  const qtyPool = allQtyParts().filter(function(q){ return q !== parts.qty; });
+  const foodPool = allFoodParts().filter(function(f){ return f !== parts.food; });
+  const qtys = shuffle([parts.qty].concat(shuffle(qtyPool).slice(0,3)));
+  const foods = shuffle([parts.food].concat(shuffle(foodPool).slice(0,3)));
+  return { qtys:qtys, foods:foods, answer:parts };
+}
+function hardMatchReady(){
+  return !!(state.hardQty && state.hardFood);
+}
+function hardMatchCorrect(){
+  const order = currentOrder();
+  if(!order.length || !state.hardOpts) return false;
+  const ans = state.hardOpts.answer;
+  return state.hardQty === ans.qty && state.hardFood === ans.food;
 }
 function buildOrders(mode){
   const hard = mode==="hard";
@@ -833,10 +868,20 @@ function updateBasket(){
 }
 function refreshServe(){
   const btn = document.getElementById("serve-btn");
-  if(!btn || state.mode!=="easy") return;
-  const ready = orderComplete();
+  if(!btn) return;
+  let ready = false;
+  if(state.mode==="easy") ready = orderComplete();
+  else if(state.mode==="hard") ready = hardMatchReady();
+  else return;
   btn.classList.toggle("ready", ready);
   btn.textContent = ready ? "Serve now!" : "Serve";
+  const prev = document.getElementById("match-preview");
+  if(prev && state.mode==="hard"){
+    if(state.hardQty && state.hardFood) prev.textContent = state.hardQty + " " + state.hardFood;
+    else if(state.hardQty) prev.textContent = state.hardQty + " …";
+    else if(state.hardFood) prev.textContent = "… " + state.hardFood;
+    else prev.textContent = "Pick quantity + food";
+  }
 }
 function markPicked(id){
   document.querySelectorAll("[data-action='pick']").forEach(function(btn){
@@ -902,9 +947,9 @@ function startHTML(){
     '<div class="parade" aria-hidden="true">'+ITEMS.map(function(it){ return foodSVG(it,56); }).join("")+'</div>'+
     '<div class="modes">'+
       '<button type="button" class="mode-card mode-easy" data-action="easy"><h2>Easy</h2><p class="mode-name">Listen and pick</p><p>The customer says the order. Tap the pictures. Sometimes they want two items. Then press Serve. Last 4 customers: pictures shuffled, no English labels.</p><span class="keyhint">Key E</span></button>'+
-      '<button type="button" class="mode-card mode-hard" data-action="hard"><h2>Hard</h2><p class="mode-name">Picture and type</p><p>The customer shows one picture. Type one quantity phrase (or tap the on-screen keyboard). Example: a packet of French fries. Only phrases with of (a box of…, two cups of…). No timer.</p><span class="keyhint">Key H</span></button>'+
+      '<button type="button" class="mode-card mode-hard" data-action="hard"><h2>Hard</h2><p class="mode-name">Match the phrase</p><p>The customer shows one picture. Tap the correct quantity (left) and the food/drink (right). Example: a packet of + French fries. Only phrases with of. Timer gets faster.</p><span class="keyhint">Key H</span></button>'+
     '</div>'+
-    '<p class="rules">You have 3 lives. Easy: the timer gets faster. Hard: no timer · use the on-screen keyboard.</p>'+
+    '<p class="rules">You have 3 lives. Easy and Hard: the timer gets faster each customer.</p>'+
     '<p class="bests">Best Easy: '+readBest("easy")+' · Best Hard: '+readBest("hard")+'</p>'+
     '<p style="text-align:center"><button type="button" class="ghost start-admin" data-action="admin">'+(state.admin?"Admin ON · lock":"Admin unlock")+'</button></p>'+
     boardHTML()+
@@ -944,71 +989,40 @@ function adminChipHTML(){
   return '<div class="admin-chip" title="Teacher answer"><strong>Admin</strong><span>'+esc(adminTargetText())+'</span></div>';
 }
 
-function eKeyboardHTML(){
-  const letters = [
-    ["q","w","e","r","t","y","u","i","o","p"],
-    ["a","s","d","f","g","h","j","k","l"],
-    ["z","x","c","v","b","n","m"]
-  ];
-  function row(keys, extraClass){
-    return '<div class="ekey-row">'+keys.map(function(k){
-      const cls = "ekey-btn"+(extraClass?" "+extraClass:"");
-      const label = k===" " ? "space" : k;
-      const show = k===" " ? "Space" : k;
-      return '<button type="button" class="'+cls+'" data-action="ekey" data-key="'+esc(label==="space"?"space":k)+'">'+esc(show)+'</button>';
-    }).join("")+'</div>';
-  }
-  let html = '<div class="ekey" aria-label="On-screen keyboard">';
-  letters.forEach(function(r){ html += row(r); });
-  html += '<div class="ekey-row">'+
-    '<button type="button" class="ekey-btn back" data-action="ekey" data-key="back">⌫</button>'+
-    '<button type="button" class="ekey-btn space" data-action="ekey" data-key="space">Space</button>'+
-    '<button type="button" class="ekey-btn clear" data-action="ekey" data-key="clear">Clear</button>'+
-    '<button type="button" class="ekey-btn wide" data-action="ekey" data-key="enter">Serve ↵</button>'+
-  '</div></div>';
-  return html;
+function hardMatchHTML(){
+  const opts = state.hardOpts || { qtys:[], foods:[] };
+  const qtyBtns = opts.qtys.map(function(q){
+    const on = state.hardQty===q ? " selected" : "";
+    return '<button type="button" class="match-btn'+on+'" data-action="hard-qty" data-val="'+esc(q)+'">'+esc(q)+'</button>';
+  }).join("");
+  const foodBtns = opts.foods.map(function(f){
+    const on = state.hardFood===f ? " selected" : "";
+    return '<button type="button" class="match-btn'+on+'" data-action="hard-food" data-val="'+esc(f)+'">'+esc(f)+'</button>';
+  }).join("");
+  let preview = "Pick quantity + food";
+  if(state.hardQty && state.hardFood) preview = state.hardQty + " " + state.hardFood;
+  else if(state.hardQty) preview = state.hardQty + " …";
+  else if(state.hardFood) preview = "… " + state.hardFood;
+  return '<div class="action">'+
+    '<div class="match-board" role="group" aria-label="Match quantity and food">'+
+      '<div class="match-col qty"><h3>① Quantity</h3>'+qtyBtns+'</div>'+
+      '<div class="match-col food"><h3>② Food / drink</h3>'+foodBtns+'</div>'+
+    '</div>'+
+    '<p class="match-preview" id="match-preview">'+esc(preview)+'</p>'+
+  '</div>';
 }
-function insertAtAnswer(chunk){
-  const ta = document.getElementById("answer");
-  if(!ta) return;
-  const start = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
-  const end = ta.selectionEnd != null ? ta.selectionEnd : ta.value.length;
-  const before = ta.value.slice(0, start);
-  const after = ta.value.slice(end);
-  ta.value = before + chunk + after;
-  const pos = before.length + chunk.length;
-  ta.focus();
-  try{ ta.setSelectionRange(pos, pos); }catch(e){}
-}
-function handleEKey(code){
+function pickHardPart(kind, val){
   if(state.mode!=="hard" || state.screen!=="play") return;
-  if(code==="back"){
-    const ta = document.getElementById("answer");
-    if(!ta) return;
-    const start = ta.selectionStart != null ? ta.selectionStart : ta.value.length;
-    const end = ta.selectionEnd != null ? ta.selectionEnd : ta.value.length;
-    if(start!==end){
-      ta.value = ta.value.slice(0,start)+ta.value.slice(end);
-      try{ ta.setSelectionRange(start,start); }catch(e){}
-    } else if(start>0){
-      ta.value = ta.value.slice(0,start-1)+ta.value.slice(end);
-      try{ ta.setSelectionRange(start-1,start-1); }catch(e){}
-    }
-    ta.focus();
-    return;
-  }
-  if(code==="clear"){
-    const ta = document.getElementById("answer");
-    if(ta){ ta.value=""; ta.focus(); }
-    return;
-  }
-  if(code==="enter"){
-    const ta = document.getElementById("answer");
-    tryServeHard(ta ? ta.value : "");
-    return;
-  }
-  if(code==="space"){ insertAtAnswer(" "); return; }
-  if(code.length===1){ insertAtAnswer(code); return; }
+  if(kind==="qty") state.hardQty = (state.hardQty===val ? null : val);
+  else state.hardFood = (state.hardFood===val ? null : val);
+  document.querySelectorAll("[data-action='hard-qty']").forEach(function(btn){
+    btn.classList.toggle("selected", btn.getAttribute("data-val")===state.hardQty);
+  });
+  document.querySelectorAll("[data-action='hard-food']").forEach(function(btn){
+    btn.classList.toggle("selected", btn.getAttribute("data-val")===state.hardFood);
+  });
+  sfxOk();
+  refreshServe();
 }
 function playHTML(){
   const hard = state.mode==="hard";
@@ -1017,38 +1031,33 @@ function playHTML(){
   // Easy customers 5–8 (index 4–7): shuffled shelf + hide English labels under pictures
   const easyChallenge = !hard && state.index >= 4;
   const tip = hard
-    ? "Type the full quantity phrase."
+    ? "Tap quantity (left) and food/drink (right)."
     : (easyChallenge
       ? "No English labels · pictures shuffled. Listen carefully!"
       : "Tap the pictures. Keys 1–0, Q/W/E/R/T. Enter serves.");
   const talkInner = hard
     ? '<div class="held'+(order.length===2?" two":"")+'">'+
         order.map(function(item){ return '<div class="held-card">'+foodSVG(item,96)+'</div>'; }).join("")+
-      '</div><p class="order-kicker">Look · then type</p><p id="bubble-text" class="hint">'+esc(tip)+'</p>'
+      '</div><p class="order-kicker">Look · then match</p><p id="bubble-text" class="hint">'+esc(tip)+'</p>'
     : '<div class="bubble"><div class="order-kicker">Customer says</div><p id="bubble-text">'+esc(prompt)+'</p>'+
       '<button type="button" class="hear" data-action="hear">🔊 Hear again</button></div>';
-  const shelfList = hard ? ITEMS : (easyChallenge ? shuffle(ITEMS) : ITEMS);
+  const shelfList = easyChallenge ? shuffle(ITEMS) : ITEMS;
   const action = hard
-    ? '<div class="action type-action"><form id="serve-form" autocomplete="off"><label for="answer">Your phrase</label>'+
-      '<textarea id="answer" class="answer" name="phrase" maxlength="160" rows="2" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="e.g. a packet of French fries"></textarea></form>'+
-      eKeyboardHTML()+
-      '</div>'
+    ? hardMatchHTML()
     : '<div class="action"><div class="shelf'+(easyChallenge?' no-labs':'')+'">'+shelfList.map(function(item){
         const on = state.picked.indexOf(item.id)>=0 ? " is-in" : "";
         const lab = easyChallenge ? "" : '<span class="lab">'+esc(item.short)+'</span>';
         return '<button type="button" class="item'+on+'" data-action="pick" data-id="'+item.id+'" aria-label="'+esc(item.phrase)+'">'+
           foodSVG(item,52)+lab+'<span class="key">'+esc(item.key)+'</span></button>';
       }).join("")+'</div></div>';
-  const serve = hard
-    ? '<button type="submit" form="serve-form" id="serve-btn" class="serve">Serve</button>'
-    : '<button type="button" id="serve-btn" class="serve" data-action="serve">Serve</button>';
+  const serve = '<button type="button" id="serve-btn" class="serve" data-action="serve">Serve</button>';
   const whoName = "Customer "+(state.index+1);
   return '<main class="play '+state.mode+'">'+
     '<div class="hud">'+
-      '<div class="hud-title"><strong>At the counter</strong><span>'+(hard?"Hard · type":"Easy · listen")+' · '+esc(state.player?state.player.name:"")+'</span>'+
+      '<div class="hud-title"><strong>At the counter</strong><span>'+(hard?"Hard · match":"Easy · listen")+' · '+esc(state.player?state.player.name:"")+'</span>'+
       '<div class="dots" aria-hidden="true">'+dotsHTML()+'</div></div>'+
       '<div class="lives" id="lives" aria-label="'+state.lives+' lives left">'+heartsHTML()+'</div>'+
-      '<div class="timer'+(hard?' hidden':'')+'"'+(hard?' aria-hidden="true"':'')+'><div class="timer-top"><span>Time</span><span id="time-num">—</span></div>'+
+      '<div class="timer"><div class="timer-top"><span>Time</span><span id="time-num">—</span></div>'+
       '<div class="track"><div id="time-bar"></div></div></div>'+
       '<div class="score-chip"><span class="score-k">Score</span><span id="score">'+state.score+'</span></div>'+
       adminChipHTML()+
@@ -1091,7 +1100,7 @@ function endHTML(){
   let title = "Shop closed";
   if(!state.cleared) title = "No lives left";
   if(state.cleared && state.mistakes.length===0) title = "Well done!";
-  const modeName = state.mode==="easy" ? "Easy · Listen and pick" : "Hard · Picture and type";
+  const modeName = state.mode==="easy" ? "Easy · Listen and pick" : "Hard · Match the phrase";
   const best = readBest(state.mode);
   return '<main class="end-screen"><div class="awning"></div><div class="end-inner">'+
     starRow(stars)+
@@ -1115,21 +1124,21 @@ function render(){
   else if(state.screen==="start") app.innerHTML = startHTML();
   else if(state.screen==="play"){
     app.innerHTML = playHTML();
+    startTimer();
     if(state.mode==="easy"){
-      startTimer();
       const order = currentOrder();
       speak(makePrompt(order, state.index));
-    } else {
-      stopTimer();
-      later(function(){
-        const ta = document.getElementById("answer");
-        if(ta) ta.focus();
-      }, 60);
     }
     refreshServe();
   } else if(state.screen==="end") app.innerHTML = endHTML();
 }
 
+function prepareHardCustomer(){
+  state.hardQty = null;
+  state.hardFood = null;
+  const order = currentOrder();
+  state.hardOpts = (state.mode==="hard" && order[0]) ? buildHardOptions(order[0]) : null;
+}
 function beginGame(mode){
   unlockAudio();
   stopSpeech();
@@ -1144,6 +1153,7 @@ function beginGame(mode){
   state.mistakes = [];
   state.look = Math.floor(Math.random()*LOOKS.length);
   state.screen = "play";
+  prepareHardCustomer();
   render();
 }
 function leaveCustomer(next){
@@ -1157,6 +1167,7 @@ function leaveCustomer(next){
       state.cleared = true;
       finishGame();
     } else {
+      prepareHardCustomer();
       render();
     }
   }, stage ? 280 : 40);
@@ -1212,9 +1223,8 @@ function succeedCustomer(){
   setMood("happy");
   flash("Thank you!", "ok");
   const order = currentOrder();
-  const bonus = state.mode==="hard"
-    ? 40
-    : Math.max(20, Math.round((state.endsAt - performance.now())/1000)*5);
+  const timeBonus = Math.max(20, Math.round((state.endsAt - performance.now())/1000)*5);
+  const bonus = state.mode==="hard" ? timeBonus + 20 : timeBonus;
   const base = 100 + (order.length===2 ? 50 : 0);
   state.score += base + bonus;
   state.served += 1;
@@ -1252,22 +1262,33 @@ function tryServeEasy(){
   }
   succeedCustomer();
 }
-function tryServeHard(raw){
-  const order = currentOrder();
-  const phrases = order.map(function(x){ return x.phrase; });
-  if(matchesAnswer(raw, phrases)){
+function tryServeHard(){
+  if(!hardMatchReady()){
+    flash("Pick quantity and food", "bad");
+    sfxBad();
+    return;
+  }
+  if(hardMatchCorrect()){
     succeedCustomer();
     return;
   }
   sfxBad();
   shake();
   setMood("sad");
-  flash("Check the phrase!", "bad");
-  noteMistake("Typed: " + (raw || "(empty)"), false);
+  flash("Wrong match!", "bad");
+  const guess = (state.hardQty || "?") + " " + (state.hardFood || "?");
+  noteMistake("Matched: " + guess, false);
   state.lives -= 1;
   updateHearts();
-  const ta = document.getElementById("answer");
-  if(ta){ ta.select(); }
+  // flash wrong buttons
+  document.querySelectorAll(".match-btn.selected").forEach(function(btn){
+    btn.classList.add("is-bad");
+    later(function(){ btn.classList.remove("is-bad"); }, 320);
+  });
+  state.hardQty = null;
+  state.hardFood = null;
+  document.querySelectorAll(".match-btn.selected").forEach(function(btn){ btn.classList.remove("selected"); });
+  refreshServe();
   if(state.lives <= 0){
     stopTimer();
     later(finishGame, 650);
@@ -1370,13 +1391,17 @@ function onAction(action, el, ev){
     pickItem(el.getAttribute("data-id"));
     return;
   }
-  if(action==="serve"){
-    tryServeEasy();
+  if(action==="hard-qty"){
+    pickHardPart("qty", el.getAttribute("data-val")||"");
     return;
   }
-  if(action==="ekey"){
-    ev && ev.preventDefault && ev.preventDefault();
-    handleEKey(el.getAttribute("data-key")||"");
+  if(action==="hard-food"){
+    pickHardPart("food", el.getAttribute("data-val")||"");
+    return;
+  }
+  if(action==="serve"){
+    if(state.mode==="hard") tryServeHard();
+    else tryServeEasy();
     return;
   }
   if(action==="admin"){
@@ -1385,21 +1410,10 @@ function onAction(action, el, ev){
   }
 }
 
-app.addEventListener("mousedown", function(ev){
-  const el = ev.target.closest("[data-action='ekey']");
-  if(el && app.contains(el)) ev.preventDefault(); // keep textarea focus
-});
 app.addEventListener("click", function(ev){
   const el = ev.target.closest("[data-action]");
   if(!el || !app.contains(el)) return;
   onAction(el.getAttribute("data-action"), el, ev);
-});
-app.addEventListener("submit", function(ev){
-  const form = ev.target.closest("#serve-form");
-  if(!form) return;
-  ev.preventDefault();
-  const ta = document.getElementById("answer");
-  tryServeHard(ta ? ta.value : "");
 });
 
 document.addEventListener("keydown", function(ev){
@@ -1409,8 +1423,13 @@ document.addEventListener("keydown", function(ev){
   }
   if(state.screen!=="play") return;
   if(ev.key==="Escape"){ onAction("quit"); return; }
+  if(ev.key==="Enter"){
+    ev.preventDefault();
+    if(state.mode==="hard") tryServeHard();
+    else tryServeEasy();
+    return;
+  }
   if(state.mode==="easy"){
-    if(ev.key==="Enter"){ ev.preventDefault(); tryServeEasy(); return; }
     const map = {};
     ITEMS.forEach(function(it){ map[it.key]=it.id; });
     if(map[ev.key]){ ev.preventDefault(); pickItem(map[ev.key]); }
