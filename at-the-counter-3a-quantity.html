@@ -120,8 +120,8 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
 .cashier-slot{flex:none;text-align:center;width:96px;margin-left:auto}
 .cashier{width:96px;height:auto;display:block}
 .cashier-label{font-weight:800;font-size:.72rem;margin-top:-2px;color:#0b5e8a}
-.play.hard .cashier-slot{width:70px}
-.play.hard .cashier{width:70px}
+.play.hard .cashier-slot{width:72px}
+.play.hard .cashier{width:72px}
 .talk{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .bubble{
   background:#fff3bf;border:4px solid var(--ink);border-radius:18px;padding:8px 12px 10px;
@@ -208,25 +208,26 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
   text-align:center;font-weight:900;font-size:clamp(1rem,2.2vw,1.25rem);
   margin:6px 0 2px;min-height:1.4em;color:var(--navy);
 }
-/* Hard mode: compact stage, match board fills floor below stripe */
+/* Hard mode: larger held food (projection), cast balanced, match board below stripe */
 .play.hard .basket-wrap{display:none}
 .play.hard .wall-shelves{display:none}
 .play.hard .stage{
-  padding:2px 6px 0;gap:4px;min-height:0;flex:0 0 auto;
-  background:linear-gradient(#a8d8f0 0%,#c9ebff 58%,#fff6e8 58%,#fff6e8 100%);
+  padding:6px 8px 4px;gap:8px;min-height:0;flex:0 0 auto;
+  background:linear-gradient(#a8d8f0 0%,#c9ebff 56%,#fff6e8 56%,#fff6e8 100%);
 }
-.play.hard .stage-sky{inset:0 0 48% 0}
-.play.hard .cloud.c1,.play.hard .cloud.c2,.play.hard .cloud.c3{transform:scale(.75);transform-origin:top left}
-.play.hard .who{width:64px}
-.play.hard .person{width:64px}
-.play.hard .who-label{font-size:.68rem;margin-top:-2px}
-.play.hard .cashier-slot{width:56px}
-.play.hard .cashier{width:56px}
-.play.hard .cashier-label{font-size:.62rem}
-.play.hard .held-card{width:min(88px,20vw);padding:3px;border-width:3px;border-radius:12px}
-.play.hard .talk{gap:2px;align-items:center}
-.play.hard .order-kicker{font-size:.62rem;margin:0;letter-spacing:.04em}
-.play.hard #bubble-text.hint{font-size:clamp(.78rem,1.8vw,.95rem);margin:0;font-weight:800;line-height:1.2;text-align:center}
+.play.hard .stage-sky{inset:0 0 46% 0}
+.play.hard .cloud.c1,.play.hard .cloud.c2,.play.hard .cloud.c3{transform:scale(.85);transform-origin:top left}
+.play.hard .who{width:84px}
+.play.hard .person{width:84px}
+.play.hard .who-label{font-size:.75rem;margin-top:-2px}
+.play.hard .cashier-slot{width:72px}
+.play.hard .cashier{width:72px}
+.play.hard .cashier-label{font-size:.68rem}
+/* ~1.75× prior Hard 88px; still under Easy 200px */
+.play.hard .held-card{width:min(156px,28vw);padding:6px;border-width:4px;border-radius:14px}
+.play.hard .talk{gap:4px;align-items:center}
+.play.hard .order-kicker{font-size:.7rem;margin:0;letter-spacing:.04em}
+.play.hard #bubble-text.hint{font-size:clamp(.82rem,1.9vw,1rem);margin:0;font-weight:800;line-height:1.2;text-align:center}
 /* Clear yellow-black stripe (::before 18px) + wood lip (::after ~30px) */
 .play.hard .counter{
   padding:36px 8px 0;gap:0;min-height:0;
@@ -234,15 +235,15 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
 }
 .play.hard .action{
   flex:1 1 auto;min-height:0;overflow:hidden;
-  display:flex;flex-direction:column;gap:6px;
-  padding:4px 2px 2px;
+  display:flex;flex-direction:column;gap:4px;
+  padding:2px 2px 2px;
 }
 .play.hard .match-board{
   flex:1 1 auto;min-height:0;width:100%;max-width:none;margin:0;
   gap:10px;padding:0;align-items:stretch;
 }
 .play.hard .match-col{
-  min-height:0;overflow:auto;padding:8px;gap:8px;
+  min-height:0;overflow:auto;padding:8px;gap:6px;
   justify-content:flex-start;
 }
 .play.hard .match-col h3{
@@ -251,12 +252,12 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
   font-size:clamp(1rem,2.4vw,1.2rem);
 }
 .play.hard .match-btn{
-  flex:1 1 0;min-height:3rem;padding:12px 8px;
-  font-size:clamp(1rem,2.4vw,1.3rem);
+  flex:1 1 0;min-height:2.75rem;padding:10px 8px;
+  font-size:clamp(.98rem,2.3vw,1.25rem);
 }
 .play.hard .match-preview{
-  flex:none;margin:0;min-height:1.35em;
-  font-size:clamp(.95rem,2vw,1.15rem);
+  flex:none;margin:0;min-height:1.3em;
+  font-size:clamp(.92rem,2vw,1.1rem);
 }
 .play.hard .serve-bar{flex:none;padding:6px 8px 10px;border-radius:12px 12px 0 0}
 .play.hard .serve{min-height:52px;font-size:1.25rem}
@@ -266,21 +267,22 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
   .match-col{padding:6px}
   .play.hard .counter{padding:34px 6px 0}
   .play.hard .match-board{gap:8px}
-  .play.hard .match-btn{min-height:2.7rem;padding:10px 6px;font-size:clamp(.95rem,3.6vw,1.2rem)}
-  .play.hard .who{width:56px}
-  .play.hard .person{width:56px}
-  .play.hard .cashier-slot{width:50px}
-  .play.hard .cashier{width:50px}
-  .play.hard .held-card{width:min(76px,18vw)}
+  .play.hard .match-btn{min-height:2.55rem;padding:9px 6px;font-size:clamp(.92rem,3.4vw,1.15rem)}
+  .play.hard .who{width:72px}
+  .play.hard .person{width:72px}
+  .play.hard .cashier-slot{width:62px}
+  .play.hard .cashier{width:62px}
+  .play.hard .held-card{width:min(136px,34vw);padding:5px}
 }
 @media (max-height:700px){
-  .play.hard .who{width:52px}
-  .play.hard .person{width:52px}
-  .play.hard .cashier-slot{width:46px}
-  .play.hard .cashier{width:46px}
-  .play.hard .held-card{width:min(68px,16vw);padding:2px}
+  .play.hard .stage{padding:4px 6px 2px;gap:6px}
+  .play.hard .who{width:70px}
+  .play.hard .person{width:70px}
+  .play.hard .cashier-slot{width:60px}
+  .play.hard .cashier{width:60px}
+  .play.hard .held-card{width:min(128px,30vw);padding:4px}
   .play.hard .serve{min-height:48px;font-size:1.15rem}
-  .play.hard .match-btn{min-height:2.55rem;padding:8px 6px}
+  .play.hard .match-btn{min-height:2.4rem;padding:8px 6px}
 }
 .admin-chip{
   display:inline-flex;align-items:center;gap:6px;flex:1 1 160px;min-width:0;
@@ -1096,7 +1098,7 @@ function playHTML(){
       : "Tap the pictures. Keys 1–0, Q/W/E/R/T. Enter serves.");
   const talkInner = hard
     ? '<div class="held'+(order.length===2?" two":"")+'">'+
-        order.map(function(item){ return '<div class="held-card">'+foodSVG(item,72)+'</div>'; }).join("")+
+        order.map(function(item){ return '<div class="held-card">'+foodSVG(item,148)+'</div>'; }).join("")+
       '</div><p class="order-kicker">Look · then match</p><p id="bubble-text" class="hint">'+esc(tip)+'</p>'
     : '<div class="bubble"><div class="order-kicker">Customer says</div><p id="bubble-text">'+esc(prompt)+'</p>'+
       '<button type="button" class="hear" data-action="hear">🔊 Hear again</button></div>';
