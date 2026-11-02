@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b5e8a">
 <title>At the Counter · 3A Ch.3 Quantity Phrases</title>
 <style>
-:root { color-scheme: light; --ink:#1f140e; --sky:#8ecae6; --wood:#c9854a; --cream:#fff7ea; --navy:#0b5e8a; }
+:root { color-scheme: light; --ink:#1f140e; --sky:#a8d8f0; --wood:#d4a06a; --cream:#fff8ef; --navy:#0b5e8a; --pink:#ffb4c8; --butter:#ffe9a8; }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--cream);color:var(--ink);font-family:"Trebuchet MS","Segoe UI","PingFang HK","Microsoft JhengHei",system-ui,sans-serif;line-height:1.25}
@@ -16,10 +16,10 @@ button,textarea,input{font:inherit;color:inherit;touch-action:manipulation}
 button{cursor:pointer}
 button:focus-visible,textarea:focus-visible{outline:4px solid #ffd60a;outline-offset:2px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.awning{height:14px;flex:none;background:repeating-linear-gradient(90deg,#e63946 0 18px,#fff8ee 18px 36px)}
+.awning{height:14px;flex:none;background:repeating-linear-gradient(90deg,#ff8fb8 0 18px,#ffe9a8 18px 36px)}
 .start-screen,.end-screen,.name-screen{
   height:100%;overflow:auto;padding:0 14px 24px;
-  background:linear-gradient(#9fd8ff,#fff8ee 36%,#f0c48a 36%,#d39a62);
+  background:linear-gradient(#b8e4ff,#fff8ef 34%,#ffe9a8 34%,#f0c48a);
 }
 .start-inner,.end-inner,.name-inner{max-width:980px;margin:0 auto}
 h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter-spacing:-.03em;line-height:1.05;text-shadow:3px 3px 0 #ffd36a}
@@ -87,13 +87,41 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
 @keyframes pop{50%{transform:scale(1.12)}}
 .icon-btn{background:transparent;color:#fff;border:2px solid #fff;border-radius:999px;min-height:40px;padding:4px 10px;font-weight:800}
 .stage{
-  flex:none;display:flex;gap:10px;align-items:center;padding:8px 10px 6px;
-  background:linear-gradient(#8ecdf5,#fff6e8 70%);position:relative;
+  flex:none;display:flex;gap:10px;align-items:flex-end;padding:10px 10px 8px;
+  background:
+    linear-gradient(#a8d8f0 0%,#c9ebff 55%,#fff6e8 55%,#fff6e8 100%);
+  position:relative;overflow:hidden;min-height:132px;
 }
+.stage-sky{position:absolute;inset:0 0 45% 0;pointer-events:none;overflow:hidden}
+.cloud{
+  position:absolute;background:#fff;border-radius:999px;opacity:.92;
+  box-shadow:18px 8px 0 #fff, 34px 2px 0 #fff, -14px 6px 0 #fff;
+}
+.cloud.c1{width:46px;height:18px;top:10px;left:8%;}
+.cloud.c2{width:58px;height:20px;top:18px;left:38%;opacity:.85}
+.cloud.c3{width:40px;height:16px;top:8px;right:22%;}
+.wall-shelves{
+  position:absolute;left:0;right:0;bottom:42%;height:38px;pointer-events:none;
+  display:flex;gap:10px;padding:0 12px;align-items:flex-end;opacity:.55;
+}
+.wall-shelves span{
+  flex:1;height:100%;border-radius:8px 8px 4px 4px;border:2px solid rgba(31,20,14,.18);
+}
+.wall-shelves span:nth-child(1){background:#ffd6e7}
+.wall-shelves span:nth-child(2){background:#d4f5e9}
+.wall-shelves span:nth-child(3){background:#ffe9a8}
+.wall-shelves span:nth-child(4){background:#d6e8ff}
+.wall-shelves span:nth-child(5){background:#ffd9c2}
+.stage-cast{position:relative;z-index:1;display:flex;gap:10px;align-items:flex-end;width:100%;min-width:0}
 .stage.leaving{opacity:0;transform:translateX(-28px);transition:.35s ease}
 .who{flex:none;text-align:center;width:110px}
 .person{width:110px;height:auto;display:block}
 .who-label{font-weight:800;font-size:.82rem;margin-top:-4px}
+.cashier-slot{flex:none;text-align:center;width:96px;margin-left:auto}
+.cashier{width:96px;height:auto;display:block}
+.cashier-label{font-weight:800;font-size:.72rem;margin-top:-2px;color:#0b5e8a}
+.play.hard .cashier-slot{width:70px}
+.play.hard .cashier{width:70px}
 .talk{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .bubble{
   background:#fff3bf;border:4px solid var(--ink);border-radius:18px;padding:8px 12px 10px;
@@ -111,9 +139,20 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
   border-radius:999px;min-height:42px;padding:6px 14px;font-weight:800;
 }
 .counter{
-  flex:1;min-height:0;display:flex;flex-direction:column;background:
-    linear-gradient(transparent 0 8px,#7a3e1d 8px 22px,#c9854a 22px);
-  padding:18px 10px 0;position:relative;
+  flex:1;min-height:0;display:flex;flex-direction:column;
+  background:
+    repeating-conic-gradient(#ffe9a8 0% 25%, #fff8ef 0% 50%) 0 0 / 28px 28px;
+  padding:22px 10px 0;position:relative;
+}
+.counter::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:18px;
+  background:repeating-linear-gradient(90deg,#ffd166 0 14px,#1f140e 14px 28px);
+  border-radius:0 0 4px 4px;z-index:2;
+}
+.counter::after{
+  content:"";position:absolute;left:6px;right:6px;top:16px;height:14px;
+  background:linear-gradient(#e8b87a,#c9854a);border-radius:10px;
+  border:3px solid #7a3e1d;box-shadow:0 3px 0 rgba(31,20,14,.15);z-index:1;
 }
 .basket-wrap{flex:none;display:flex;justify-content:center;margin-top:-6px;margin-bottom:8px;min-height:78px}
 .basket{
@@ -203,7 +242,7 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
   width:100%;min-height:72px;resize:vertical;border:4px solid var(--ink);border-radius:14px;
   padding:10px 12px;font-size:1.15rem;font-weight:700;background:#fff;
 }
-.serve-bar{flex:none;background:#7a3e1d;padding:6px 10px 10px}
+.serve-bar{flex:none;background:#9a5b2e;padding:6px 10px 10px;border-radius:12px 12px 0 0}
 .serve{
   width:100%;min-height:56px;border:4px solid var(--ink);border-radius:16px;
   background:#ffd166;font-size:1.35rem;font-weight:900;border-bottom-width:7px;
@@ -256,6 +295,8 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
   .modes{grid-template-columns:1fr}
   .who{width:88px}
   .person{width:88px}
+  .cashier-slot{width:78px}
+  .cashier{width:78px}
   .shelf{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
   .item{min-height:96px}
   .serve{min-height:52px;font-size:1.2rem}
@@ -324,19 +365,24 @@ const LS_ADMIN = "atc3a_admin_v1";
 const ADMIN_PASS = "31510323";
 
 const LOOKS = [
-  { skin:"#f6c7a1", hair:"#3b2416", shirt:"#ef476f" },
-  { skin:"#e8b48a", hair:"#1b1b1b", shirt:"#118ab2" },
-  { skin:"#f3d2b5", hair:"#c47b2b", shirt:"#06a77d" },
-  { skin:"#d9a27a", hair:"#4a2c2a", shirt:"#7b2cbf" },
-  { skin:"#c9845a", hair:"#111111", shirt:"#f77f00" },
-  { skin:"#f7d7c5", hair:"#6b3a2a", shirt:"#d62828" },
-  { skin:"#e0ac88", hair:"#22223b", shirt:"#0077b6" },
-  { skin:"#f0c9a0", hair:"#8d5524", shirt:"#2a9d8f" }
+  { id:"short", skin:"#f6c7a1", hair:"#3b2416", shirt:"#ef476f", accent:"#ffd166" },
+  { id:"cap", skin:"#e8b48a", hair:"#1b1b1b", shirt:"#118ab2", accent:"#e63946" },
+  { id:"braids", skin:"#f3d2b5", hair:"#c47b2b", shirt:"#06a77d", accent:"#ff8fb8" },
+  { id:"glasses", skin:"#d9a27a", hair:"#4a2c2a", shirt:"#7b2cbf", accent:"#90e0ef" },
+  { id:"twins", skin:"#c9845a", hair:"#111111", shirt:"#f77f00", accent:"#ffb4c8" },
+  { id:"bob", skin:"#f7d7c5", hair:"#6b3a2a", shirt:"#d62828", accent:"#bde0fe" },
+  { id:"spiky", skin:"#e0ac88", hair:"#22223b", shirt:"#0077b6", accent:"#caffbf" },
+  { id:"bun", skin:"#f0c9a0", hair:"#8d5524", shirt:"#2a9d8f", accent:"#ffd6a5" }
 ];
 const MOUTHS = {
   wait:"M46 78 Q70 90 94 78",
   happy:"M44 76 Q70 98 96 76",
   sad:"M46 88 Q70 74 94 88"
+};
+const CASHIER_MOUTHS = {
+  idle:"M52 78 Q70 88 88 78",
+  happy:"M50 76 Q70 96 90 76",
+  awkward:"M52 86 Q70 74 88 86"
 };
 
 const state = {
@@ -496,16 +542,85 @@ function foodSVG(item, size){
     '<img class="food-ico" width="'+s+'" height="'+s+'" alt="'+esc(item.phrase)+'" src="'+src+'"/>'+
     badge+'</span>';
 }
+function hairParts(L){
+  const h = L.hair;
+  switch(L.id){
+    case "cap":
+      return '<path d="M38 58 Q70 22 102 58" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>'+
+        '<path d="M34 54 Q70 18 106 54 L106 62 Q70 48 34 62 Z" fill="'+L.accent+'" stroke="#1f140e" stroke-width="3"/>'+
+        '<rect x="62" y="28" width="16" height="10" rx="3" fill="#fff8ef" stroke="#1f140e" stroke-width="2"/>';
+    case "braids":
+      return '<path d="M36 58 Q70 16 104 58" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>'+
+        '<path d="M34 62 Q28 92 36 118" fill="none" stroke="'+h+'" stroke-width="10" stroke-linecap="round"/>'+
+        '<path d="M106 62 Q112 92 104 118" fill="none" stroke="'+h+'" stroke-width="10" stroke-linecap="round"/>'+
+        '<circle cx="36" cy="120" r="6" fill="'+L.accent+'" stroke="#1f140e" stroke-width="2"/>'+
+        '<circle cx="104" cy="120" r="6" fill="'+L.accent+'" stroke="#1f140e" stroke-width="2"/>';
+    case "glasses":
+      return '<path d="M38 56 Q70 20 102 56" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>'+
+        '<circle cx="54" cy="64" r="11" fill="none" stroke="#1f140e" stroke-width="3"/>'+
+        '<circle cx="86" cy="64" r="11" fill="none" stroke="#1f140e" stroke-width="3"/>'+
+        '<path d="M65 64 H75" stroke="#1f140e" stroke-width="3"/>';
+    case "twins":
+      return '<path d="M40 60 Q70 22 100 60" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>'+
+        '<circle cx="34" cy="48" r="12" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>'+
+        '<circle cx="106" cy="48" r="12" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>'+
+        '<circle cx="34" cy="48" r="4" fill="'+L.accent+'"/>'+
+        '<circle cx="106" cy="48" r="4" fill="'+L.accent+'"/>';
+    case "bob":
+      return '<path d="M30 58 Q70 14 110 58 L112 86 Q96 78 70 82 Q44 78 28 86 Z" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>'+
+        '<path d="M42 48 Q70 28 98 48" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>';
+    case "spiky":
+      return '<path d="M36 62 L46 28 L58 54 L70 22 L82 54 L94 28 L104 62 Q70 48 36 62 Z" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>';
+    case "bun":
+      return '<circle cx="70" cy="28" r="14" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>'+
+        '<path d="M36 60 Q70 20 104 60" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>'+
+        '<circle cx="70" cy="28" r="5" fill="'+L.accent+'" stroke="#1f140e" stroke-width="2"/>';
+    default: // short
+      return '<path d="M36 60 Q70 24 104 60 L100 48 Q70 18 40 48 Z" fill="'+h+'" stroke="#1f140e" stroke-width="3"/>';
+  }
+}
 function personSVG(mood){
   const L = LOOKS[state.look % LOOKS.length];
   const mouth = MOUTHS[mood] || MOUTHS.wait;
   return '<svg class="person" viewBox="0 0 140 160" aria-hidden="true">'+
     '<ellipse cx="70" cy="148" rx="38" ry="10" fill="rgba(0,0,0,.12)"/>'+
-    '<rect x="42" y="95" width="56" height="48" rx="14" fill="'+L.shirt+'" stroke="#1f140e" stroke-width="3"/>'+
+    '<rect x="42" y="95" width="56" height="48" rx="16" fill="'+L.shirt+'" stroke="#1f140e" stroke-width="3"/>'+
+    '<rect x="48" y="108" width="18" height="8" rx="3" fill="'+L.accent+'" stroke="#1f140e" stroke-width="1.5"/>'+
     '<circle cx="70" cy="62" r="34" fill="'+L.skin+'" stroke="#1f140e" stroke-width="3"/>'+
-    '<path d="M36 58 Q70 18 104 58" fill="'+L.hair+'" stroke="#1f140e" stroke-width="3"/>'+
-    '<circle cx="56" cy="62" r="4" fill="#1f140e"/><circle cx="84" cy="62" r="4" fill="#1f140e"/>'+
+    hairParts(L)+
+    '<circle cx="56" cy="62" r="4.5" fill="#1f140e"/><circle cx="84" cy="62" r="4.5" fill="#1f140e"/>'+
+    '<circle cx="58" cy="60" r="1.4" fill="#fff"/><circle cx="86" cy="60" r="1.4" fill="#fff"/>'+
     '<path id="mouth" d="'+mouth+'" fill="none" stroke="#1f140e" stroke-width="3" stroke-linecap="round"/>'+
+    '</svg>';
+}
+function cashierSVG(mood){
+  const m = CASHIER_MOUTHS[mood] || CASHIER_MOUTHS.idle;
+  const blush = mood==="awkward"
+    ? '<ellipse cx="48" cy="70" rx="6" ry="4" fill="#ff8fb8" opacity=".75"/><ellipse cx="92" cy="70" rx="6" ry="4" fill="#ff8fb8" opacity=".75"/>'
+    : '<ellipse cx="48" cy="70" rx="5" ry="3.5" fill="#ffb4c8" opacity=".55"/><ellipse cx="92" cy="70" rx="5" ry="3.5" fill="#ffb4c8" opacity=".55"/>';
+  const brows = mood==="awkward"
+    ? '<path d="M48 50 Q56 46 62 52" fill="none" stroke="#1f140e" stroke-width="2.5" stroke-linecap="round"/>'+
+      '<path d="M78 52 Q84 46 92 50" fill="none" stroke="#1f140e" stroke-width="2.5" stroke-linecap="round"/>'
+    : mood==="happy"
+    ? '<path d="M48 52 Q55 48 62 52" fill="none" stroke="#1f140e" stroke-width="2.5" stroke-linecap="round"/>'+
+      '<path d="M78 52 Q85 48 92 52" fill="none" stroke="#1f140e" stroke-width="2.5" stroke-linecap="round"/>'
+    : '<path d="M48 52 H62" fill="none" stroke="#1f140e" stroke-width="2.5" stroke-linecap="round"/>'+
+      '<path d="M78 52 H92" fill="none" stroke="#1f140e" stroke-width="2.5" stroke-linecap="round"/>';
+  return '<svg class="cashier" id="cashier-svg" viewBox="0 0 140 160" aria-hidden="true" data-mood="'+mood+'">'+
+    '<ellipse cx="70" cy="150" rx="34" ry="8" fill="rgba(0,0,0,.12)"/>'+
+    '<rect x="40" y="96" width="60" height="50" rx="16" fill="#4cc9f0" stroke="#1f140e" stroke-width="3"/>'+
+    '<path d="M40 112 H100" stroke="#1f140e" stroke-width="2.5"/>'+
+    '<rect x="52" y="118" width="36" height="18" rx="5" fill="#fffef8" stroke="#1f140e" stroke-width="2.5"/>'+
+    '<text x="70" y="131" text-anchor="middle" font-size="9" font-weight="800" font-family="Trebuchet MS,Segoe UI,sans-serif" fill="#0b5e8a">Wang\'s</text>'+
+    '<circle cx="70" cy="62" r="36" fill="#f6c7a1" stroke="#1f140e" stroke-width="3"/>'+
+    '<path d="M34 58 Q70 14 106 58" fill="#3b2416" stroke="#1f140e" stroke-width="3"/>'+
+    '<ellipse cx="70" cy="34" rx="28" ry="14" fill="#118ab2" stroke="#1f140e" stroke-width="3"/>'+
+    '<rect x="48" y="30" width="44" height="10" rx="4" fill="#ffd166" stroke="#1f140e" stroke-width="2"/>'+
+    blush+
+    brows+
+    '<circle cx="54" cy="62" r="4.5" fill="#1f140e"/><circle cx="86" cy="62" r="4.5" fill="#1f140e"/>'+
+    '<circle cx="56" cy="60" r="1.4" fill="#fff"/><circle cx="88" cy="60" r="1.4" fill="#fff"/>'+
+    '<path id="cashier-mouth" d="'+m+'" fill="none" stroke="#1f140e" stroke-width="3" stroke-linecap="round"/>'+
     '</svg>';
 }
 
@@ -666,6 +781,18 @@ function flash(text, kind){
 function setMood(mood){
   const mouth = document.getElementById("mouth");
   if(mouth && MOUTHS[mood]) mouth.setAttribute("d", MOUTHS[mood]);
+  const cm = document.getElementById("cashier-mouth");
+  const cMood = mood==="happy" ? "happy" : mood==="sad" ? "awkward" : "idle";
+  if(cm && CASHIER_MOUTHS[cMood]) cm.setAttribute("d", CASHIER_MOUTHS[cMood]);
+  const svg = document.getElementById("cashier-svg");
+  if(svg){
+    // re-render cashier for brow/blush on mood change
+    const slot = svg.parentElement;
+    if(slot){
+      const label = slot.querySelector(".cashier-label");
+      slot.innerHTML = cashierSVG(cMood) + (label ? label.outerHTML : '<div class="cashier-label">Cashier</div>');
+    }
+  }
 }
 function shake(){
   const el = document.querySelector(".play");
@@ -930,8 +1057,13 @@ function playHTML(){
       '<button type="button" class="icon-btn" data-action="quit">Quit</button>'+
     '</div>'+
     '<div class="stage" id="stage">'+
-      '<div class="who">'+personSVG("wait")+'<div class="who-label">'+whoName+'</div></div>'+
-      '<div class="talk">'+talkInner+'</div>'+
+      '<div class="stage-sky" aria-hidden="true"><i class="cloud c1"></i><i class="cloud c2"></i><i class="cloud c3"></i></div>'+
+      '<div class="wall-shelves" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>'+
+      '<div class="stage-cast">'+
+        '<div class="who">'+personSVG("wait")+'<div class="who-label">'+whoName+'</div></div>'+
+        '<div class="talk">'+talkInner+'</div>'+
+        '<div class="cashier-slot">'+cashierSVG("idle")+'<div class="cashier-label">Cashier</div></div>'+
+      '</div>'+
     '</div>'+
     '<div class="counter">'+
       '<div class="basket-wrap"><div class="basket" id="basket" aria-label="Basket">'+slotsHTML()+'</div></div>'+
