@@ -945,7 +945,7 @@ function boardHTML(mode){
   const localNote = local.length
     ? '<p class="bests">本機備份：'+local.map(function(r){ return esc(r.name)+' '+(r.total||0); }).join(' · ')+'</p>'
     : '';
-  return '<div class="board"><h2>🏆 雲端榜 · Class Top</h2>'+
+  return '<div class="board"><h2>🏆 雲端榜 · 中文班（鍵 a）</h2>'+
     '<div id="cloudBoardBody"><p class="bests">Loading cloud board…</p></div>'+
     '<p style="text-align:center;margin:8px 0 0">'+
       '<button type="button" class="ghost" data-action="cloud-refresh">Refresh</button> '+
@@ -1162,7 +1162,7 @@ function nameHTML(){
   return '<main class="name-screen"><div class="awning"></div><div class="name-inner">'+
     '<h1>At the counter</h1>'+
     '<p class="chapter">Longman 3A · Ch.3 · Quantity phrases</p>'+
-    '<p class="lead">先選姓名 · Tap your name (class no.)</p>'+
+    '<p class="lead">先選姓名 · 中文班雲端榜（鍵 a）· Tap your name (class no.)</p>'+
     '<div class="name-grid">'+
     CLASS_ROSTER.map(function(p){
       const sel = saved && saved.no===p.no ? " selected" : "";

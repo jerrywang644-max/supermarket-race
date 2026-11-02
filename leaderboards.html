@@ -20,11 +20,21 @@ h1{font-size:clamp(1.6rem,4vw,2.2rem);margin:0 0 6px}
   background:#0d9488;color:#fff;font-family:inherit;font-size:.95rem
 }
 .nav a.ghost,.btn.ghost{background:#fff;color:#0f766e;border:2px solid #99f6e4}
+.class-block{margin:8px 0 28px}
+.class-head{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
+  margin:0 0 12px;padding:12px 14px;border-radius:16px;font-weight:900
+}
+.class-head.zh{background:#ecfeff;border:3px solid #5eead4;color:#0f766e}
+.class-head.jacky{background:#fff7ed;border:3px solid #fdba74;color:#9a3412}
+.class-head h2{margin:0;font-size:1.2rem}
+.class-head .tag{font-size:.9rem;font-weight:800;opacity:.9}
 .card{
   background:#fff;border:3px solid #99f6e4;border-radius:20px;padding:16px 16px 12px;
-  margin:0 0 18px;box-shadow:0 8px 24px rgba(15,118,110,.08)
+  margin:0 0 14px;box-shadow:0 8px 24px rgba(15,118,110,.08)
 }
-.card h2{margin:0 0 4px;font-size:1.25rem}
+.class-block.jacky .card{border-color:#fed7aa}
+.card h3{margin:0 0 4px;font-size:1.2rem}
 .card .meta{color:#64748b;font-weight:700;font-size:.9rem;margin-bottom:10px}
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
 table{width:100%;border-collapse:collapse;font-size:1.05rem}
@@ -41,62 +51,77 @@ code{background:#ecfeff;padding:1px 6px;border-radius:6px}
 <body>
 <div class="wrap">
   <h1>🏆 雲端排行榜總覽</h1>
-  <p class="sub">Class Cloud Leaderboards · 老師可喺呢頁睇晒五個遊戲嘅 Top（同一雲端帳）。清除請用各遊戲內「Clear (teacher)」；密碼一般係 <code>teacher</code>（At the Counter 亦可用管理員密碼）。</p>
+  <p class="sub">兩班分開睇榜 · 中文班用中文姓名；Jacky 英文班用英文姓名。清除請用各遊戲內「Clear (teacher)」；密碼一般係 <code>teacher</code>（At the Counter 亦可用管理員密碼）。</p>
   <div class="nav">
-    <a href="./">Supermarket Race</a>
     <a href="connectives-race-and-but-or.html">Connectives</a>
     <a href="at-the-counter-3a-quantity.html?v=11">At the Counter</a>
+    <a href="./">Supermarket Race</a>
     <a href="comparative-jump-parkour.html">Comparative Jump</a>
     <a href="comparing-adjectives-lesson.html">Comparing Adjectives</a>
     <a class="ghost" href="#" id="btnRefreshAll">↻ 全部重新整理</a>
   </div>
 
-  <section class="card" data-prefix="s" data-roster="jacky" id="board-s">
-    <h2>🛒 Supermarket Race</h2>
-    <div class="meta">鍵前綴 <code>s</code> · Jacky 英文班 · 累積分</div>
-    <div class="actions"><button class="btn" data-load="s">載入榜</button></div>
-    <div class="status">尚未載入</div>
-    <div class="table-wrap"></div>
-  </section>
+  <div class="class-block zh">
+    <div class="class-head zh">
+      <h2>中文班</h2>
+      <span class="tag">中文姓名 · Connectives（c）· At the Counter（a）· 含 Mr.Wang #27</span>
+    </div>
 
-  <section class="card" data-prefix="c" data-roster="jacky" id="board-c">
-    <h2>🔗 Connectives Race（and / but / or）</h2>
-    <div class="meta">鍵前綴 <code>c</code> · Jacky 英文班 · 累積分</div>
-    <div class="actions"><button class="btn" data-load="c">載入榜</button></div>
-    <div class="status">尚未載入</div>
-    <div class="table-wrap"></div>
-  </section>
+    <section class="card" data-prefix="c" data-roster="zh" id="board-c">
+      <h3>🔗 Connectives Race（and / but / or）</h3>
+      <div class="meta">鍵前綴 <code>c</code> · 中文班名 · 累積分</div>
+      <div class="actions"><button class="btn" data-load="c">載入榜</button></div>
+      <div class="status">尚未載入</div>
+      <div class="table-wrap"></div>
+    </section>
 
-  <section class="card" data-prefix="a" data-roster="zh" id="board-a">
-    <h2>🏪 At the Counter（3A Quantity）</h2>
-    <div class="meta">鍵前綴 <code>a</code> · 中文班名 · 累積分（Easy／Hard 合計）</div>
-    <div class="actions"><button class="btn" data-load="a">載入榜</button></div>
-    <div class="status">尚未載入</div>
-    <div class="table-wrap"></div>
-  </section>
+    <section class="card" data-prefix="a" data-roster="zh" id="board-a">
+      <h3>🏪 At the Counter（3A Quantity）</h3>
+      <div class="meta">鍵前綴 <code>a</code> · 中文班名 · 累積分（Easy／Hard 合計）</div>
+      <div class="actions"><button class="btn" data-load="a">載入榜</button></div>
+      <div class="status">尚未載入</div>
+      <div class="table-wrap"></div>
+    </section>
+  </div>
 
-  <section class="card" data-prefix="j" data-roster="jacky" id="board-j">
-    <h2>🏃 Comparative Jump</h2>
-    <div class="meta">鍵前綴 <code>j</code> · Jacky 英文班 · 累積分</div>
-    <div class="actions"><button class="btn" data-load="j">載入榜</button></div>
-    <div class="status">尚未載入</div>
-    <div class="table-wrap"></div>
-  </section>
+  <div class="class-block jacky">
+    <div class="class-head jacky">
+      <h2>Jacky 英文班</h2>
+      <span class="tag">英文姓名 1–26 · Supermarket（s）· Jump（j）· Comparing Adjectives（d）</span>
+    </div>
 
-  <section class="card" data-prefix="d" data-roster="jacky" id="board-d">
-    <h2>📚 Comparing Adjectives 課堂站</h2>
-    <div class="meta">鍵前綴 <code>d</code> · Jacky 英文班 · 最佳總分（最高 51）</div>
-    <div class="actions"><button class="btn" data-load="d">載入榜</button></div>
-    <div class="status">尚未載入</div>
-    <div class="table-wrap"></div>
-  </section>
+    <section class="card" data-prefix="s" data-roster="jacky" id="board-s">
+      <h3>🛒 Supermarket Race</h3>
+      <div class="meta">鍵前綴 <code>s</code> · Jacky 英文班 · 累積分</div>
+      <div class="actions"><button class="btn" data-load="s">載入榜</button></div>
+      <div class="status">尚未載入</div>
+      <div class="table-wrap"></div>
+    </section>
+
+    <section class="card" data-prefix="j" data-roster="jacky" id="board-j">
+      <h3>🏃 Comparative Jump</h3>
+      <div class="meta">鍵前綴 <code>j</code> · Jacky 英文班 · 累積分</div>
+      <div class="actions"><button class="btn" data-load="j">載入榜</button></div>
+      <div class="status">尚未載入</div>
+      <div class="table-wrap"></div>
+    </section>
+
+    <section class="card" data-prefix="d" data-roster="jacky" id="board-d">
+      <h3>📚 Comparing Adjectives 課堂站</h3>
+      <div class="meta">鍵前綴 <code>d</code> · Jacky 英文班 · 最佳總分（最高 51）</div>
+      <div class="actions"><button class="btn" data-load="d">載入榜</button></div>
+      <div class="status">尚未載入</div>
+      <div class="table-wrap"></div>
+    </section>
+  </div>
 
   <div class="note">
+    兩班分開：中文班＝Connectives＋At the Counter；Jacky 英文班＝Supermarket Race＋Comparative Jump＋Comparing Adjectives。<br>
     清除方式：進入各遊戲 → Leaderboard → Clear (teacher)。<br>
     Supermarket／Connectives／Jump／Comparing Adjectives 密碼：<code>teacher</code><br>
     At the Counter 可用管理員密碼或 <code>teacher</code>。
   </div>
-  <footer>Cloud: keyvalue.immanuel.co · app 9qeew60c · 只讀總覽頁不會改分數</footer>
+  <footer>Cloud: keyvalue.immanuel.co · app 9qeew60c · 只讀總覽頁不會改分數 · viewer v2</footer>
 </div>
 <script>
 (function(){
@@ -233,10 +258,10 @@ document.querySelectorAll("[data-load]").forEach(btn=>{
 });
 document.getElementById("btnRefreshAll").addEventListener("click", async (e)=>{
   e.preventDefault();
-  for(const p of ["s","c","a","j","d"]) await loadOne(p);
+  for(const p of ["c","a","s","j","d"]) await loadOne(p);
 });
-// auto-load all on open
-["s","c","a","j","d"].forEach(p => loadOne(p));
+// auto-load all on open (中文班 first)
+["c","a","s","j","d"].forEach(p => loadOne(p));
 })();
 </script>
 </body>
