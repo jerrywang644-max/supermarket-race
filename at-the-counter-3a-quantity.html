@@ -1010,7 +1010,7 @@ function startHTML(){
       '<button type="button" class="mode-card mode-easy" data-action="easy"><h2>Easy</h2><p class="mode-name">Listen and pick</p><p>The customer says the order. Tap the pictures. Sometimes they want two items. Then press Serve. Last 4 customers: pictures shuffled, no English labels.</p><span class="keyhint">Key E</span></button>'+
       '<button type="button" class="mode-card mode-hard" data-action="hard"><h2>Hard</h2><p class="mode-name">Match the phrase</p><p>The customer shows one picture. Tap the correct quantity (left) and the food/drink (right). Example: a packet of + French fries. Only phrases with of. Timer gets faster.</p><span class="keyhint">Key H</span></button>'+
     '</div>'+
-    '<p class="rules">You have 3 lives. Easy and Hard: the timer gets faster each customer.</p>'+
+    '<p class="rules">You have 3 lives. Faster serves = higher score (100 + leftover seconds × 10). Timer gets faster each customer.</p>'+
     '<p class="bests">Best Easy: '+readBest("easy")+' · Best Hard: '+readBest("hard")+'</p>'+
     '<p style="text-align:center"><button type="button" class="ghost start-admin" data-action="admin">'+(state.admin?"Admin ON · lock":"Admin unlock")+'</button></p>'+
     boardHTML()+
@@ -1282,13 +1282,11 @@ function succeedCustomer(){
   stopSpeech();
   sfxServe();
   setMood("happy");
-  flash("Thank you!", "ok");
-  const order = currentOrder();
-  const timeBonus = Math.max(20, Math.round((state.endsAt - performance.now())/1000)*5);
-  const bonus = state.mode==="hard" ? timeBonus + 20 : timeBonus;
-  const base = 100 + (order.length===2 ? 50 : 0);
-  state.score += base + bonus;
+  const remain = Math.max(0, Math.floor((state.endsAt - performance.now())/1000));
+  const gained = 100 + remain * 10;
+  state.score += gained;
   state.served += 1;
+  flash("Thank you! +" + gained, "ok");
   updateScore();
   // mark any prior mistake row for this customer as recovered
   for(let i=0;i<state.mistakes.length;i++){
