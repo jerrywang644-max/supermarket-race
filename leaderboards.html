@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>雲端排行榜 · Class Leaderboards</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:"Segoe UI","PingFang HK","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  background:linear-gradient(180deg,#ecfeff,#fff7ed);color:#134e4a;min-height:100vh;
+}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:clamp(1.6rem,4vw,2.2rem);margin:0 0 6px}
+.sub{color:#0f766e;font-weight:700;margin-bottom:18px;line-height:1.45}
+.nav{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 22px}
+.nav a,.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:10px 14px;border-radius:999px;font-weight:800;text-decoration:none;border:none;cursor:pointer;
+  background:#0d9488;color:#fff;font-family:inherit;font-size:.95rem
+}
+.nav a.ghost,.btn.ghost{background:#fff;color:#0f766e;border:2px solid #99f6e4}
+.card{
+  background:#fff;border:3px solid #99f6e4;border-radius:20px;padding:16px 16px 12px;
+  margin:0 0 18px;box-shadow:0 8px 24px rgba(15,118,110,.08)
+}
+.card h2{margin:0 0 4px;font-size:1.25rem}
+.card .meta{color:#64748b;font-weight:700;font-size:.9rem;margin-bottom:10px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+table{width:100%;border-collapse:collapse;font-size:1.05rem}
+th,td{padding:10px 8px;border-bottom:1px solid #e2e8f0;text-align:left}
+th{font-size:.85rem;text-transform:uppercase;letter-spacing:.04em;color:#0f766e}
+td.rank{width:3.2em;font-weight:900}
+td.score{font-weight:900;color:#b45309;white-space:nowrap}
+.status{font-weight:700;color:#64748b;padding:8px 0}
+.note{background:#fff7ed;border:2px dashed #fdba74;border-radius:14px;padding:12px 14px;font-weight:700;line-height:1.5;margin-top:10px}
+footer{margin-top:20px;color:#64748b;font-weight:700;font-size:.9rem}
+code{background:#ecfeff;padding:1px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🏆 雲端排行榜總覽</h1>
+  <p class="sub">Class Cloud Leaderboards · 老師可喺呢頁睇晒五個遊戲嘅 Top（同一雲端帳）。清除請用各遊戲內「Clear (teacher)」；密碼一般係 <code>teacher</code>（At the Counter 亦可用管理員密碼）。</p>
+  <div class="nav">
+    <a href="./">Supermarket Race</a>
+    <a href="connectives-race-and-but-or.html">Connectives</a>
+    <a href="at-the-counter-3a-quantity.html?v=11">At the Counter</a>
+    <a href="comparative-jump-parkour.html">Comparative Jump</a>
+    <a href="comparing-adjectives-lesson.html">Comparing Adjectives</a>
+    <a class="ghost" href="#" id="btnRefreshAll">↻ 全部重新整理</a>
+  </div>
+
+  <section class="card" data-prefix="s" data-roster="jacky" id="board-s">
+    <h2>🛒 Supermarket Race</h2>
+    <div class="meta">鍵前綴 <code>s</code> · Jacky 英文班 · 累積分</div>
+    <div class="actions"><button class="btn" data-load="s">載入榜</button></div>
+    <div class="status">尚未載入</div>
+    <div class="table-wrap"></div>
+  </section>
+
+  <section class="card" data-prefix="c" data-roster="jacky" id="board-c">
+    <h2>🔗 Connectives Race（and / but / or）</h2>
+    <div class="meta">鍵前綴 <code>c</code> · Jacky 英文班 · 累積分</div>
+    <div class="actions"><button class="btn" data-load="c">載入榜</button></div>
+    <div class="status">尚未載入</div>
+    <div class="table-wrap"></div>
+  </section>
+
+  <section class="card" data-prefix="a" data-roster="zh" id="board-a">
+    <h2>🏪 At the Counter（3A Quantity）</h2>
+    <div class="meta">鍵前綴 <code>a</code> · 中文班名 · 累積分（Easy／Hard 合計）</div>
+    <div class="actions"><button class="btn" data-load="a">載入榜</button></div>
+    <div class="status">尚未載入</div>
+    <div class="table-wrap"></div>
+  </section>
+
+  <section class="card" data-prefix="j" data-roster="jacky" id="board-j">
+    <h2>🏃 Comparative Jump</h2>
+    <div class="meta">鍵前綴 <code>j</code> · Jacky 英文班 · 累積分</div>
+    <div class="actions"><button class="btn" data-load="j">載入榜</button></div>
+    <div class="status">尚未載入</div>
+    <div class="table-wrap"></div>
+  </section>
+
+  <section class="card" data-prefix="d" data-roster="jacky" id="board-d">
+    <h2>📚 Comparing Adjectives 課堂站</h2>
+    <div class="meta">鍵前綴 <code>d</code> · Jacky 英文班 · 最佳總分（最高 51）</div>
+    <div class="actions"><button class="btn" data-load="d">載入榜</button></div>
+    <div class="status">尚未載入</div>
+    <div class="table-wrap"></div>
+  </section>
+
+  <div class="note">
+    清除方式：進入各遊戲 → Leaderboard → Clear (teacher)。<br>
+    Supermarket／Connectives／Jump／Comparing Adjectives 密碼：<code>teacher</code><br>
+    At the Counter 可用管理員密碼或 <code>teacher</code>。
+  </div>
+  <footer>Cloud: keyvalue.immanuel.co · app 9qeew60c · 只讀總覽頁不會改分數</footer>
+</div>
+<script>
+(function(){
+"use strict";
+const CLOUD_BASE = "https://keyvalue.immanuel.co/api/KeyVal";
+const CLOUD_APP = "9qeew60c";
+const JACKY = [
+  {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
+  {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
+  {name:"Helios", no:9},{name:"Emma", no:10},{name:"Hugo", no:11},{name:"Hannah", no:12},
+  {name:"Luna", no:13},{name:"Emily", no:14},{name:"Brian", no:15},{name:"Felix", no:16},
+  {name:"Vincent", no:17},{name:"Issac", no:18},{name:"Howard", no:19},{name:"Fung", no:20},
+  {name:"Damon", no:21},{name:"Coly", no:22},{name:"Isa", no:23},{name:"Natalie", no:24},
+  {name:"Eva", no:25},{name:"Sam", no:26}
+];
+const ZH = [
+  {name:"陳楷荃", no:1},{name:"陳泳錡", no:2},{name:"戚敬恒", no:3},{name:"方舒瑩", no:4},
+  {name:"關梓燊", no:5},{name:"黎梓忻", no:6},{name:"林穎瑤", no:7},{name:"劉純欣", no:8},
+  {name:"劉子軒", no:9},{name:"廖安迪", no:10},{name:"馬珽軒", no:11},{name:"馬婉婷", no:12},
+  {name:"莫偉鴻", no:13},{name:"潘芷琪", no:14},{name:"覃梓洋", no:15},{name:"蘇珀瑩", no:16},
+  {name:"譚安潼", no:17},{name:"黃致博", no:18},{name:"黃柏霖", no:19},{name:"肖安琪", no:20},
+  {name:"謝致鉉", no:21},{name:"陽鎧桐", no:22},{name:"楊諾喬", no:23},{name:"邱宏力", no:24},
+  {name:"葉裕柔", no:25},{name:"余子恒", no:26},{name:"Mr.Wang", no:27}
+];
+function rosterFor(kind){ return kind === "zh" ? ZH : JACKY; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+function parseScoreVal(raw){
+  if(raw == null) return null;
+  let s = raw;
+  if(typeof s !== "string"){ try{ s = JSON.stringify(s); }catch(e){ return null; } }
+  s = s.trim();
+  if((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))){
+    try{ s = JSON.parse(s); }catch(e){ s = s.slice(1,-1); }
+  }
+  if(typeof s !== "string") s = String(s);
+  s = s.trim();
+  if(!s || s === "0" || s === '""' || s === "null") return null;
+  const parts = s.split("-");
+  if(parts.length < 4) return null;
+  const score = parseInt(parts[0], 10);
+  const games = parseInt(parts[1], 10);
+  const correct = parseInt(parts[2], 10);
+  const when = parseInt(parts[3], 10);
+  if(!isFinite(score) || score <= 0) return null;
+  return { score:score||0, games:isFinite(games)?games:0, correct:isFinite(correct)?correct:0, when:isFinite(when)?when:0 };
+}
+async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+async function cloudGet(prefix, no){
+  const url = CLOUD_BASE + "/GetValue/" + CLOUD_APP + "/" + prefix + no;
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"GET", cache:"no-store"});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("GET " + res.status);
+        await sleep(200 + attempt * 250 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("GET " + res.status);
+      const txt = await res.text();
+      let parsed = txt;
+      try{ parsed = JSON.parse(txt); }catch(e){ parsed = txt; }
+      return parseScoreVal(parsed);
+    }catch(e){
+      lastErr = e;
+      await sleep(200 + attempt * 250);
+    }
+  }
+  throw lastErr || new Error("GET failed");
+}
+async function mapPool(items, limit, fn){
+  const out = new Array(items.length);
+  let i = 0;
+  async function worker(){
+    while(i < items.length){
+      const idx = i++;
+      out[idx] = await fn(items[idx], idx);
+    }
+  }
+  const n = Math.max(1, Math.min(limit, items.length));
+  await Promise.all(Array.from({length:n}, () => worker()));
+  return out;
+}
+async function fetchBoard(prefix, rosterKind){
+  const roster = rosterFor(rosterKind);
+  const rows = await mapPool(roster, 3, async stu => {
+    try{
+      const ent = await cloudGet(prefix, stu.no);
+      if(!ent) return null;
+      return {name:stu.name, no:stu.no, ...ent};
+    }catch(e){
+      return {_err:true, name:stu.name, no:stu.no};
+    }
+  });
+  const errs = rows.filter(r => r && r._err).length;
+  const list = rows.filter(r => r && !r._err);
+  list.sort((a,b)=>{
+    if(b.score !== a.score) return b.score - a.score;
+    if((b.games||0) !== (a.games||0)) return (b.games||0) - (a.games||0);
+    return b.when - a.when;
+  });
+  return {list, errs};
+}
+function renderTable(list, errs){
+  if(!list.length){
+    return '<div class="status">尚無紀錄'+(errs?' · 部分讀取失敗 ('+errs+')':'')+'</div>';
+  }
+  const body = list.map((r,i)=>{
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":String(i+1);
+    return '<tr><td class="rank">'+medal+'</td><td>'+esc(r.name)+' <span style="color:#94a3b8">('+r.no+')</span></td>'+
+      '<td class="score">⭐ '+r.score+'</td><td>'+(r.games||0)+' 局</td><td>✓ '+(r.correct||0)+'</td></tr>';
+  }).join("");
+  return '<table><thead><tr><th>#</th><th>學生</th><th>分數</th><th>局數</th><th>正確</th></tr></thead><tbody>'+
+    body+'</tbody></table>'+(errs?'<div class="status">部分讀取失敗 ('+errs+')</div>':'');
+}
+async function loadOne(prefix){
+  const card = document.getElementById("board-"+prefix);
+  if(!card) return;
+  const status = card.querySelector(".status");
+  const wrap = card.querySelector(".table-wrap");
+  status.textContent = "載入中…";
+  wrap.innerHTML = "";
+  try{
+    const {list, errs} = await fetchBoard(prefix, card.getAttribute("data-roster"));
+    status.textContent = list.length ? ("共 "+list.length+" 位有分數") : "尚無紀錄";
+    wrap.innerHTML = renderTable(list, errs);
+  }catch(e){
+    status.textContent = "讀取失敗";
+    wrap.innerHTML = "";
+  }
+}
+document.querySelectorAll("[data-load]").forEach(btn=>{
+  btn.addEventListener("click", ()=> loadOne(btn.getAttribute("data-load")));
+});
+document.getElementById("btnRefreshAll").addEventListener("click", async (e)=>{
+  e.preventDefault();
+  for(const p of ["s","c","a","j","d"]) await loadOne(p);
+});
+// auto-load all on open
+["s","c","a","j","d"].forEach(p => loadOne(p));
+})();
+</script>
+</body>
+</html>

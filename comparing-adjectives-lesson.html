@@ -262,7 +262,7 @@ table.rules .hi{color:var(--blue);font-weight:800}
 
     <div class="who-box" id="whoBox">
       <h2>Who are you?</h2>
-      <p>Tap your name to start. Your best scores are saved on this device.</p>
+      <p>Tap your name to start. Best scores sync to the cloud class board.</p>
       <div class="name-grid" id="nameGrid"></div>
     </div>
   </header>
@@ -292,9 +292,13 @@ table.rules .hi{color:var(--blue);font-weight:800}
     </div>
     <div class="card">
       <div class="lb-actions">
-        <p class="muted" style="font-weight:700;margin:0">Points = your best score in each of the 6 activities. Top mark: <strong>51</strong>. Do an activity again to beat your own best!</p>
-        <button type="button" class="btn btn-ghost btn-sm" id="lbRefresh">↻ Refresh</button>
+        <p class="muted" style="font-weight:700;margin:0">Points = your best score in each of the 6 activities（雲端同步）. Top mark: <strong>51</strong>. Do an activity again to beat your own best!</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn btn-ghost btn-sm" id="lbRefresh">↻ Refresh</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="lbClear">Clear (teacher)</button>
+        </div>
       </div>
+      <p class="muted" id="lbCloudStatus" style="font-weight:700;margin:8px 0 0"></p>
       <div id="lbList"></div>
     </div>
   </section>
@@ -507,7 +511,7 @@ table.rules .hi{color:var(--blue);font-weight:800}
     </div>
   </section>
 
-  <p class="footer">Longman Elect 4A style · Comparatives & Superlatives (-er/-est · more/most) · Best scores saved in this browser</p>
+  <p class="footer">Longman Elect 4A style · Comparatives & Superlatives (-er/-est · more/most) · Best scores sync to cloud · local backup in this browser</p>
 </main>
 
 <script>
@@ -517,10 +521,140 @@ table.rules .hi{color:var(--blue);font-weight:800}
     "Hugo","Hannah","Luna","Emily","Brian","Felix","Vincent","Issac","Howard","Fung",
     "Damon","Coly","Isa","Natalie","Eva","Sam"
   ];
+  const CLASS_ROSTER = STUDENTS.map((name,i)=>({name, no:i+1}));
   const ACTS = ["check1","syll","check2","detective","check3","final"];
   const MAX = {check1:5,syll:12,check2:5,detective:8,check3:5,final:16};
   const STORE = "compadj_lesson_v1";
   const TOP = 51;
+  const CLOUD_BASE = "https://keyvalue.immanuel.co/api/KeyVal";
+  const CLOUD_APP = "9qeew60c";
+  const CLOUD_PREFIX = "d";
+  const TEACHER_CLEAR_PW = "teacher";
+  function cloudKey(no){ return CLOUD_PREFIX + no; }
+  function encodeScore(sumScore, games, totalCorrect, when){
+    return [sumScore|0, games|0, totalCorrect|0, when|0].join("-");
+  }
+  function parseScoreVal(raw){
+    if(raw == null) return null;
+    let s = raw;
+    if(typeof s !== "string"){
+      try{ s = JSON.stringify(s); }catch(e){ return null; }
+    }
+    s = s.trim();
+    if((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))){
+      try{ s = JSON.parse(s); }catch(e){ s = s.slice(1,-1); }
+    }
+    if(typeof s !== "string") s = String(s);
+    s = s.trim();
+    if(!s || s === "0" || s === '""' || s === "null") return null;
+    const parts = s.split("-");
+    if(parts.length < 4) return null;
+    const score = parseInt(parts[0], 10);
+    const games = parseInt(parts[1], 10);
+    const correct = parseInt(parts[2], 10);
+    const when = parseInt(parts[3], 10);
+    if(!isFinite(score) || score <= 0) return null;
+    return {
+      score: score||0,
+      games: isFinite(games)?games:0,
+      correct: isFinite(correct)?correct:0,
+      when: isFinite(when)?when:0
+    };
+  }
+  async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+  async function cloudGet(no){
+    const url = CLOUD_BASE + "/GetValue/" + CLOUD_APP + "/" + cloudKey(no);
+    let lastErr = null;
+    for(let attempt = 0; attempt < 4; attempt++){
+      try{
+        const res = await fetch(url, {method:"GET", cache:"no-store"});
+        if(res.status === 503 || res.status === 429){
+          lastErr = new Error("GET " + res.status);
+          await sleep(200 + attempt * 250 + Math.floor(Math.random()*120));
+          continue;
+        }
+        if(!res.ok) throw new Error("GET " + res.status);
+        const txt = await res.text();
+        let parsed = txt;
+        try{ parsed = JSON.parse(txt); }catch(e){ parsed = txt; }
+        return parseScoreVal(parsed);
+      }catch(e){
+        lastErr = e;
+        await sleep(200 + attempt * 250);
+      }
+    }
+    throw lastErr || new Error("GET failed");
+  }
+  async function cloudWrite(no, value){
+    const url = CLOUD_BASE + "/UpdateValue/" + CLOUD_APP + "/" + cloudKey(no) + "/" + encodeURIComponent(value);
+    let lastErr = null;
+    for(let attempt = 0; attempt < 4; attempt++){
+      try{
+        const res = await fetch(url, {method:"POST", body:""});
+        if(res.status === 503 || res.status === 429){
+          lastErr = new Error("POST " + res.status);
+          await sleep(250 + attempt * 300 + Math.floor(Math.random()*120));
+          continue;
+        }
+        if(!res.ok) throw new Error("POST " + res.status);
+        return true;
+      }catch(e){
+        lastErr = e;
+        await sleep(250 + attempt * 300);
+      }
+    }
+    throw lastErr || new Error("POST failed");
+  }
+  async function mapPool(items, limit, fn){
+    const out = new Array(items.length);
+    let i = 0;
+    async function worker(){
+      while(i < items.length){
+        const idx = i++;
+        out[idx] = await fn(items[idx], idx);
+      }
+    }
+    const n = Math.max(1, Math.min(limit, items.length));
+    await Promise.all(Array.from({length:n}, () => worker()));
+    return out;
+  }
+  // Best-total semantics: keep the higher of cloud vs local totalBest
+  async function cloudUpsertBest(player, total, doneCount){
+    if(!player || !player.no) return {ok:false, status:"失敗"};
+    const when = Math.floor(Date.now()/1000);
+    const tot = total|0;
+    try{
+      const existing = await cloudGet(player.no);
+      const sum = Math.max(existing ? existing.score : 0, tot);
+      const games = Math.max(existing ? (existing.games||0) : 0, doneCount|0);
+      const totalCorrect = Math.max(existing ? existing.correct : 0, tot);
+      if(sum <= 0) return {ok:true, status:"無分數可累積", kept:true};
+      await cloudWrite(player.no, encodeScore(sum, games, totalCorrect, when));
+      return {ok:true, status:"雲端已同步 · "+sum+" pts", updated:true, sum, games};
+    }catch(e){
+      console.warn("cloud upsert failed", e);
+      return {ok:false, status:"雲端更新失敗"};
+    }
+  }
+  async function cloudFetchAll(){
+    const rows = await mapPool(CLASS_ROSTER, 3, async stu => {
+      try{
+        const ent = await cloudGet(stu.no);
+        if(!ent) return null;
+        return {name:stu.name, no:stu.no, ...ent};
+      }catch(e){
+        return {_err:true, name:stu.name, no:stu.no};
+      }
+    });
+    const errs = rows.filter(r => r && r._err).length;
+    const list = rows.filter(r => r && !r._err);
+    list.sort((a,b)=>{
+      if(b.score !== a.score) return b.score - a.score;
+      if((b.games||0) !== (a.games||0)) return (b.games||0) - (a.games||0);
+      return b.when - a.when;
+    });
+    return {list, errs};
+  }
 
   const CHECK1 = [
     {q:"Mr Jolly is _____ than Mrs Bell.", opts:["taller","more tall","the tallest","tallest"], a:0},
@@ -622,6 +756,18 @@ table.rules .hi{color:var(--blue);font-weight:800}
     if(!scores[k]) scores[k]={};
     scores[k][act+"_done"]=1;
     setBest(name, act, score);
+    const stu = CLASS_ROSTER.find(s => s.name === name);
+    const tot = totalBest(name);
+    const done = ACTS.filter(a => {
+      const row = scores[keyOf(name)]||{};
+      return row[a+"_done"] || Number(row[a]||0)>0;
+    }).length;
+    const statusEl = document.getElementById("lbCloudStatus");
+    if(statusEl) statusEl.textContent = "雲端同步中…";
+    cloudUpsertBest(stu || {name, no: STUDENTS.indexOf(name)+1}, tot, done).then(r=>{
+      if(statusEl) statusEl.textContent = (r && r.status) || "";
+      renderLeaderboard();
+    });
   }
 
   // DOM
@@ -651,6 +797,21 @@ table.rules .hi{color:var(--blue);font-weight:800}
     updateProgress();
   });
   document.getElementById("lbRefresh").addEventListener("click", renderLeaderboard);
+  document.getElementById("lbClear").addEventListener("click", async ()=>{
+    const pw = prompt("老師清除密碼 / Teacher password:");
+    if(pw == null) return;
+    if(pw !== TEACHER_CLEAR_PW){ alert("密碼錯誤"); return; }
+    if(!confirm("確定清除雲端排行榜（Comparing Adjectives）？本機進度會保留。")) return;
+    const statusEl = document.getElementById("lbCloudStatus");
+    if(statusEl) statusEl.textContent = "Clearing…";
+    try{
+      await mapPool(CLASS_ROSTER, 2, stu => cloudWrite(stu.no, "0"));
+      if(statusEl) statusEl.textContent = "雲端榜已清除";
+      renderLeaderboard();
+    }catch(e){
+      if(statusEl) statusEl.textContent = "清除失敗";
+    }
+  });
 
   function selectStudent(name, no){
     student = {name, no};
@@ -684,22 +845,55 @@ table.rules .hi{color:var(--blue);font-weight:800}
 
   function renderLeaderboard(){
     const list = document.getElementById("lbList");
-    const rows = STUDENTS.map((name,i)=>{
-      const total = totalBest(name);
-      const row = scores[keyOf(name)]||{};
-      const done = ACTS.filter(a=> row[a+"_done"] || Number(row[a]||0)>0).length;
-      return {name, no:i+1, total, done};
-    }).sort((a,b)=> b.total-a.total || a.no-b.no);
+    if(!list) return;
+    list.innerHTML = '<p class="muted" style="font-weight:700;padding:12px 4px">Loading cloud board…</p>';
+    cloudFetchAll().then(({list: cloudList, errs})=>{
+      const byNo = {};
+      (cloudList||[]).forEach(r => { byNo[r.no] = r; });
+      const rows = STUDENTS.map((name,i)=>{
+        const no = i+1;
+        const localTotal = totalBest(name);
+        const row = scores[keyOf(name)]||{};
+        const localDone = ACTS.filter(a=> row[a+"_done"] || Number(row[a]||0)>0).length;
+        const cloud = byNo[no];
+        const total = Math.max(localTotal, cloud ? cloud.score : 0);
+        const done = Math.max(localDone, cloud ? (cloud.games||0) : 0);
+        return {name, no, total, done, cloud: !!cloud};
+      }).sort((a,b)=> b.total-a.total || a.no-b.no);
 
-    if(rows.every(r=>r.total===0 && r.done===0)){
-      list.innerHTML = '<p class="muted" style="font-weight:700;padding:12px 4px">No scores yet. Finish an activity to appear here!</p>';
-      // still show all with 0
-    }
-    list.innerHTML = rows.map((r,idx)=>{
-      const medal = idx===0?"🥇":idx===1?"🥈":idx===2?"🥉":(idx+1);
-      const you = student && student.name===r.name ? '<span class="lb-you">You</span>' : '';
-      const pct = Math.min(100, Math.round(r.total/TOP*100));
-      return `<div class="lb-row">
+      if(rows.every(r=>r.total===0 && r.done===0)){
+        list.innerHTML = '<p class="muted" style="font-weight:700;padding:12px 4px">No scores yet. Finish an activity to appear here!'+(errs?'（部分雲端讀取失敗 '+errs+'）':'')+'</p>';
+        return;
+      }
+      list.innerHTML = rows.filter(r=>r.total>0 || r.done>0).map((r,idx)=>{
+        const medal = idx===0?"🥇":idx===1?"🥈":idx===2?"🥉":(idx+1);
+        const you = student && student.name===r.name ? '<span class="lb-you">You</span>' : '';
+        const pct = Math.min(100, Math.round(r.total/TOP*100));
+        return `<div class="lb-row">
+        <div class="lb-rank">${medal}</div>
+        <div>
+          <div class="lb-name">${r.no}. ${r.name}${you}</div>
+          <div class="lb-bar"><div class="lb-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div>
+          <div class="lb-pts">${r.total} pts</div>
+          <div class="lb-acts">${Math.min(6,r.done)} / 6 activities</div>
+        </div>
+      </div>`;
+      }).join("") + (errs ? '<p class="muted" style="font-weight:700">部分雲端讀取失敗 ('+errs+')</p>' : '');
+    }).catch(()=>{
+      // fallback local-only
+      const rows = STUDENTS.map((name,i)=>{
+        const total = totalBest(name);
+        const row = scores[keyOf(name)]||{};
+        const done = ACTS.filter(a=> row[a+"_done"] || Number(row[a]||0)>0).length;
+        return {name, no:i+1, total, done};
+      }).sort((a,b)=> b.total-a.total || a.no-b.no);
+      list.innerHTML = rows.filter(r=>r.total>0||r.done>0).map((r,idx)=>{
+        const medal = idx===0?"🥇":idx===1?"🥈":idx===2?"🥉":(idx+1);
+        const you = student && student.name===r.name ? '<span class="lb-you">You</span>' : '';
+        const pct = Math.min(100, Math.round(r.total/TOP*100));
+        return `<div class="lb-row">
         <div class="lb-rank">${medal}</div>
         <div>
           <div class="lb-name">${r.no}. ${r.name}${you}</div>
@@ -710,7 +904,8 @@ table.rules .hi{color:var(--blue);font-weight:800}
           <div class="lb-acts">${r.done} / 6 activities</div>
         </div>
       </div>`;
-    }).join("");
+      }).join("") || '<p class="muted" style="font-weight:700;padding:12px 4px">雲端讀取失敗 · showing empty</p>';
+    });
   }
 
   // Warm-up

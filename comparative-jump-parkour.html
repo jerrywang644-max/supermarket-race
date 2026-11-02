@@ -189,7 +189,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0c1a2e;
     <button class="btn" id="btnStart">START RUN ▶</button>
     <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
     <button class="btn btn-ghost" id="btnChangeName" type="button">Not me? Change name</button>
-    <p class="muted" style="margin-top:14px">老師說明：選正確文法形式。商品名寫全（如 Super Raisin、Yummy Hot Dog）。人物置中低多邊形造型；障礙物（車／雪糕筒）橫向逼近；答對跳過、答錯／逾時受傷扣命，進度保留（命盡才結束）。排行榜本機累積；清除密碼 teacher。</p>
+    <p class="muted" style="margin-top:14px">老師說明：選正確文法形式。商品名寫全（如 Super Raisin、Yummy Hot Dog）。人物置中低多邊形造型；障礙物（車／雪糕筒）橫向逼近；答對跳過、答錯／逾時受傷扣命，進度保留（命盡才結束）。排行榜雲端累積；清除密碼 teacher。</p>
   </div>
 </div>
 
@@ -216,7 +216,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0c1a2e;
 <div class="overlay hidden" id="overlayBoard">
   <div class="panel">
     <h1>🏆 Leaderboard</h1>
-    <p class="muted" style="text-align:center;margin:0 0 4px">Cumulative score · this device · Comparative Jump</p>
+    <p class="muted" style="text-align:center;margin:0 0 4px">Class Top · cloud shared · Comparative Jump</p>
     <div class="board-list" id="boardList"><div class="board-status">Loading…</div></div>
     <div class="board-actions">
       <button class="btn" id="btnBoardRefresh" type="button">Refresh</button>
@@ -301,6 +301,140 @@ function goNameSelect(){
   showOverlay("overlayName");
 }
 
+
+const CLOUD_PREFIX = "j";
+
+// ---------- Cloud leaderboard (keyvalue.immanuel.co) ----------
+const CLOUD_BASE = "https://keyvalue.immanuel.co/api/KeyVal";
+const CLOUD_APP = "9qeew60c";
+function cloudKey(no){ return CLOUD_PREFIX + no; }
+function encodeScore(sumScore, games, totalCorrect, when){
+  return [sumScore|0, games|0, totalCorrect|0, when|0].join("-");
+}
+function parseScoreVal(raw){
+  if(raw == null) return null;
+  let s = raw;
+  if(typeof s !== "string"){
+    try{ s = JSON.stringify(s); }catch(e){ return null; }
+  }
+  s = s.trim();
+  if((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))){
+    try{ s = JSON.parse(s); }catch(e){ s = s.slice(1,-1); }
+  }
+  if(typeof s !== "string") s = String(s);
+  s = s.trim();
+  if(!s || s === "0" || s === '""' || s === "null") return null;
+  const parts = s.split("-");
+  if(parts.length < 4) return null;
+  const score = parseInt(parts[0], 10);
+  const games = parseInt(parts[1], 10);
+  const correct = parseInt(parts[2], 10);
+  const when = parseInt(parts[3], 10);
+  if(!isFinite(score) || score <= 0) return null;
+  return {
+    score: score||0,
+    games: isFinite(games)?games:0,
+    correct: isFinite(correct)?correct:0,
+    when: isFinite(when)?when:0
+  };
+}
+async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+async function cloudGet(no){
+  const url = CLOUD_BASE + "/GetValue/" + CLOUD_APP + "/" + cloudKey(no);
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"GET", cache:"no-store"});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("GET " + res.status);
+        await sleep(200 + attempt * 250 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("GET " + res.status);
+      const txt = await res.text();
+      let parsed = txt;
+      try{ parsed = JSON.parse(txt); }catch(e){ parsed = txt; }
+      return parseScoreVal(parsed);
+    }catch(e){
+      lastErr = e;
+      await sleep(200 + attempt * 250);
+    }
+  }
+  throw lastErr || new Error("GET failed");
+}
+async function cloudWrite(no, value){
+  const url = CLOUD_BASE + "/UpdateValue/" + CLOUD_APP + "/" + cloudKey(no) + "/" + encodeURIComponent(value);
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"POST", body:""});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("POST " + res.status);
+        await sleep(250 + attempt * 300 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("POST " + res.status);
+      return true;
+    }catch(e){
+      lastErr = e;
+      await sleep(250 + attempt * 300);
+    }
+  }
+  throw lastErr || new Error("POST failed");
+}
+async function mapPool(items, limit, fn){
+  const out = new Array(items.length);
+  let i = 0;
+  async function worker(){
+    while(i < items.length){
+      const idx = i++;
+      out[idx] = await fn(items[idx], idx);
+    }
+  }
+  const n = Math.max(1, Math.min(limit, items.length));
+  await Promise.all(Array.from({length:n}, () => worker()));
+  return out;
+}
+async function cloudUpsertPlayer(player, score, correct){
+  if(!player || !player.no) return {ok:false, status:"失敗"};
+  const when = Math.floor(Date.now()/1000);
+  const addScore = score|0;
+  const addCorrect = correct|0;
+  try{
+    const existing = await cloudGet(player.no);
+    const sum = (existing ? existing.score : 0) + addScore;
+    const games = (existing ? (existing.games||0) : 0) + 1;
+    const totalCorrect = (existing ? existing.correct : 0) + addCorrect;
+    if(addScore <= 0 && !existing){
+      return {ok:true, status:"無分數可累積", kept:true};
+    }
+    await cloudWrite(player.no, encodeScore(sum, games, totalCorrect, when));
+    return {ok:true, status:"已累積更新 · 雲端總分 "+sum+"（"+games+" 局）", updated:true, sum, games};
+  }catch(e){
+    console.warn("cloud upsert failed", e);
+    return {ok:false, status:"雲端更新失敗"};
+  }
+}
+async function cloudFetchAll(){
+  const rows = await mapPool(CLASS_ROSTER, 3, async stu => {
+    try{
+      const ent = await cloudGet(stu.no);
+      if(!ent) return null;
+      return {name:stu.name, no:stu.no, ...ent};
+    }catch(e){
+      return {_err:true, name:stu.name, no:stu.no};
+    }
+  });
+  const errs = rows.filter(r => r && r._err).length;
+  const list = rows.filter(r => r && !r._err);
+  list.sort((a,b)=>{
+    if(b.score !== a.score) return b.score - a.score;
+    if((b.games||0) !== (a.games||0)) return (b.games||0) - (a.games||0);
+    return b.when - a.when;
+  });
+  return {list, errs};
+}
+
 function loadBoardMap(){
   try{
     const raw = localStorage.getItem(LS_BOARD);
@@ -324,49 +458,54 @@ function upsertLocalScore(player, score, correct){
   prev.when = Date.now();
   map[key] = prev;
   saveBoardMap(map);
-  return {status: "已加入累積總分（本機）· 現時 " + prev.score + "（" + prev.games + " 局）"};
+  return {status: "本機備份 · " + prev.score + "（" + prev.games + " 局）"};
 }
-function boardRows(){
-  const map = loadBoardMap();
-  return CLASS_ROSTER.map(stu => {
-    const row = map[String(stu.no)];
-    if(!row || !(row.score > 0)) return null;
-    return {
-      no: stu.no,
-      name: row.name || stu.name,
-      score: row.score|0,
-      games: row.games|0,
-      correct: row.correct|0
-    };
-  }).filter(Boolean).sort((a,b)=> b.score - a.score || a.no - b.no);
-}
-function renderBoard(){
-  const list = document.getElementById("boardList");
-  const rows = boardRows();
-  if(!rows.length){
-    list.innerHTML = '<div class="board-empty">尚無紀錄 · No scores yet</div>';
+function renderBoardList(list, errs){
+  const el = document.getElementById("boardList");
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML = '<div class="board-empty">尚無紀錄 · No scores yet'+(errs?'<br><span class="muted">部分讀取失敗 ('+errs+')</span>':'')+'</div>';
     return;
   }
-  list.innerHTML = rows.map((r,i) => {
-    const rank = i+1;
-    const medal = rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":("#"+rank);
-    return '<div class="board-row"><span class="rank">'+medal+'</span><span class="who">'+esc(r.name)+' ('+r.no+')</span><span class="meta"><b>'+r.score+'</b> · '+r.games+'局 · ✓'+r.correct+'</span></div>';
-  }).join("");
+  el.innerHTML = list.map((r,i)=>{
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
+    return '<div class="board-row"><span class="rank">'+medal+'</span>' +
+      '<span class="who">'+esc(r.name)+' <span class="muted">('+r.no+')</span></span>' +
+      '<span class="meta">⭐ '+r.score+' · '+((r.games||0))+'局 · ✓ '+r.correct+'</span></div>';
+  }).join("") + (errs ? '<div class="board-status muted">部分讀取失敗 ('+errs+')</div>' : '');
+}
+async function refreshBoard(){
+  const el = document.getElementById("boardList");
+  if(el) el.innerHTML = '<div class="board-status">Loading…</div>';
+  try{
+    const {list, errs} = await cloudFetchAll();
+    renderBoardList(list, errs);
+  }catch(e){
+    if(el) el.innerHTML = '<div class="board-status">讀取失敗 · Failed to load</div>';
+  }
 }
 function openBoard(from){
   boardReturnOverlay = from || "overlayStart";
-  renderBoard();
   showOverlay("overlayBoard");
+  refreshBoard();
 }
 function closeBoard(){ showOverlay(boardReturnOverlay); }
-function teacherClearBoard(){
+async function teacherClearBoard(){
   const pw = prompt("老師清除密碼 / Teacher password:");
   if(pw == null) return;
   if(pw !== TEACHER_CLEAR_PW){ alert("密碼不正確"); return; }
-  if(!confirm("確定清除本機累積排行榜？")) return;
-  saveBoardMap({});
-  renderBoard();
+  if(!confirm("確定清除雲端累積排行榜？")) return;
+  const el = document.getElementById("boardList");
+  if(el) el.innerHTML = '<div class="board-status">Clearing…</div>';
+  try{
+    await mapPool(CLASS_ROSTER, 2, stu => cloudWrite(stu.no, "0"));
+    saveBoardMap({});
+    await refreshBoard();
+  }catch(e){
+    if(el) el.innerHTML = '<div class="board-status">清除失敗 · Clear failed</div>';
+  }
 }
+
 
 const RAW = [{"id": 1, "kind": "comp", "q": "Mr Jolly is _____ than Mrs Bell. (tall)", "choices": ["taller", "more tall", "the tallest", "tallest"], "answer": "taller", "note": "comparative · -er"}, {"id": 2, "kind": "comp", "q": "Tom is _____ than Ben. (old)", "choices": ["older", "more old", "the oldest", "oldest"], "answer": "older", "note": "comparative · -er"}, {"id": 3, "kind": "comp", "q": "A cheetah is _____ than a tiger. (light)", "choices": ["lighter", "more light", "the lightest", "lightest"], "answer": "lighter", "note": "comparative · -er"}, {"id": 4, "kind": "comp", "q": "A tiger is _____ than a cheetah. (heavy)", "choices": ["heavier", "more heavy", "the heaviest", "heavyer"], "answer": "heavier", "note": "comparative · -er / y→i"}, {"id": 5, "kind": "comp", "q": "Today is _____ than yesterday. (hot)", "choices": ["hotter", "more hot", "the hottest", "hoter"], "answer": "hotter", "note": "comparative · double consonant"}, {"id": 6, "kind": "comp", "q": "This bag is _____ than that bag. (big)", "choices": ["bigger", "more big", "the biggest", "biger"], "answer": "bigger", "note": "comparative · double consonant"}, {"id": 7, "kind": "comp", "q": "Harry is _____ than John. (thin)", "choices": ["thinner", "more thin", "more thinner", "the thinnest"], "answer": "thinner", "note": "comparative · double consonant"}, {"id": 8, "kind": "comp", "q": "May is _____ than Henry today. (happy)", "choices": ["happier", "more happy", "more happier", "the happiest"], "answer": "happier", "note": "comparative · y→i"}, {"id": 9, "kind": "comp", "q": "The pumpkin is _____ than the tomato. (large)", "choices": ["larger", "more large", "the largest", "largerer"], "answer": "larger", "note": "comparative · -e + r"}, {"id": 10, "kind": "comp", "q": "Amy can run _____ than Sam. (fast)", "choices": ["faster", "more fast", "the fastest", "fastest"], "answer": "faster", "note": "comparative · -er"}, {"id": 11, "kind": "comp", "q": "This pencil is _____ than that one. (short)", "choices": ["shorter", "more short", "the shortest", "shortter"], "answer": "shorter", "note": "comparative · -er"}, {"id": 12, "kind": "comp", "q": "Jill is _____ than Timmy. (young)", "choices": ["younger", "more young", "the youngest", "youngger"], "answer": "younger", "note": "comparative · -er"}, {"id": 13, "kind": "comp", "q": "This story is _____ than that story. (long)", "choices": ["longer", "more long", "the longest", "longger"], "answer": "longer", "note": "comparative · -er"}, {"id": 14, "kind": "comp", "q": "Yummy Hot Dog ($12) is _____ than Merry Hot Dog ($18). (cheap)", "choices": ["cheaper", "more cheap", "the cheaper", "cheapest"], "answer": "cheaper", "note": "comparative · -er · price"}, {"id": 15, "kind": "comp", "q": "Sunny Bread ($14) is _____ than Merry Bread ($20). (cheap)", "choices": ["cheaper", "more cheap", "the cheapest", "cheap"], "answer": "cheaper", "note": "comparative · -er · price"}, {"id": 16, "kind": "comp", "q": "A watermelon (5 kg) is _____ than pears (300 g). (heavy)", "choices": ["heavier", "more heavy", "the heaviest", "heavyer"], "answer": "heavier", "note": "comparative · weight"}, {"id": 17, "kind": "comp", "q": "Grapes (250 g) are _____ than a watermelon (5 kg). (light)", "choices": ["lighter", "more light", "the lightest", "lighterer"], "answer": "lighter", "note": "comparative · weight"}, {"id": 18, "kind": "comp", "q": "This room is _____ than that room. (nice)", "choices": ["nicer", "more nice", "the nicest", "niceer"], "answer": "nicer", "note": "comparative · -e + r"}, {"id": 19, "kind": "comp", "q": "Sam is _____ than Ken in the race. (slow)", "choices": ["slower", "more slow", "the slowest", "slowwer"], "answer": "slower", "note": "comparative · -er"}, {"id": 20, "kind": "comp", "q": "This book is _____ than that book. (easy)", "choices": ["easier", "more easy", "more easier", "the easiest"], "answer": "easier", "note": "comparative · y→i"}, {"id": 21, "kind": "comp", "q": "Candy is _____ than Maggie. (polite)", "choices": ["more polite", "politer", "the most polite", "more politer"], "answer": "more polite", "note": "comparative · more"}, {"id": 22, "kind": "comp", "q": "Badminton is _____ than Chinese checkers. (popular)", "choices": ["more popular", "popularer", "the most popular", "more popularer"], "answer": "more popular", "note": "comparative · more"}, {"id": 23, "kind": "comp", "q": "Coconut juice is _____ than lemon juice. (delicious)", "choices": ["more delicious", "deliciouser", "the most delicious", "more deliciouser"], "answer": "more delicious", "note": "comparative · more"}, {"id": 24, "kind": "comp", "q": "Super Raisin ($32) is _____ than Yummy Raisin ($25). (expensive)", "choices": ["more expensive", "expensiver", "the most expensive", "more expensiver"], "answer": "more expensive", "note": "comparative · more · price"}, {"id": 25, "kind": "comp", "q": "This story is _____ than that story. (interesting)", "choices": ["more interesting", "interestinger", "the most interesting", "more interestinger"], "answer": "more interesting", "note": "comparative · more"}, {"id": 26, "kind": "comp", "q": "Miss Chan is _____ than Mr Lee. (helpful)", "choices": ["more helpful", "helpfuler", "the most helpful", "more helpfuler"], "answer": "more helpful", "note": "comparative · more"}, {"id": 27, "kind": "comp", "q": "Oranges are _____ than apples. (delicious)", "choices": ["more delicious", "deliciouser", "the most delicious", "more deliciouser"], "answer": "more delicious", "note": "comparative · more"}, {"id": 28, "kind": "comp", "q": "Merry Bread ($20) is _____ than Sunny Bread ($14). (expensive)", "choices": ["more expensive", "expensiver", "most expensive", "the more expensive"], "answer": "more expensive", "note": "comparative · more · price"}, {"id": 29, "kind": "comp", "q": "This puzzle is _____ than that puzzle. (difficult)", "choices": ["more difficult", "difficulter", "the most difficult", "more difficulter"], "answer": "more difficult", "note": "comparative · more"}, {"id": 30, "kind": "comp", "q": "Pure Juice ($11.80) is _____ than Jolly Juice ($9.20). (expensive)", "choices": ["more expensive", "expensiver", "more dear", "the most expensive"], "answer": "more expensive", "note": "comparative · more · price"}, {"id": 31, "kind": "sup", "q": "Jill is 9, Sam is 7 and Timmy is 5. Timmy is _____. (young)", "choices": ["the youngest", "younger", "more young", "the most young"], "answer": "the youngest", "note": "superlative · -est"}, {"id": 32, "kind": "sup", "q": "Ben, Amy and Tom are in a race. Ben is _____. (fast)", "choices": ["the fastest", "faster", "more fast", "the most fast"], "answer": "the fastest", "note": "superlative · -est"}, {"id": 33, "kind": "sup", "q": "Among Mr Jolly, Mrs Bell and Miss Chan, Mr Jolly is _____. (tall)", "choices": ["the tallest", "taller", "more tall", "the most tall"], "answer": "the tallest", "note": "superlative · -est"}, {"id": 34, "kind": "sup", "q": "Monday was hot, Tuesday was hotter, and today is _____. (hot)", "choices": ["the hottest", "hotter", "more hot", "the most hot"], "answer": "the hottest", "note": "superlative · double consonant"}, {"id": 35, "kind": "sup", "q": "Among a watermelon (5 kg), pears (300 g) and grapes (250 g), the watermelon is _____.", "choices": ["the heaviest", "the heavier", "heaviest", "most heavy"], "answer": "the heaviest", "note": "superlative · weight"}, {"id": 36, "kind": "sup", "q": "Among a watermelon (5 kg), pears (300 g) and grapes (250 g), grapes are _____.", "choices": ["the lightest", "the lighter", "lightest", "most light"], "answer": "the lightest", "note": "superlative · weight"}, {"id": 37, "kind": "sup", "q": "Among Yummy Hot Dog ($12), Merry Hot Dog ($18) and Super Hot Dog ($22), Yummy Hot Dog is _____.", "choices": ["the cheapest", "the cheaper", "cheapest", "more cheap"], "answer": "the cheapest", "note": "superlative · -est · price"}, {"id": 38, "kind": "sup", "q": "Among Sunny Bread ($14), Lucky Bread ($18) and Merry Bread ($20), Sunny Bread is _____.", "choices": ["the cheapest", "the cheaper", "cheapest", "most cheap"], "answer": "the cheapest", "note": "superlative · -est · price"}, {"id": 39, "kind": "sup", "q": "This is _____ day of the year! (happy)", "choices": ["the happiest", "happier", "more happy", "the most happiest"], "answer": "the happiest", "note": "superlative · y→i"}, {"id": 40, "kind": "sup", "q": "Look at the three bags. The red bag is _____. (big)", "choices": ["the biggest", "bigger", "more big", "the most big"], "answer": "the biggest", "note": "superlative · double consonant"}, {"id": 41, "kind": "sup", "q": "Swimming is _____ sport in our class. (popular)", "choices": ["the most popular", "more popular", "popularer", "the popularer"], "answer": "the most popular", "note": "superlative · the most"}, {"id": 42, "kind": "sup", "q": "The cookies ($50) are _____ snack. (expensive)", "choices": ["the most expensive", "more expensive", "expensiver", "the expensivest"], "answer": "the most expensive", "note": "superlative · the most"}, {"id": 43, "kind": "sup", "q": "Among Super Raisin ($32), Yummy Raisin ($25) and Natural Raisin ($28), Super Raisin is _____.", "choices": ["the most expensive", "the more expensive", "most expensive", "the expensivest"], "answer": "the most expensive", "note": "superlative · the most · price"}, {"id": 44, "kind": "sup", "q": "This is _____ story in the book. (interesting)", "choices": ["the most interesting", "more interesting", "interestinger", "the interestingest"], "answer": "the most interesting", "note": "superlative · the most"}, {"id": 45, "kind": "sup", "q": "Among Candy, Maggie and May, Candy is _____. (polite)", "choices": ["the most polite", "more polite", "politer", "the politer"], "answer": "the most polite", "note": "superlative · the most"}, {"id": 46, "kind": "sup", "q": "Among Jolly Juice ($9.20), Fruity Juice ($10.50) and Pure Juice ($11.80), Pure Juice is _____.", "choices": ["the most expensive", "the more expensive", "most expensive", "the expensive"], "answer": "the most expensive", "note": "superlative · the most · price"}, {"id": 47, "kind": "form", "q": "Choose the correct comparative form of tall.", "choices": ["taller", "more tall", "more taller", "the tallest"], "answer": "taller", "note": "form · -er"}, {"id": 48, "kind": "form", "q": "Choose the correct superlative form of tall.", "choices": ["the tallest", "the taller", "tallest", "the most tall"], "answer": "the tallest", "note": "form · -est"}, {"id": 49, "kind": "form", "q": "Choose the correct comparative form of expensive.", "choices": ["more expensive", "expensiver", "expensivest", "more expensiver"], "answer": "more expensive", "note": "form · more"}, {"id": 50, "kind": "form", "q": "Choose the correct superlative form of popular.", "choices": ["the most popular", "the more popular", "most popular", "the popularer"], "answer": "the most popular", "note": "form · the most"}, {"id": 51, "kind": "form", "q": "Choose the correct comparative form of happy.", "choices": ["happier", "more happy", "more happier", "happyier"], "answer": "happier", "note": "form · y→i"}, {"id": 52, "kind": "form", "q": "Choose the correct superlative form of big.", "choices": ["the biggest", "the bigger", "biggest", "the most big"], "answer": "the biggest", "note": "form · double consonant"}, {"id": 53, "kind": "form", "q": "Pick the WRONG form (the mistake).", "choices": ["more bigger", "bigger", "the biggest", "more expensive"], "answer": "more bigger", "note": "form · common mistake"}, {"id": 54, "kind": "form", "q": "Choose the correct comparative form of thin.", "choices": ["thinner", "more thin", "more thinner", "thiner"], "answer": "thinner", "note": "form · double consonant"}, {"id": 55, "kind": "form", "q": "Choose the correct comparative form of delicious.", "choices": ["more delicious", "deliciouser", "the most delicious", "more deliciouser"], "answer": "more delicious", "note": "form · more"}, {"id": 56, "kind": "form", "q": "Choose the correct superlative form of cheap.", "choices": ["the cheapest", "the cheaper", "cheapest", "the most cheap"], "answer": "the cheapest", "note": "form · -est"}];
 
@@ -717,8 +856,12 @@ function endRace(){
   if(currentPlayer){
     const r = upsertLocalScore(currentPlayer, score, successJumps);
     status = r.status || "";
-  }
-  if(lbEl) lbEl.textContent = status;
+    if(lbEl) lbEl.textContent = status + " · 雲端同步中…";
+    cloudUpsertPlayer(currentPlayer, score, successJumps).then(cr=>{
+      const msg = (status ? status + " · " : "") + ((cr && cr.status) || "");
+      if(lbEl) lbEl.textContent = msg;
+    });
+  } else if(lbEl) lbEl.textContent = status;
   showOverlay("overlayEnd");
 }
 function esc(s){ return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
@@ -758,7 +901,7 @@ document.getElementById("btnMute").onclick = function(){ setMuted(!muted); };
 document.getElementById("btnBoardStart").onclick = ()=>openBoard("overlayStart");
 document.getElementById("btnBoardEnd").onclick = ()=>openBoard("overlayEnd");
 document.getElementById("btnBoardClose").onclick = closeBoard;
-document.getElementById("btnBoardRefresh").onclick = ()=>renderBoard();
+document.getElementById("btnBoardRefresh").onclick = ()=>refreshBoard();
 document.getElementById("btnBoardClear").onclick = ()=>teacherClearBoard();
 document.getElementById("btn0").onclick = ()=>choose(0);
 document.getElementById("btn1").onclick = ()=>choose(1);

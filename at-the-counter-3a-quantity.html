@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b5e8a">
 <title>At the Counter · 3A Ch.3 Quantity Phrases</title>
+<meta name="atc-version" content="11">
 <style>
 :root { color-scheme: light; --ink:#1f140e; --sky:#a8d8f0; --wood:#d4a06a; --cream:#fff8ef; --navy:#0b5e8a; --pink:#ffb4c8; --butter:#ffe9a8; }
 *{box-sizing:border-box}
@@ -416,6 +417,179 @@ const LS_BOARD = "atc3a_board_v1";
 const LS_ADMIN = "atc3a_admin_v1";
 const ADMIN_PASS = "31510323";
 
+const CLOUD_PREFIX = "a";
+let cloudStatusMsg = "";
+
+// ---------- Cloud leaderboard (keyvalue.immanuel.co) ----------
+const CLOUD_BASE = "https://keyvalue.immanuel.co/api/KeyVal";
+const CLOUD_APP = "9qeew60c";
+const TEACHER_CLEAR_PW = "teacher";
+function cloudKey(no){ return CLOUD_PREFIX + no; }
+function encodeScore(sumScore, games, totalCorrect, when){
+  return [sumScore|0, games|0, totalCorrect|0, when|0].join("-");
+}
+function parseScoreVal(raw){
+  if(raw == null) return null;
+  let s = raw;
+  if(typeof s !== "string"){
+    try{ s = JSON.stringify(s); }catch(e){ return null; }
+  }
+  s = s.trim();
+  if((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))){
+    try{ s = JSON.parse(s); }catch(e){ s = s.slice(1,-1); }
+  }
+  if(typeof s !== "string") s = String(s);
+  s = s.trim();
+  if(!s || s === "0" || s === '""' || s === "null") return null;
+  const parts = s.split("-");
+  if(parts.length < 4) return null;
+  const score = parseInt(parts[0], 10);
+  const games = parseInt(parts[1], 10);
+  const correct = parseInt(parts[2], 10);
+  const when = parseInt(parts[3], 10);
+  if(!isFinite(score) || score <= 0) return null;
+  return {
+    score: score||0,
+    games: isFinite(games)?games:0,
+    correct: isFinite(correct)?correct:0,
+    when: isFinite(when)?when:0
+  };
+}
+async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+async function cloudGet(no){
+  const url = CLOUD_BASE + "/GetValue/" + CLOUD_APP + "/" + cloudKey(no);
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"GET", cache:"no-store"});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("GET " + res.status);
+        await sleep(200 + attempt * 250 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("GET " + res.status);
+      const txt = await res.text();
+      let parsed = txt;
+      try{ parsed = JSON.parse(txt); }catch(e){ parsed = txt; }
+      return parseScoreVal(parsed);
+    }catch(e){
+      lastErr = e;
+      await sleep(200 + attempt * 250);
+    }
+  }
+  throw lastErr || new Error("GET failed");
+}
+async function cloudWrite(no, value){
+  const url = CLOUD_BASE + "/UpdateValue/" + CLOUD_APP + "/" + cloudKey(no) + "/" + encodeURIComponent(value);
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"POST", body:""});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("POST " + res.status);
+        await sleep(250 + attempt * 300 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("POST " + res.status);
+      return true;
+    }catch(e){
+      lastErr = e;
+      await sleep(250 + attempt * 300);
+    }
+  }
+  throw lastErr || new Error("POST failed");
+}
+async function mapPool(items, limit, fn){
+  const out = new Array(items.length);
+  let i = 0;
+  async function worker(){
+    while(i < items.length){
+      const idx = i++;
+      out[idx] = await fn(items[idx], idx);
+    }
+  }
+  const n = Math.max(1, Math.min(limit, items.length));
+  await Promise.all(Array.from({length:n}, () => worker()));
+  return out;
+}
+async function cloudUpsertPlayer(player, score, correct){
+  if(!player || !player.no) return {ok:false, status:"失敗"};
+  const when = Math.floor(Date.now()/1000);
+  const addScore = score|0;
+  const addCorrect = correct|0;
+  try{
+    const existing = await cloudGet(player.no);
+    const sum = (existing ? existing.score : 0) + addScore;
+    const games = (existing ? (existing.games||0) : 0) + 1;
+    const totalCorrect = (existing ? existing.correct : 0) + addCorrect;
+    if(addScore <= 0 && !existing){
+      return {ok:true, status:"無分數可累積", kept:true};
+    }
+    await cloudWrite(player.no, encodeScore(sum, games, totalCorrect, when));
+    return {ok:true, status:"已累積更新 · 雲端總分 "+sum+"（"+games+" 局）", updated:true, sum, games};
+  }catch(e){
+    console.warn("cloud upsert failed", e);
+    return {ok:false, status:"雲端更新失敗"};
+  }
+}
+async function cloudFetchAll(){
+  const rows = await mapPool(CLASS_ROSTER, 3, async stu => {
+    try{
+      const ent = await cloudGet(stu.no);
+      if(!ent) return null;
+      return {name:stu.name, no:stu.no, ...ent};
+    }catch(e){
+      return {_err:true, name:stu.name, no:stu.no};
+    }
+  });
+  const errs = rows.filter(r => r && r._err).length;
+  const list = rows.filter(r => r && !r._err);
+  list.sort((a,b)=>{
+    if(b.score !== a.score) return b.score - a.score;
+    if((b.games||0) !== (a.games||0)) return (b.games||0) - (a.games||0);
+    return b.when - a.when;
+  });
+  return {list, errs};
+}
+
+function renderCloudBoardRows(list, errs){
+  if(!list.length){
+    return '<p class="bests">雲端榜尚無紀錄 · No cloud scores yet'+(errs?'（部分讀取失敗 '+errs+'）':'')+'</p>';
+  }
+  return '<ol>'+list.map(function(r,i){
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+".";
+    return '<li>'+medal+' '+esc(r.name)+' ('+r.no+') · ⭐ '+r.score+' · '+(r.games||0)+'局 · ✓ '+(r.correct||0)+'</li>';
+  }).join("")+'</ol>'+(errs?'<p class="bests">部分讀取失敗 ('+errs+')</p>':'');
+}
+async function refreshCloudBoard(){
+  const el = document.getElementById("cloudBoardBody");
+  if(!el) return;
+  el.innerHTML = '<p class="bests">Loading cloud board…</p>';
+  try{
+    const {list, errs} = await cloudFetchAll();
+    el.innerHTML = renderCloudBoardRows(list, errs);
+  }catch(e){
+    el.innerHTML = '<p class="bests">雲端讀取失敗 · Failed to load</p>';
+  }
+}
+async function teacherClearCloudBoard(){
+  const pw = prompt("老師清除密碼 / Teacher password:");
+  if(pw == null) return;
+  if(pw !== ADMIN_PASS && pw !== TEACHER_CLEAR_PW){
+    alert("密碼錯誤");
+    return;
+  }
+  if(!confirm("確定清除雲端排行榜（At the Counter）？")) return;
+  const el = document.getElementById("cloudBoardBody");
+  if(el) el.innerHTML = '<p class="bests">Clearing…</p>';
+  try{
+    await mapPool(CLASS_ROSTER, 2, function(stu){ return cloudWrite(stu.no, "0"); });
+    await refreshCloudBoard();
+  }catch(e){
+    if(el) el.innerHTML = '<p class="bests">清除失敗 · Clear failed</p>';
+  }
+}
+
 const LOOKS = [
   { id:"short", skin:"#f6c7a1", hair:"#3b2416", shirt:"#ef476f", accent:"#ffd166" },
   { id:"cap", skin:"#e8b48a", hair:"#1b1b1b", shirt:"#118ab2", accent:"#e63946" },
@@ -767,14 +941,18 @@ function writeBoardEntry(){
   }catch(e){}
 }
 function boardHTML(mode){
-  const board = readBoard().filter(function(r){ return !mode || r.mode===mode; }).slice(0,10);
-  if(!board.length) return '<p class="bests">No scores yet.</p>';
-  return '<div class="board"><h2>Class board · cumulative</h2><ol>'+
-    board.map(function(r){
-      const tag = r.mode==="hard"?"Hard":"Easy";
-      return '<li>'+esc(r.name)+' ('+r.no+') · '+tag+' · '+r.total+' pts · '+r.games+' games</li>';
-    }).join("")+
-    '</ol></div>';
+  const local = readBoard().filter(function(r){ return !mode || r.mode===mode; }).slice(0,5);
+  const localNote = local.length
+    ? '<p class="bests">本機備份：'+local.map(function(r){ return esc(r.name)+' '+(r.total||0); }).join(' · ')+'</p>'
+    : '';
+  return '<div class="board"><h2>🏆 雲端榜 · Class Top</h2>'+
+    '<div id="cloudBoardBody"><p class="bests">Loading cloud board…</p></div>'+
+    '<p style="text-align:center;margin:8px 0 0">'+
+      '<button type="button" class="ghost" data-action="cloud-refresh">Refresh</button> '+
+      '<button type="button" class="ghost" data-action="cloud-clear">Clear (teacher)</button>'+
+    '</p>'+localNote+
+    (cloudStatusMsg ? '<p class="bests">'+esc(cloudStatusMsg)+'</p>' : '')+
+    '</div>';
 }
 
 function heartsHTML(){
@@ -1169,6 +1347,7 @@ function endHTML(){
     '<p class="chapter">Longman 3A · Ch.3 · Quantity phrases</p>'+
     '<p class="scoreline">'+esc(state.player?state.player.name:"")+' · '+modeName+
     '<br>You served '+state.served+' of 8 customers.<br>Score: '+state.score+(best?" · Best: "+best:"")+'</p>'+
+    '<p class="bests" id="cloudStatusLine">'+esc(cloudStatusMsg||"")+'</p>'+
     '<div class="end-actions"><button type="button" class="serve" data-action="again">Play again</button>'+
     '<button type="button" class="ghost" data-action="home">Home</button></div>'+
     (state.mistakes.length ? "<h2>Mistakes</h2>" : "")+mistakesHTML()+
@@ -1192,6 +1371,7 @@ function render(){
     }
     refreshServe();
   } else if(state.screen==="end") app.innerHTML = endHTML();
+  if(state.screen==="start" || state.screen==="end") refreshCloudBoard();
 }
 
 function prepareHardCustomer(){
@@ -1239,7 +1419,17 @@ function finishGame(){
   writeBest();
   writeBoardEntry();
   state.screen = "end";
+  cloudStatusMsg = "雲端同步中…";
   render();
+  const player = state.player;
+  const sc = state.score|0;
+  const ok = state.served|0;
+  cloudUpsertPlayer(player, sc, ok).then(function(r){
+    cloudStatusMsg = (r && r.status) ? r.status : "";
+    const tip = document.getElementById("cloudStatusLine");
+    if(tip) tip.textContent = cloudStatusMsg;
+    refreshCloudBoard();
+  });
 }
 function noteMistake(errorLine, ok){
   const order = currentOrder();
@@ -1461,6 +1651,14 @@ function onAction(action, el, ev){
   if(action==="serve"){
     if(state.mode==="hard") tryServeHard();
     else tryServeEasy();
+    return;
+  }
+  if(action==="cloud-refresh"){
+    refreshCloudBoard();
+    return;
+  }
+  if(action==="cloud-clear"){
+    teacherClearCloudBoard();
     return;
   }
   if(action==="admin"){
