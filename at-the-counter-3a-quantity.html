@@ -208,20 +208,79 @@ h1{margin:10px 0 0;text-align:center;font-size:clamp(1.9rem,5.5vw,3.4rem);letter
   text-align:center;font-weight:900;font-size:clamp(1rem,2.2vw,1.25rem);
   margin:6px 0 2px;min-height:1.4em;color:var(--navy);
 }
-/* Hard mode: compact stage, hide basket */
+/* Hard mode: compact stage, match board fills floor below stripe */
 .play.hard .basket-wrap{display:none}
-.play.hard .stage{padding:4px 8px 2px;gap:8px;min-height:110px}
-.play.hard .who{width:78px}
-.play.hard .person{width:78px}
-.play.hard .held-card{width:min(132px,28vw);padding:4px}
-.play.hard .counter{padding:8px 6px 0}
-.play.hard .action{overflow:auto;padding:4px 2px 6px}
-.play.hard .serve-bar{padding:4px 8px 8px}
+.play.hard .wall-shelves{display:none}
+.play.hard .stage{
+  padding:2px 6px 0;gap:4px;min-height:0;flex:0 0 auto;
+  background:linear-gradient(#a8d8f0 0%,#c9ebff 58%,#fff6e8 58%,#fff6e8 100%);
+}
+.play.hard .stage-sky{inset:0 0 48% 0}
+.play.hard .cloud.c1,.play.hard .cloud.c2,.play.hard .cloud.c3{transform:scale(.75);transform-origin:top left}
+.play.hard .who{width:64px}
+.play.hard .person{width:64px}
+.play.hard .who-label{font-size:.68rem;margin-top:-2px}
+.play.hard .cashier-slot{width:56px}
+.play.hard .cashier{width:56px}
+.play.hard .cashier-label{font-size:.62rem}
+.play.hard .held-card{width:min(88px,20vw);padding:3px;border-width:3px;border-radius:12px}
+.play.hard .talk{gap:2px;align-items:center}
+.play.hard .order-kicker{font-size:.62rem;margin:0;letter-spacing:.04em}
+.play.hard #bubble-text.hint{font-size:clamp(.78rem,1.8vw,.95rem);margin:0;font-weight:800;line-height:1.2;text-align:center}
+/* Clear yellow-black stripe (::before 18px) + wood lip (::after ~30px) */
+.play.hard .counter{
+  padding:36px 8px 0;gap:0;min-height:0;
+  display:flex;flex-direction:column;
+}
+.play.hard .action{
+  flex:1 1 auto;min-height:0;overflow:hidden;
+  display:flex;flex-direction:column;gap:6px;
+  padding:4px 2px 2px;
+}
+.play.hard .match-board{
+  flex:1 1 auto;min-height:0;width:100%;max-width:none;margin:0;
+  gap:10px;padding:0;align-items:stretch;
+}
+.play.hard .match-col{
+  min-height:0;overflow:auto;padding:8px;gap:8px;
+  justify-content:flex-start;
+}
+.play.hard .match-col h3{
+  flex:none;position:sticky;top:0;z-index:1;
+  background:inherit;padding:2px 0 4px;margin:0;
+  font-size:clamp(1rem,2.4vw,1.2rem);
+}
+.play.hard .match-btn{
+  flex:1 1 0;min-height:3rem;padding:12px 8px;
+  font-size:clamp(1rem,2.4vw,1.3rem);
+}
+.play.hard .match-preview{
+  flex:none;margin:0;min-height:1.35em;
+  font-size:clamp(.95rem,2vw,1.15rem);
+}
+.play.hard .serve-bar{flex:none;padding:6px 8px 10px;border-radius:12px 12px 0 0}
 .play.hard .serve{min-height:52px;font-size:1.25rem}
 @media (max-width:720px){
   .match-board{gap:8px;padding:0 2px}
   .match-btn{min-height:2.85rem;padding:10px 6px;font-size:clamp(.92rem,3.4vw,1.15rem);border-width:2.5px;border-bottom-width:5px}
   .match-col{padding:6px}
+  .play.hard .counter{padding:34px 6px 0}
+  .play.hard .match-board{gap:8px}
+  .play.hard .match-btn{min-height:2.7rem;padding:10px 6px;font-size:clamp(.95rem,3.6vw,1.2rem)}
+  .play.hard .who{width:56px}
+  .play.hard .person{width:56px}
+  .play.hard .cashier-slot{width:50px}
+  .play.hard .cashier{width:50px}
+  .play.hard .held-card{width:min(76px,18vw)}
+}
+@media (max-height:700px){
+  .play.hard .who{width:52px}
+  .play.hard .person{width:52px}
+  .play.hard .cashier-slot{width:46px}
+  .play.hard .cashier{width:46px}
+  .play.hard .held-card{width:min(68px,16vw);padding:2px}
+  .play.hard .serve{min-height:48px;font-size:1.15rem}
+  .play.hard .match-btn{min-height:2.55rem;padding:8px 6px}
 }
 .admin-chip{
   display:inline-flex;align-items:center;gap:6px;flex:1 1 160px;min-width:0;
@@ -1031,13 +1090,13 @@ function playHTML(){
   // Easy customers 5–8 (index 4–7): shuffled shelf + hide English labels under pictures
   const easyChallenge = !hard && state.index >= 4;
   const tip = hard
-    ? "Tap quantity (left) and food/drink (right)."
+    ? "Tap ① quantity + ② food/drink."
     : (easyChallenge
       ? "No English labels · pictures shuffled. Listen carefully!"
       : "Tap the pictures. Keys 1–0, Q/W/E/R/T. Enter serves.");
   const talkInner = hard
     ? '<div class="held'+(order.length===2?" two":"")+'">'+
-        order.map(function(item){ return '<div class="held-card">'+foodSVG(item,96)+'</div>'; }).join("")+
+        order.map(function(item){ return '<div class="held-card">'+foodSVG(item,72)+'</div>'; }).join("")+
       '</div><p class="order-kicker">Look · then match</p><p id="bubble-text" class="hint">'+esc(tip)+'</p>'
     : '<div class="bubble"><div class="order-kicker">Customer says</div><p id="bubble-text">'+esc(prompt)+'</p>'+
       '<button type="button" class="hear" data-action="hear">🔊 Hear again</button></div>';
