@@ -214,7 +214,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   <div class="stat" id="hudMainSpeed">⚡ <span id="hudSpeed">1</span>x</div>
   <div class="stat" id="hudBonusTime" style="display:none">⏱️ <span id="hudTime">0</span>s</div>
   <div class="stat" id="hudBonusDodge" style="display:none">🚗 Dodged <span id="hudDodged">0</span></div>
-  <div class="stat lives" id="hudLives">❤️❤️❤️</div>
+  <div class="stat lives" id="hudLives">❤️❤️❤️❤️</div>
 </div>
 <div class="progress-rail" id="progressRail"><div class="fill" id="progressFill"></div></div>
 <div class="bonus-hint" id="bonusHint">👆 Drag up / down to dodge · 手指上下拖動躲避</div>
@@ -257,8 +257,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
       <b>橫版賽道 Landscape race</b> · Look at the <b>month calendar</b> · practise <b>on Mondays / on Fridays</b>!<br>
       <b>Type A:</b> month calendar → always / often / sometimes / seldom / never<br>
       <b>Type B:</b> read the sentence → tap the right weekday dates → GO<br>
-      <b>12 questions</b> · <b>3 lives</b> · score = 100 + leftover seconds × 10<br>
-      <b>通關獎勵 Bonus:</b> dodge cars · time = 10 + correct×4 sec · 3 lives<br>
+      <b>12 questions</b> · <b>4 lives</b> · score = 100 + leftover seconds × 10<br>
+      <b>通關獎勵 Bonus:</b> dodge cars · time = 10 + correct×4 sec · 4 lives<br>
       <span class="muted">Full month grid · focus one weekday · always=all · often=3/4 · sometimes=2/4 · seldom=1/4 · never=0 · no usually · mid-freq never marks 5 days</span>
     </p>
     <button class="btn" id="btnStart">START RACE ▶</button>
@@ -308,8 +308,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const FREQ_RACE_CACHE_V = 10; // auto-start bonus 3-2-1 (no dead START button)
+const FREQ_RACE_CACHE_V = 11; // Mr. Wang + 4 lives + solid bonus i-frames
 const CLASS_ROSTER = [
+  {name:"Mr. Wang", no:27},
   {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
   {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
   {name:"Helios", no:9},{name:"Emma", no:10},{name:"Hugo", no:11},{name:"Hannah", no:12},
@@ -350,7 +351,7 @@ const LS_PLAYER = "freq_race_player_v1";
 const LS_BOARD = "freq_race_board_cum_v1";
 const TEACHER_CLEAR_PW = "teacher";
 const Q_TOTAL = 12;
-const MAX_LIVES = 3;
+const MAX_LIVES = 4;
 const TIMER_START = 20;
 const TIMER_FLOOR = 10;
 const CLOUD_PREFIX = "f";
@@ -1015,7 +1016,7 @@ function drawScene(now){
       drawCarSprite(c.x, ey, scale, c.color, c.no, false, false);
     });
     const playerY = rg.top + (0.17 + carY * 0.66) * rg.height;
-    const inv = now < bonusInvulnUntil;
+    const inv = (typeof bonusIsInvuln === 'function') ? bonusIsInvuln(now) : (now < bonusInvulnUntil);
     const scale = Math.min(w,h) * 0.00105 + 0.95;
     drawCarSprite(w*0.16, playerY, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, inv);
 
@@ -1143,11 +1144,15 @@ function bonusSpeedFactor(now){
 function triggerHitFx(x, y, now){
   const words = ["BAM!", "POW!", "OUCH!", "CRASH!", "WHOA!"];
   bonusFx = {until: now + 900, x:x, y:y, word: pick(words), shake: 14};
-  bonusHitstunUntil = now + 750;
-  bonusInvulnUntil = now + 1600;
+  bonusHitstunUntil = now + 900;
+  bonusInvulnUntil = now + 2200;
   flash(false);
   beep(160, 0.22, "sawtooth");
   setTimeout(()=>beep(120, 0.15, "square"), 90);
+}
+function bonusIsInvuln(now){
+  // True i-frames: hitstun freeze OR flash/虛化 window — no collisions
+  return now < bonusHitstunUntil || now < bonusInvulnUntil;
 }
 function beginBonusPlay(now){
   bonusPhase = 'play';
@@ -1155,7 +1160,7 @@ function beginBonusPlay(now){
   bonusEndsAt = now + bonusDuration * 1000;
   bonusLeft = bonusDuration;
   bonusSpawnAt = now + 500;
-  bonusInvulnUntil = now + 600;
+  bonusInvulnUntil = now + 1000;
   beep(980, 0.18, "triangle");
 }
 function updateBonus(dt, now){
@@ -1220,22 +1225,30 @@ function updateBonus(dt, now){
       bonusDodged += 1;
       beep(660, 0.05, "sine");
     }
-    // collision (skip during hitstun / invuln)
-    if(!inHitstun && now >= bonusInvulnUntil){
+    // collision — true i-frames during hitstun + 虛化 flash
+    if(!bonusIsInvuln(now)){
       const dx = c.x - px, dy = ey - py;
       if(dx*dx + dy*dy < hitR*hitR){
         bonusLives -= 1;
         lives = bonusLives;
         triggerHitFx(px, py, now);
-        // shove colliding car away a bit
-        c.x += 90;
+        // shove THIS and any other overlapping cars away so wave can't chain-hit
+        for(let j=0;j<bonusCars.length;j++){
+          const o = bonusCars[j];
+          const oy = rg.top + (0.5 + o.lane) * (rg.height / 3);
+          const odx = o.x - px, ody = oy - py;
+          if(odx*odx + ody*ody < (hitR*2.2)*(hitR*2.2)){
+            o.x = px + hitR*2.8 + 40 + j*30;
+            o.passed = false;
+          }
+        }
         updateHud();
         if(bonusLives <= 0){
-          // short delay so kids see the comic FX before end screen
           bonusActive = true;
-          setTimeout(() => { if(mode === 'bonus') endBonus(false); }, 850);
+          setTimeout(() => { if(mode === 'bonus') endBonus(false); }, 900);
           return;
         }
+        break; // stop scanning cars this frame; i-frames now active
       }
     }
     if(c.x < -120) bonusCars.splice(i,1);
