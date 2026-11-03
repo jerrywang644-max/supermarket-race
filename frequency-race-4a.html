@@ -257,7 +257,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
       <b>Type B:</b> read the sentence → tap the right weekday dates → GO<br>
       <b>12 questions</b> · <b>3 lives</b> · score = 100 + leftover seconds × 10<br>
       <b>通關獎勵 Bonus:</b> dodge cars · time = 10 + correct×4 sec · 3 lives<br>
-      <span class="muted">Full month grid · focus one weekday · always=all · often≈3/4+ · sometimes=2 · seldom=1 · never=0 · no usually</span>
+      <span class="muted">Full month grid · focus one weekday · always=all · often=3/4 · sometimes=2/4 · seldom=1/4 · never=0 · no usually · mid-freq never marks 5 days</span>
     </p>
     <button class="btn" id="btnStart">START RACE ▶</button>
     <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
@@ -314,7 +314,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const FREQ_RACE_CACHE_V = 7; // fix bonus gate + true side-view track
+const FREQ_RACE_CACHE_V = 8; // calendar 1/2/3-of-4 + bonus countdown/ramp/hitstun
 const CLASS_ROSTER = [
   {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
   {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
@@ -387,6 +387,12 @@ let bonusDodged = 0;
 let bonusInvulnUntil = 0;
 let bonusCars = []; // {x,y,lane,speed,w,h,color,passed}
 let bonusSpawnAt = 0;
+let bonusPhase = 'idle'; // idle | countdown | go | play
+let bonusCountdownN = 0; // 3,2,1,0(GO)
+let bonusCountdownUntil = 0;
+let bonusPlayStartedAt = 0; // when play phase begins (timer + cars)
+let bonusHitstunUntil = 0;
+let bonusFx = null; // {until, x, y, word, shake}
 let pointerDragging = false;
 let pointerTargetY = 0.5; // normalized 0..1 within road
 let mainScoreSaved = false;
@@ -434,17 +440,13 @@ function buildMonthMeta(){
   return {year, month, name: MONTH_NAMES[month], cells, byWeekday, dim, weeks: cells.length / 7};
 }
 function rangeForAdverb(adv, total){
-  // total = how many of that weekday exist in the month (usually 4 or 5)
-  // Mapping: always=N/N · often≈3/4+ · sometimes=2 · seldom=1 · never=0
+  // Teaching map (of ~4): 1→seldom · 2→sometimes · 3→often · all→always · 0→never
+  // For non-always/never: never mark 5 days (even if weekday appears 5× in month)
   if(adv === "always") return [total, total];
   if(adv === "never") return [0, 0];
   if(adv === "seldom") return [1, 1];
   if(adv === "sometimes") return [2, 2];
-  if(adv === "often"){
-    if(total <= 3) return [Math.max(2, total - 1), Math.max(2, total - 1)];
-    if(total === 4) return [3, 3]; // 3/4
-    return [3, total - 1]; // N=5 → 3–4; N=6 → 3–5
-  }
+  if(adv === "often") return [3, 3]; // always 3/4-style, never 4 or 5
   return [2, 2];
 }
 function adverbForCount(n, total){
@@ -452,7 +454,14 @@ function adverbForCount(n, total){
   if(n >= total) return "always";
   if(n === 1) return "seldom";
   if(n === 2) return "sometimes";
-  return "often"; // 3 .. total-1 (e.g. 3/4, 3–4/5)
+  return "often"; // 3+ but not all (e.g. 3/4, 3/5)
+}
+function pickWeekdayForMonth(month){
+  // Prefer weekdays with exactly 4 dates so 1/4·2/4·3/4 teaching is clean
+  const fours = WEEKDAYS.filter(w => month.byWeekday[w.i].length === 4);
+  if(fours.length) return pick(fours);
+  const usable = WEEKDAYS.filter(w => month.byWeekday[w.i].length >= 4);
+  return pick(usable.length ? usable : WEEKDAYS);
 }
 function pickMarkedDates(candidates, count){
   return shuffle(candidates).slice(0, count).sort((a,b)=>a-b);
@@ -728,14 +737,15 @@ function flash(ok){
 
 function makeTypeA(){
   const month = buildMonthMeta();
-  const usable = WEEKDAYS.filter(w => month.byWeekday[w.i].length >= 4);
-  const wd = pick(usable.length ? usable : WEEKDAYS);
+  const wd = pickWeekdayForMonth(month);
   const candidates = month.byWeekday[wd.i].slice();
   const total = candidates.length;
   const advPool = total >= 4 ? ADVERBS : ADVERBS.filter(a => a !== "often");
   const adv = pick(advPool);
   const [lo, hi] = rangeForAdverb(adv, total);
-  const count = randInt(lo, hi);
+  let count = randInt(lo, hi);
+  // Safety: never mark 5+ for mid-frequency words
+  if(adv !== "always" && adv !== "never") count = Math.min(count, 3);
   const marked = pickMarkedDates(candidates, count);
   const act = pick(ACTIVITIES);
   const who = Math.random() < 0.45 ? "I" : pick(NAMES3);
@@ -767,13 +777,15 @@ function makeTypeA(){
 }
 function makeTypeB(){
   const month = buildMonthMeta();
-  const usable = WEEKDAYS.filter(w => month.byWeekday[w.i].length >= 4);
-  const wd = pick(usable.length ? usable : WEEKDAYS);
+  const wd = pickWeekdayForMonth(month);
   const candidates = month.byWeekday[wd.i].slice();
   const total = candidates.length;
   const advPool = total >= 4 ? ADVERBS : ADVERBS.filter(a => a !== "often");
   const adv = pick(advPool);
-  const [lo, hi] = rangeForAdverb(adv, total);
+  let [lo, hi] = rangeForAdverb(adv, total);
+  if(adv !== "always" && adv !== "never"){
+    lo = Math.min(lo, 3); hi = Math.min(hi, 3);
+  }
   const act = pick(ACTIVITIES);
   const who = Math.random() < 0.5 ? "I" : pick(NAMES3);
   let sentence;
@@ -981,27 +993,86 @@ function drawScene(now){
   }
 
   if(mode === 'bonus'){
+    let shakeX = 0, shakeY = 0;
+    if(bonusFx && now < bonusFx.until){
+      const k = (bonusFx.until - now) / 900;
+      shakeX = (Math.random()-0.5) * bonusFx.shake * k;
+      shakeY = (Math.random()-0.5) * bonusFx.shake * k;
+    }
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
     bonusCars.forEach(c => {
       const ey = laneY(c.lane);
       const scale = Math.min(w,h) * 0.0009 + 0.8;
       drawCarSprite(c.x, ey, scale, c.color, c.no, false, false);
     });
-    const py = laneY(0) + (laneY(2) - laneY(0)) * carY; // carY 0..1 across lanes
-    // remap: carY 0 top lane, 1 bottom
     const playerY = rg.top + (0.17 + carY * 0.66) * rg.height;
     const inv = now < bonusInvulnUntil;
     const scale = Math.min(w,h) * 0.00105 + 0.95;
-    if(now < boostUntil){
-      ctx.fillStyle = "rgba(251,191,36,.55)";
-      ctx.beginPath(); ctx.ellipse(w*0.16-55, playerY, 40, 16, 0,0,Math.PI*2); ctx.fill();
-    }
     drawCarSprite(w*0.16, playerY, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, inv);
+
+    // Comic hit burst
+    if(bonusFx && now < bonusFx.until){
+      const life = 1 - (bonusFx.until - now) / 900;
+      const bx = bonusFx.x, by = bonusFx.y;
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.rotate((-18 + life*10) * Math.PI/180);
+      // starburst
+      ctx.fillStyle = "rgba(251,191,36,"+(0.95-life*0.5)+")";
+      for(let i=0;i<8;i++){
+        const ang = i * Math.PI/4;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(ang)*12, Math.sin(ang)*12);
+        ctx.lineTo(Math.cos(ang+0.2)*55, Math.sin(ang+0.2)*55);
+        ctx.lineTo(Math.cos(ang-0.2)*55, Math.sin(ang-0.2)*55);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle = "#fff";
+      roundRect(-70, -28, 140, 56, 16);
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 5;
+      ctx.stroke();
+      ctx.fillStyle = "#ef4444";
+      ctx.font = "900 34px Impact, Haettenschweiler, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(bonusFx.word, 0, 2);
+      // little stars
+      ctx.fillStyle = "#fde68a";
+      ctx.font = "bold 22px sans-serif";
+      ctx.fillText("✦ ✦ ✦", 0, -46);
+      ctx.restore();
+    }
+
+    ctx.restore(); // end shake
+
     ctx.fillStyle = "rgba(15,23,42,.65)";
     roundRect(w/2-170, 12, 340, 40, 14);
     ctx.fillStyle = "#fbbf24";
     ctx.font = "bold 20px sans-serif";
     ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
     ctx.fillText("🎁 BONUS DODGE · UP / DOWN", w/2, 40);
+
+    // 3-2-1 / GO overlay
+    if(bonusPhase === 'countdown' || bonusPhase === 'go'){
+      ctx.fillStyle = "rgba(8,20,40,.45)";
+      ctx.fillRect(0, 0, w, h);
+      const label = bonusCountdownN > 0 ? String(bonusCountdownN) : "GO!";
+      ctx.fillStyle = bonusCountdownN > 0 ? "#fbbf24" : "#34d399";
+      ctx.font = "900 "+Math.floor(Math.min(w,h)*0.22)+"px Impact, Haettenschweiler, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.strokeStyle = "rgba(0,0,0,.45)";
+      ctx.lineWidth = 10;
+      ctx.strokeText(label, w/2, h*0.48);
+      ctx.fillText(label, w/2, h*0.48);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "bold 22px sans-serif";
+      ctx.fillText(bonusCountdownN > 0 ? "Get ready…" : "Dodge!", w/2, h*0.48 + Math.min(w,h)*0.14);
+    }
   } else {
     // Main race: car travels left → right along mid lane
     const prog = mode === 'race' ? raceProgress : 0.06;
@@ -1056,19 +1127,75 @@ function spawnBonusCar(w){
     passed: false
   });
 }
+function bonusSpeedFactor(now){
+  // Ramp 0.35 → 1.15 over the full bonus duration
+  if(!bonusPlayStartedAt || bonusDuration <= 0) return 0.35;
+  const t = Math.max(0, Math.min(1, (now - bonusPlayStartedAt) / (bonusDuration * 1000)));
+  return 0.35 + t * 0.80;
+}
+function triggerHitFx(x, y, now){
+  const words = ["BAM!", "POW!", "OUCH!", "CRASH!", "WHOA!"];
+  bonusFx = {until: now + 900, x:x, y:y, word: pick(words), shake: 14};
+  bonusHitstunUntil = now + 750;
+  bonusInvulnUntil = now + 1600;
+  flash(false);
+  beep(160, 0.22, "sawtooth");
+  setTimeout(()=>beep(120, 0.15, "square"), 90);
+}
+function beginBonusPlay(now){
+  bonusPhase = 'play';
+  bonusPlayStartedAt = now;
+  bonusEndsAt = now + bonusDuration * 1000;
+  bonusLeft = bonusDuration;
+  bonusSpawnAt = now + 500;
+  bonusInvulnUntil = now + 600;
+  beep(980, 0.18, "triangle");
+}
 function updateBonus(dt, now){
   const w = window.innerWidth, h = window.innerHeight;
   const rg = roadGeom(w,h);
-  // ease toward finger / mouse / keyboard target
-  carY += (pointerTargetY - carY) * Math.min(1, dt/80);
+
+  // Countdown 3-2-1 then GO — no cars / no timer drain yet
+  if(bonusPhase === 'countdown' || bonusPhase === 'go'){
+    roadOffset += 1.6 * (dt/16);
+    if(now >= bonusCountdownUntil){
+      if(bonusCountdownN > 1){
+        bonusCountdownN -= 1;
+        bonusCountdownUntil = now + 1000;
+        beep(520 + (3-bonusCountdownN)*80, 0.12, "square");
+      } else if(bonusCountdownN === 1){
+        bonusCountdownN = 0; // GO
+        bonusPhase = 'go';
+        bonusCountdownUntil = now + 700;
+        beep(780, 0.16, "triangle");
+      } else {
+        beginBonusPlay(now);
+      }
+    }
+    updateHud();
+    return;
+  }
+
+  const inHitstun = now < bonusHitstunUntil;
+
+  // Player can still aim during hitstun (small ease) but world mostly freezes
+  if(!inHitstun){
+    carY += (pointerTargetY - carY) * Math.min(1, dt/80);
+  } else {
+    carY += (pointerTargetY - carY) * Math.min(1, dt/200);
+  }
   carY = Math.max(0, Math.min(1, carY));
 
-  roadOffset += (4.5 + carSpeed) * (dt/16);
+  const spd = bonusSpeedFactor(now);
+  if(!inHitstun){
+    roadOffset += (3.2 + spd * 5.5) * (dt/16);
+  }
 
-  if(now >= bonusSpawnAt){
+  if(!inHitstun && now >= bonusSpawnAt){
     spawnBonusCar(w);
-    const gap = Math.max(420, 900 - correctCount*30);
-    bonusSpawnAt = now + gap + Math.random()*350;
+    // spawn gap shrinks as speed ramps
+    const gap = Math.max(380, (1100 - correctCount*25) * (1.15 - spd*0.45));
+    bonusSpawnAt = now + gap + Math.random()*280;
   }
 
   const px = w * 0.16;
@@ -1077,25 +1204,29 @@ function updateBonus(dt, now){
 
   for(let i=bonusCars.length-1;i>=0;i--){
     const c = bonusCars[i];
-    c.x -= c.speed * (dt/16) * 6.2;
+    if(!inHitstun){
+      c.x -= c.speed * spd * (dt/16) * 6.2;
+    }
     const ey = rg.top + (0.5 + c.lane) * (rg.height / 3);
     if(!c.passed && c.x < px - 40){
       c.passed = true;
       bonusDodged += 1;
       beep(660, 0.05, "sine");
     }
-    // collision
-    if(now >= bonusInvulnUntil){
+    // collision (skip during hitstun / invuln)
+    if(!inHitstun && now >= bonusInvulnUntil){
       const dx = c.x - px, dy = ey - py;
       if(dx*dx + dy*dy < hitR*hitR){
         bonusLives -= 1;
         lives = bonusLives;
-        bonusInvulnUntil = now + 1400;
-        flash(false); beep(160, 0.2, "sawtooth");
-        boostUntil = now + 200;
+        triggerHitFx(px, py, now);
+        // shove colliding car away a bit
+        c.x += 90;
         updateHud();
         if(bonusLives <= 0){
-          endBonus(false);
+          // short delay so kids see the comic FX before end screen
+          bonusActive = true;
+          setTimeout(() => { if(mode === 'bonus') endBonus(false); }, 850);
           return;
         }
       }
@@ -1103,10 +1234,18 @@ function updateBonus(dt, now){
     if(c.x < -120) bonusCars.splice(i,1);
   }
 
-  bonusLeft = Math.max(0, (bonusEndsAt - now)/1000);
-  if(bonusLeft <= 0){
-    endBonus(true);
-    return;
+  if(bonusFx && now >= bonusFx.until) bonusFx = null;
+
+  if(bonusLives > 0 && bonusEndsAt){
+    // pause timer during hitstun so kids aren't punished while frozen
+    if(inHitstun){
+      bonusEndsAt += dt;
+    }
+    bonusLeft = Math.max(0, (bonusEndsAt - now)/1000);
+    if(bonusLeft <= 0){
+      endBonus(true);
+      return;
+    }
   }
   updateHud();
 }
@@ -1143,7 +1282,8 @@ function updateHud(){
   document.getElementById("hudBonusTime").style.display = showBonus ? "" : "none";
   document.getElementById("hudBonusDodge").style.display = showBonus ? "" : "none";
   if(showBonus){
-    document.getElementById("hudTime").textContent = String(Math.ceil(bonusLeft));
+    const showT = (bonusPhase === 'play') ? bonusLeft : bonusDuration;
+    document.getElementById("hudTime").textContent = String(Math.ceil(showT));
     document.getElementById("hudDodged").textContent = String(bonusDodged);
     document.getElementById("hudLives").textContent = "❤️".repeat(Math.max(0,bonusLives)) + "🖤".repeat(Math.max(0, MAX_LIVES-bonusLives));
   } else {
@@ -1426,13 +1566,19 @@ function startBonus(){
   paused = false;
   bonusDuration = 10 + correctCount * 4;
   bonusLeft = bonusDuration;
-  bonusEndsAt = performance.now() + bonusDuration * 1000;
+  bonusEndsAt = 0; // set when play phase starts (after 3-2-1-GO)
+  bonusPlayStartedAt = 0;
   bonusLives = MAX_LIVES;
   lives = bonusLives;
   bonusDodged = 0;
   bonusCars = [];
-  bonusInvulnUntil = performance.now() + 800;
-  bonusSpawnAt = performance.now() + 600;
+  bonusInvulnUntil = 0;
+  bonusSpawnAt = 0;
+  bonusHitstunUntil = 0;
+  bonusFx = null;
+  bonusPhase = 'countdown';
+  bonusCountdownN = 3;
+  bonusCountdownUntil = performance.now() + 1000;
   carY = 0.5;
   pointerTargetY = 0.5;
   raceProgress = 1;
@@ -1444,8 +1590,7 @@ function startBonus(){
   document.getElementById("playWrap").classList.remove("show");
   updatePlayerUI();
   updateHud();
-  beep(920, 0.12, "triangle");
-  setTimeout(()=>beep(1100,0.12,"triangle"), 140);
+  beep(520, 0.12, "square");
 }
 
 function endBonus(survived){
@@ -1497,7 +1642,13 @@ function pauseGame(){
   if(!running || paused) return;
   paused = true;
   if(mode === 'bonus' && bonusActive){
-    bonusLeft = Math.max(0, (bonusEndsAt - performance.now())/1000);
+    if(bonusEndsAt){
+      bonusLeft = Math.max(0, (bonusEndsAt - performance.now())/1000);
+    }
+    // freeze countdown clock too
+    if(bonusPhase === 'countdown' || bonusPhase === 'go'){
+      bonusCountdownUntil = Math.max(0, bonusCountdownUntil - performance.now()); // store remaining
+    }
   }
   showOverlay("overlayPause");
 }
@@ -1506,7 +1657,12 @@ function resumeGame(){
   paused = false;
   hideOverlays();
   if(mode === 'bonus' && bonusActive){
-    bonusEndsAt = performance.now() + bonusLeft * 1000;
+    if(bonusPhase === 'play' && bonusEndsAt){
+      bonusEndsAt = performance.now() + bonusLeft * 1000;
+    }
+    if(bonusPhase === 'countdown' || bonusPhase === 'go'){
+      bonusCountdownUntil = performance.now() + bonusCountdownUntil; // remaining ms restored
+    }
   }
   if(answering && mode === 'race'){
     // rebuild remaining time from timerLeft
