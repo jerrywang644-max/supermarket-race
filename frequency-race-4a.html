@@ -47,9 +47,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   padding:8px 12px;font-weight:700;font-size:.9rem;backdrop-filter:blur(4px)}
 .hud .lives{letter-spacing:1px;font-size:1.05rem}
 .play-wrap{
-  position:fixed;left:50%;transform:translateX(-50%);top:58px;z-index:6;
-  max-width:min(1100px,98vw);width:100%;display:none;flex-direction:column;gap:10px;
-  pointer-events:none
+  position:fixed;left:50%;transform:translateX(-50%);top:52px;z-index:6;
+  max-width:min(980px,96vw);width:100%;display:none;flex-direction:column;gap:8px;
+  pointer-events:none;max-height:52vh;overflow:auto
 }
 .play-wrap.show{display:flex}
 .q-banner{
@@ -67,7 +67,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   pointer-events:auto;
   background:rgba(255,250,240,.98);border:3px solid #fdba74;border-radius:18px;
   padding:8px 8px 10px;color:#2d3436;box-shadow:0 10px 28px rgba(0,0,0,.28);
-  max-height:min(58vh,480px);overflow:auto
+  max-height:min(34vh,300px);overflow:auto
 }
 .cal-card .cal-title{font-weight:900;font-size:.9rem;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
 .cal-card .cal-title .act{color:#c2410c}
@@ -286,6 +286,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   </div>
 </div>
 
+<div class="overlay hidden" id="overlayBonusIntro">
+  <div class="panel">
+    <h1>🎁 BONUS DODGE!</h1>
+    <p id="bonusIntroText">通關成功！用手指／滑鼠上下移動賽車躲避其他車。<br>Clear! Drag up/down to dodge · 3 lives</p>
+    <button class="btn btn-alt" id="btnBonusGo" type="button">START BONUS ▶</button>
+  </div>
+</div>
+
 <div class="overlay hidden" id="overlayBoard">
   <div class="panel">
     <h1>🏆 Leaderboard</h1>
@@ -306,7 +314,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const FREQ_RACE_CACHE_V = 6; // landscape track + dodge bonus
+const FREQ_RACE_CACHE_V = 7; // fix bonus gate + true side-view track
 const CLASS_ROSTER = [
   {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
   {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
@@ -498,12 +506,12 @@ function goNameSelect(){
   showOverlay("overlayName");
 }
 function showOverlay(id){
-  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBoard"].forEach(x=>{
+  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBonusIntro","overlayBoard"].forEach(x=>{
     document.getElementById(x).classList.toggle("hidden", x!==id);
   });
 }
 function hideOverlays(){
-  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBoard"].forEach(x=>{
+  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBonusIntro","overlayBoard"].forEach(x=>{
     document.getElementById(x).classList.add("hidden");
   });
 }
@@ -805,9 +813,10 @@ function resize(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 function roadGeom(w,h){
-  // Horizontal landscape road band
-  const top = h * 0.42;
-  const bot = h * 0.88;
+  // True side-view: wide horizontal road band across mid-lower screen
+  // Lanes stacked vertically; travel direction is +X (left → right)
+  const top = Math.max(h * 0.48, Math.min(h * 0.55, h - 280));
+  const bot = Math.min(h * 0.92, top + Math.max(160, h * 0.36));
   return {top, bot, mid:(top+bot)/2, height: bot-top};
 }
 function drawCarSprite(cx, cy, scale, color, plateNo, facingRight, flashInvuln){
@@ -818,125 +827,209 @@ function drawCarSprite(cx, cy, scale, color, plateNo, facingRight, flashInvuln){
   if(flashInvuln){
     ctx.globalAlpha = (Math.floor(performance.now()/80)%2) ? 0.35 : 0.95;
   }
-  // boost flame behind
-  // body
+  // rear boost glow
+  ctx.fillStyle = "rgba(251,191,36,.35)";
+  ctx.beginPath(); ctx.ellipse(-70, 6, 28, 12, 0, 0, Math.PI*2); ctx.fill();
+  // body (side profile, facing right)
   ctx.fillStyle = color;
-  roundRect(-58,-22,116,40,14);
+  roundRect(-62,-20,124,38,14);
+  // cabin
   ctx.fillStyle = "#1e293b";
-  roundRect(-8,-34,58,20,8);
+  roundRect(-6,-36,60,22,8);
   ctx.fillStyle = "#7dd3fc";
-  roundRect(2,-32,42,14,5);
+  roundRect(4,-34,44,16,5);
+  // wheels
   ctx.fillStyle = "#0f172a";
-  circle(-34,20,13); circle(36,20,13);
+  circle(-36,20,14); circle(40,20,14);
   ctx.fillStyle = "#94a3b8";
-  circle(-34,20,5); circle(36,20,5);
+  circle(-36,20,5); circle(40,20,5);
+  // headlight
+  ctx.fillStyle = "#fef9c3";
+  roundRect(54,-8,10,12,3);
+  // plate
   ctx.fillStyle = "#fff";
-  roundRect(40,-10,24,16,3);
+  roundRect(28,-6,22,14,3);
   ctx.fillStyle = "#0f172a";
   ctx.font = "bold 11px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(String(plateNo||1), 52, 2);
+  ctx.fillText(String(plateNo||1), 39, 5);
   ctx.restore();
+}
+function drawScenery(w, h, rg, now){
+  // Sky
+  const sky = ctx.createLinearGradient(0,0,0,rg.top);
+  sky.addColorStop(0,"#38bdf8"); sky.addColorStop(0.55,"#7dd3fc"); sky.addColorStop(1,"#bae6fd");
+  ctx.fillStyle = sky; ctx.fillRect(0,0,w,rg.top);
+  // Clouds scrolling left (we're moving right)
+  ctx.fillStyle = "rgba(255,255,255,.85)";
+  for(let i=0;i<5;i++){
+    const cx = ((i*220 - roadOffset*0.35) % (w+200) + w+200) % (w+200) - 100;
+    const cy = 28 + (i%3)*22;
+    ctx.beginPath(); ctx.arc(cx,cy,18,0,Math.PI*2); ctx.arc(cx+22,cy+4,14,0,Math.PI*2); ctx.arc(cx-20,cy+6,12,0,Math.PI*2); ctx.fill();
+  }
+  // Distant hills
+  ctx.fillStyle = "#4ade80";
+  ctx.beginPath();
+  ctx.moveTo(0, rg.top);
+  for(let x=0;x<=w;x+=28){
+    const y = rg.top - 36 - Math.sin((x + roadOffset*0.12)/90)*10 - Math.cos(x/140)*8;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(w, rg.top); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#22c55e";
+  ctx.beginPath();
+  ctx.moveTo(0, rg.top);
+  for(let x=0;x<=w;x+=24){
+    const y = rg.top - 18 - Math.sin((x + roadOffset*0.2)/70)*7;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(w, rg.top); ctx.closePath(); ctx.fill();
+
+  // Grass shoulder above road
+  ctx.fillStyle = "#16a34a";
+  ctx.fillRect(0, rg.top - 18, w, 18);
+  // Grass below road
+  ctx.fillStyle = "#15803d";
+  ctx.fillRect(0, rg.bot, w, h - rg.bot);
+
+  // Roadside trees scrolling (above road)
+  for(let i=0;i<8;i++){
+    const tx = ((i*160 - roadOffset*1.1) % (w+160) + w+160) % (w+160) - 80;
+    const ty = rg.top - 10;
+    ctx.fillStyle = "#854d0e";
+    ctx.fillRect(tx-4, ty-28, 8, 28);
+    ctx.fillStyle = i%2 ? "#166534" : "#14532d";
+    ctx.beginPath(); ctx.arc(tx, ty-36, 16, 0, Math.PI*2); ctx.fill();
+  }
+  // Bushes below road
+  for(let i=0;i<10;i++){
+    const bx = ((i*130 - roadOffset*1.3) % (w+130) + w+130) % (w+130) - 60;
+    ctx.fillStyle = "#166534";
+    ctx.beginPath(); ctx.ellipse(bx, rg.bot+18, 22, 10, 0, 0, Math.PI*2); ctx.fill();
+  }
+}
+function drawHorizontalRoad(w, h, rg){
+  // Asphalt band
+  const asphalt = ctx.createLinearGradient(0, rg.top, 0, rg.bot);
+  asphalt.addColorStop(0, "#475569");
+  asphalt.addColorStop(0.5, "#334155");
+  asphalt.addColorStop(1, "#1e293b");
+  ctx.fillStyle = asphalt;
+  ctx.fillRect(0, rg.top, w, rg.height);
+
+  // Outer white edge lines
+  ctx.strokeStyle = "#f8fafc";
+  ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(0, rg.top + 5); ctx.lineTo(w, rg.top + 5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, rg.bot - 5); ctx.lineTo(w, rg.bot - 5); ctx.stroke();
+
+  // Three lanes → two dashed separators (horizontal travel)
+  ctx.strokeStyle = "#fde68a";
+  ctx.lineWidth = 5;
+  ctx.setLineDash([40, 30]);
+  ctx.lineDashOffset = -roadOffset; // dashes stream backward = driving right
+  const y1 = rg.top + rg.height / 3;
+  const y2 = rg.top + rg.height * 2 / 3;
+  ctx.beginPath(); ctx.moveTo(0, y1); ctx.lineTo(w, y1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, y2); ctx.lineTo(w, y2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Guardrail posts along top edge (scroll left)
+  for(let x = -((roadOffset*1.4) % 56); x < w + 20; x += 56){
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillRect(x, rg.top - 14, 6, 14);
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillRect(x - 8, rg.top - 16, 22, 4);
+  }
+
+  // Direction chevrons on road (▶▶▶) reinforcing left→right
+  ctx.fillStyle = "rgba(248,250,252,.18)";
+  ctx.font = "bold 22px sans-serif";
+  ctx.textAlign = "center";
+  for(let i=0;i<6;i++){
+    const cx = ((i*180 - roadOffset*0.9) % (w+180) + w+180) % (w+180) - 90;
+    ctx.fillText("❯❯", cx, rg.mid + 8);
+  }
 }
 function drawScene(now){
   const w = window.innerWidth, h = window.innerHeight;
-  // sky
-  const sky = ctx.createLinearGradient(0,0,0,h*0.45);
-  sky.addColorStop(0,"#0ea5e9"); sky.addColorStop(0.55,"#38bdf8"); sky.addColorStop(1,"#7dd3fc");
-  ctx.fillStyle = sky; ctx.fillRect(0,0,w,h);
-  // distant hills (top of road)
-  ctx.fillStyle = "#16a34a";
-  ctx.beginPath();
-  ctx.moveTo(0,h*0.40);
-  for(let x=0;x<=w;x+=36){
-    const y = h*0.36 + Math.sin((x+roadOffset*0.15)/110)*14 + Math.cos(x/160)*8;
-    ctx.lineTo(x,y);
-  }
-  ctx.lineTo(w,h*0.42); ctx.lineTo(0,h*0.42); ctx.fill();
-  // ground below road
-  ctx.fillStyle = "#15803d";
-  ctx.fillRect(0, h*0.88, w, h*0.12);
-
   const rg = roadGeom(w,h);
-  // road body
-  ctx.fillStyle = "#334155";
-  ctx.fillRect(0, rg.top, w, rg.height);
-  // road edges
-  ctx.strokeStyle = "#f8fafc";
-  ctx.lineWidth = 5;
-  ctx.beginPath(); ctx.moveTo(0, rg.top+3); ctx.lineTo(w, rg.top+3); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(0, rg.bot-3); ctx.lineTo(w, rg.bot-3); ctx.stroke();
-  // lane dashes (3 lanes) moving left → sense of driving right
-  ctx.strokeStyle = "#fde68a";
-  ctx.lineWidth = 5;
-  ctx.setLineDash([36, 28]);
-  ctx.lineDashOffset = roadOffset;
-  const laneYs = [rg.top + rg.height*0.33, rg.top + rg.height*0.66];
-  laneYs.forEach(ly => {
-    ctx.beginPath(); ctx.moveTo(0, ly); ctx.lineTo(w, ly); ctx.stroke();
-  });
-  ctx.setLineDash([]);
+  drawScenery(w, h, rg, now);
+  drawHorizontalRoad(w, h, rg);
 
-  // finish flag (race mode)
+  // Finish gate on the right (race / menu)
   if(mode === 'race' || mode === 'menu'){
-    const fx = w * 0.92;
-    ctx.fillStyle = "rgba(15,23,42,.35)";
-    ctx.fillRect(fx-6, rg.top, 12, rg.height);
-    ctx.fillStyle = "#fff";
-    for(let r=0;r<6;r++){
-      for(let c=0;c<4;c++){
+    const fx = w * 0.93;
+    ctx.fillStyle = "rgba(15,23,42,.45)";
+    ctx.fillRect(fx - 8, rg.top, 16, rg.height);
+    // checkered flag hanging right
+    for(let r=0;r<5;r++){
+      for(let c=0;c<3;c++){
         ctx.fillStyle = ((r+c)%2===0) ? "#fff" : "#0f172a";
-        ctx.fillRect(fx+8+c*10, rg.top+8+r*10, 10, 10);
+        ctx.fillRect(fx + 12 + c*12, rg.top + 10 + r*12, 12, 12);
       }
     }
     ctx.fillStyle = "#fbbf24";
-    ctx.font = "bold 14px sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText("FINISH", fx+8, rg.top - 8);
+    ctx.font = "bold 16px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("FINISH →", fx - 4, rg.top - 22);
+  }
+
+  // Lane Y helpers: 0 / 1 / 2 → stacked lanes
+  function laneY(lane){
+    return rg.top + (0.5 + lane) * (rg.height / 3);
   }
 
   if(mode === 'bonus'){
-    // enemy cars
     bonusCars.forEach(c => {
-      const ey = rg.top + (0.18 + c.lane * 0.32) * rg.height;
-      const scale = Math.min(w,h) * 0.00085 + 0.75;
+      const ey = laneY(c.lane);
+      const scale = Math.min(w,h) * 0.0009 + 0.8;
       drawCarSprite(c.x, ey, scale, c.color, c.no, false, false);
     });
-    // player
-    const py = rg.top + (0.18 + carY * 0.64) * rg.height;
+    const py = laneY(0) + (laneY(2) - laneY(0)) * carY; // carY 0..1 across lanes
+    // remap: carY 0 top lane, 1 bottom
+    const playerY = rg.top + (0.17 + carY * 0.66) * rg.height;
     const inv = now < bonusInvulnUntil;
-    const scale = Math.min(w,h) * 0.00095 + 0.9;
-    if(now < boostUntil){
-      ctx.fillStyle = "rgba(251,191,36,.5)";
-      ctx.beginPath(); ctx.ellipse(w*0.14-50, py, 36, 16, 0,0,Math.PI*2); ctx.fill();
-    }
-    drawCarSprite(w*0.14, py, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, inv);
-    // bonus banner
-    ctx.fillStyle = "rgba(15,23,42,.6)";
-    roundRect(w/2-160, 16, 320, 36, 12);
-    ctx.fillStyle = "#fbbf24";
-    ctx.font = "bold 18px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("🎁 BONUS DODGE", w/2, 40);
-  } else {
-    // race / menu player — progress left→right
-    const prog = mode === 'race' ? raceProgress : 0.08;
-    const cx = w * (0.10 + prog * 0.78);
-    const bob = Math.sin(now/500) * 4;
-    const py = rg.mid + bob;
-    const scale = Math.min(w,h) * 0.00095 + 0.9;
+    const scale = Math.min(w,h) * 0.00105 + 0.95;
     if(now < boostUntil){
       ctx.fillStyle = "rgba(251,191,36,.55)";
-      ctx.beginPath(); ctx.ellipse(cx-70, py+4, 40, 14, 0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(w*0.16-55, playerY, 40, 16, 0,0,Math.PI*2); ctx.fill();
+    }
+    drawCarSprite(w*0.16, playerY, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, inv);
+    ctx.fillStyle = "rgba(15,23,42,.65)";
+    roundRect(w/2-170, 12, 340, 40, 14);
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = "bold 20px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🎁 BONUS DODGE · UP / DOWN", w/2, 40);
+  } else {
+    // Main race: car travels left → right along mid lane
+    const prog = mode === 'race' ? raceProgress : 0.06;
+    const cx = w * (0.08 + prog * 0.78);
+    const bob = Math.sin(now/450) * 3;
+    const py = rg.mid + bob;
+    const scale = Math.min(w,h) * 0.00105 + 0.95;
+    if(now < boostUntil){
+      ctx.fillStyle = "rgba(251,191,36,.55)";
+      ctx.beginPath(); ctx.ellipse(cx-72, py+2, 42, 14, 0,0,Math.PI*2); ctx.fill();
     }
     drawCarSprite(cx, py, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, false);
+    // Label so landscape intent is obvious
+    if(!running || mode === 'menu'){
+      ctx.fillStyle = "rgba(15,23,42,.5)";
+      roundRect(w/2-150, rg.bot + 10, 300, 28, 10);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "bold 13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("橫版賽道 · Landscape track →", w/2, rg.bot + 29);
+    }
     if(running && mode === 'race'){
       ctx.fillStyle = "rgba(15,23,42,.55)";
-      roundRect(14, h-54, 150, 36, 12);
+      roundRect(14, h-48, 150, 34, 12);
       ctx.fillStyle = "#fbbf24";
       ctx.font = "bold 16px sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText("SPEED " + carSpeed.toFixed(1) + "x", 28, h-30);
+      ctx.fillText("SPEED " + carSpeed.toFixed(1) + "x", 28, h-25);
     }
   }
 }
@@ -978,14 +1071,14 @@ function updateBonus(dt, now){
     bonusSpawnAt = now + gap + Math.random()*350;
   }
 
-  const px = w * 0.14;
-  const py = rg.top + (0.18 + carY * 0.64) * rg.height;
-  const hitR = Math.min(w,h) * 0.045;
+  const px = w * 0.16;
+  const py = rg.top + (0.17 + carY * 0.66) * rg.height;
+  const hitR = Math.min(w,h) * 0.05;
 
   for(let i=bonusCars.length-1;i>=0;i--){
     const c = bonusCars[i];
     c.x -= c.speed * (dt/16) * 6.2;
-    const ey = rg.top + (0.18 + c.lane * 0.32) * rg.height;
+    const ey = rg.top + (0.5 + c.lane) * (rg.height / 3);
     if(!c.passed && c.x < px - 40){
       c.passed = true;
       bonusDodged += 1;
@@ -1308,11 +1401,18 @@ async function endRace(finished){
   raceFinishedClear = !!finished;
   document.getElementById("playWrap").classList.remove("show");
   document.getElementById("progressRail").classList.remove("show");
-  // Persist main race score (bonus does not write again)
-  await saveMainScoreOnce();
+  // Persist main race score in background — do NOT block bonus on cloud
+  Promise.resolve().then(() => saveMainScoreOnce()).catch(err => console.warn("score save", err));
   if(finished){
-    // start bonus dodge stage
-    startBonus();
+    // Show clear interstitial so bonus cannot be missed
+    running = false; paused = false; bonusActive = false; mode = 'menu';
+    const secs = 10 + correctCount * 4;
+    const intro = document.getElementById("bonusIntroText");
+    if(intro){
+      intro.innerHTML = "通關成功！答對 <b>"+correctCount+"</b> 題 · 獎勵時長 <b>"+secs+"</b> 秒（10＋"+correctCount+"×4）<br>"+
+        "Clear! Drag / finger up·down to dodge other cars · <b>3 lives</b>";
+    }
+    showOverlay("overlayBonusIntro");
     return;
   }
   running = false; paused = false; mode = 'menu'; bonusActive = false;
@@ -1367,8 +1467,8 @@ function setPointerYFromEvent(e){
   let clientY;
   if(e.touches && e.touches[0]) clientY = e.touches[0].clientY;
   else clientY = e.clientY;
-  const t = (clientY - rg.top) / rg.height;
-  pointerTargetY = Math.max(0, Math.min(1, (t - 0.18) / 0.64));
+  const t = (clientY - rg.top) / Math.max(1, rg.height);
+  pointerTargetY = Math.max(0, Math.min(1, (t - 0.17) / 0.66));
 }
 
 function startRace(){
