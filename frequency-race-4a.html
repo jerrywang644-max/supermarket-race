@@ -47,19 +47,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   padding:8px 12px;font-weight:700;font-size:.9rem;backdrop-filter:blur(4px)}
 .hud .lives{letter-spacing:1px;font-size:1.05rem}
 .play-wrap{
-  position:fixed;left:50%;transform:translateX(-50%);top:68px;z-index:6;
-  max-width:min(960px,96vw);width:100%;display:none;flex-direction:column;gap:10px;
+  position:fixed;left:50%;transform:translateX(-50%);top:58px;z-index:6;
+  max-width:min(1100px,98vw);width:100%;display:none;flex-direction:column;gap:10px;
   pointer-events:none
 }
 .play-wrap.show{display:flex}
 .q-banner{
   pointer-events:none;
-  background:rgba(8,30,50,.92);border:2px solid #7dd3fc;border-radius:16px;
-  padding:12px 16px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4)
+  background:rgba(8,30,50,.94);border:3px solid #7dd3fc;border-radius:18px;
+  padding:14px 18px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.45)
 }
-.q-banner .tag{font-size:.75rem;font-weight:700;color:#fbbf24;margin-bottom:4px;letter-spacing:.04em}
-.q-banner .q{font-size:clamp(1.05rem,3vw,1.4rem);font-weight:800;color:#ecfeff;line-height:1.4}
-.q-banner .hint{font-size:.85rem;color:#99b8b8;margin-top:4px;font-weight:700}
+.q-banner .tag{font-size:.85rem;font-weight:800;color:#fbbf24;margin-bottom:6px;letter-spacing:.05em}
+.q-banner .q{font-size:clamp(1.25rem,3.6vw,1.85rem);font-weight:900;color:#ecfeff;line-height:1.35}
+.q-banner .hint{font-size:clamp(.95rem,2.2vw,1.15rem);color:#99b8b8;margin-top:6px;font-weight:700}
 .q-banner .timer-bar{height:6px;background:#1e3a5f;border-radius:99px;margin-top:10px;overflow:hidden}
 .q-banner .timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#34d399,#fbbf24,#f87171);
   transition:width .05s linear;border-radius:99px}
@@ -102,9 +102,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:0 2px
 }
 .adv-btn,.go-btn{
-  flex:1 1 110px;max-width:170px;min-height:52px;border-radius:16px;border:3px solid;
-  font-weight:900;font-size:clamp(1rem,2.8vw,1.25rem);cursor:pointer;font-family:inherit;
-  padding:12px 10px;transition:transform .1s
+  flex:1 1 130px;max-width:200px;min-height:64px;border-radius:18px;border:3px solid;
+  font-weight:900;font-size:clamp(1.15rem,3.2vw,1.45rem);cursor:pointer;font-family:inherit;
+  padding:14px 12px;transition:transform .1s
 }
 .adv-btn:active,.go-btn:active{transform:scale(.97)}
 .adv-btn.a0{background:rgba(14,165,233,.95);border-color:#7dd3fc;color:#082f49}
@@ -185,6 +185,21 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   .day-cell{min-height:32px;font-size:.62rem}
   .day-cell .mark{font-size:.95rem}
 }
+
+.bonus-hint{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:6;
+  background:rgba(8,30,50,.88);border:2px solid #fbbf24;border-radius:999px;
+  padding:10px 18px;font-weight:800;font-size:clamp(.9rem,2.4vw,1.1rem);color:#fde68a;
+  display:none;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.35)
+}
+.bonus-hint.show{display:block}
+.progress-rail{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:5;
+  width:min(640px,86vw);height:10px;border-radius:999px;background:rgba(15,23,42,.55);
+  border:1px solid #38bdf855;overflow:hidden;display:none;pointer-events:none
+}
+.progress-rail.show{display:block}
+.progress-rail .fill{height:100%;width:0%;background:linear-gradient(90deg,#34d399,#38bdf8,#fbbf24);transition:width .35s ease}
 </style>
 </head>
 <body>
@@ -193,10 +208,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 <div class="playing-as" id="playingAs"><span id="playingAsText"></span><button type="button" id="btnNotMe">Not me?</button></div>
 <div class="hud" id="hud" style="display:none">
   <div class="stat">⭐ <span id="hudScore">0</span></div>
-  <div class="stat">🏁 Q <span id="hudQ">1</span>/<span id="hudTotal">12</span></div>
-  <div class="stat">⚡ <span id="hudSpeed">1</span>x</div>
+  <div class="stat" id="hudMainQ">🏁 Q <span id="hudQ">1</span>/<span id="hudTotal">12</span></div>
+  <div class="stat" id="hudMainSpeed">⚡ <span id="hudSpeed">1</span>x</div>
+  <div class="stat" id="hudBonusTime" style="display:none">⏱️ <span id="hudTime">0</span>s</div>
+  <div class="stat" id="hudBonusDodge" style="display:none">🚗 Dodged <span id="hudDodged">0</span></div>
   <div class="stat lives" id="hudLives">❤️❤️❤️</div>
 </div>
+<div class="progress-rail" id="progressRail"><div class="fill" id="progressFill"></div></div>
+<div class="bonus-hint" id="bonusHint">👆 Drag up / down to dodge · 手指上下拖動躲避</div>
 <div class="play-wrap" id="playWrap">
   <div class="q-banner" id="qBanner">
     <div class="tag" id="qTag">TYPE A · CALENDAR → ADVERB</div>
@@ -233,11 +252,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
     <p style="font-weight:800;letter-spacing:.02em;margin:0 0 6px;color:#fbbf24">Adverbs of Frequency · Longman 4A</p>
     <p id="startPlayerLine" style="font-weight:800;color:#7dd3fc;margin-bottom:4px">Playing as: —</p>
     <p>
-      Look at the <b>month calendar</b> · practise <b>on Mondays / on Fridays</b> · accelerate!<br>
+      <b>橫版賽道 Landscape race</b> · Look at the <b>month calendar</b> · practise <b>on Mondays / on Fridays</b>!<br>
       <b>Type A:</b> month calendar → always / often / sometimes / seldom / never<br>
       <b>Type B:</b> read the sentence → tap the right weekday dates → GO<br>
       <b>12 questions</b> · <b>3 lives</b> · score = 100 + leftover seconds × 10<br>
-      <span class="muted">Full month grid · focus one weekday · always=all · often≈3/4+ · sometimes=2 · seldom=1 · never=0</span>
+      <b>通關獎勵 Bonus:</b> dodge cars · time = 10 + correct×4 sec · 3 lives<br>
+      <span class="muted">Full month grid · focus one weekday · always=all · often≈3/4+ · sometimes=2 · seldom=1 · never=0 · no usually</span>
     </p>
     <button class="btn" id="btnStart">START RACE ▶</button>
     <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
@@ -286,7 +306,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const FREQ_RACE_CACHE_V = 5; // often + month weekday counts
+const FREQ_RACE_CACHE_V = 6; // landscape track + dodge bonus
 const CLASS_ROSTER = [
   {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
   {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
@@ -344,9 +364,25 @@ let timerTotal = TIMER_START, timerLeft = TIMER_START, timerRaf = 0, timerEndsAt
 let pickedDays = [];
 let answering = false;
 let report = [];
-let carX = 0.18, carSpeed = 1, boostUntil = 0;
+let carX = 0.12, carY = 0.5, carSpeed = 1, boostUntil = 0;
 let roadOffset = 0;
 let audioCtx = null;
+// modes: 'menu' | 'race' | 'bonus'
+let mode = 'menu';
+let raceProgress = 0; // 0..1 toward finish (landscape)
+let bonusActive = false;
+let bonusEndsAt = 0;
+let bonusLeft = 0;
+let bonusDuration = 0;
+let bonusLives = MAX_LIVES;
+let bonusDodged = 0;
+let bonusInvulnUntil = 0;
+let bonusCars = []; // {x,y,lane,speed,w,h,color,passed}
+let bonusSpawnAt = 0;
+let pointerDragging = false;
+let pointerTargetY = 0.5; // normalized 0..1 within road
+let mainScoreSaved = false;
+let raceFinishedClear = false;
 
 function esc(s){
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
@@ -768,79 +804,140 @@ function resize(){
   canvas.height = Math.floor(window.innerHeight * dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0);
 }
+function roadGeom(w,h){
+  // Horizontal landscape road band
+  const top = h * 0.42;
+  const bot = h * 0.88;
+  return {top, bot, mid:(top+bot)/2, height: bot-top};
+}
+function drawCarSprite(cx, cy, scale, color, plateNo, facingRight, flashInvuln){
+  ctx.save();
+  ctx.translate(cx, cy);
+  if(!facingRight) ctx.scale(-1,1);
+  ctx.scale(scale, scale);
+  if(flashInvuln){
+    ctx.globalAlpha = (Math.floor(performance.now()/80)%2) ? 0.35 : 0.95;
+  }
+  // boost flame behind
+  // body
+  ctx.fillStyle = color;
+  roundRect(-58,-22,116,40,14);
+  ctx.fillStyle = "#1e293b";
+  roundRect(-8,-34,58,20,8);
+  ctx.fillStyle = "#7dd3fc";
+  roundRect(2,-32,42,14,5);
+  ctx.fillStyle = "#0f172a";
+  circle(-34,20,13); circle(36,20,13);
+  ctx.fillStyle = "#94a3b8";
+  circle(-34,20,5); circle(36,20,5);
+  ctx.fillStyle = "#fff";
+  roundRect(40,-10,24,16,3);
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 11px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(String(plateNo||1), 52, 2);
+  ctx.restore();
+}
 function drawScene(now){
   const w = window.innerWidth, h = window.innerHeight;
   // sky
-  const sky = ctx.createLinearGradient(0,0,0,h*0.55);
+  const sky = ctx.createLinearGradient(0,0,0,h*0.45);
   sky.addColorStop(0,"#0ea5e9"); sky.addColorStop(0.55,"#38bdf8"); sky.addColorStop(1,"#7dd3fc");
   ctx.fillStyle = sky; ctx.fillRect(0,0,w,h);
-  // hills
+  // distant hills (top of road)
   ctx.fillStyle = "#16a34a";
   ctx.beginPath();
-  ctx.moveTo(0,h*0.58);
-  for(let x=0;x<=w;x+=40){
-    const y = h*0.55 + Math.sin((x+roadOffset*0.2)/90)*18 + Math.cos(x/140)*10;
+  ctx.moveTo(0,h*0.40);
+  for(let x=0;x<=w;x+=36){
+    const y = h*0.36 + Math.sin((x+roadOffset*0.15)/110)*14 + Math.cos(x/160)*8;
     ctx.lineTo(x,y);
   }
-  ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.fill();
-  // road
-  const roadTop = h*0.62;
+  ctx.lineTo(w,h*0.42); ctx.lineTo(0,h*0.42); ctx.fill();
+  // ground below road
+  ctx.fillStyle = "#15803d";
+  ctx.fillRect(0, h*0.88, w, h*0.12);
+
+  const rg = roadGeom(w,h);
+  // road body
   ctx.fillStyle = "#334155";
-  ctx.beginPath();
-  ctx.moveTo(w*0.35, roadTop);
-  ctx.lineTo(w*0.65, roadTop);
-  ctx.lineTo(w*1.05, h);
-  ctx.lineTo(-w*0.05, h);
-  ctx.closePath(); ctx.fill();
-  // center dashes
+  ctx.fillRect(0, rg.top, w, rg.height);
+  // road edges
+  ctx.strokeStyle = "#f8fafc";
+  ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(0, rg.top+3); ctx.lineTo(w, rg.top+3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, rg.bot-3); ctx.lineTo(w, rg.bot-3); ctx.stroke();
+  // lane dashes (3 lanes) moving left → sense of driving right
   ctx.strokeStyle = "#fde68a";
-  ctx.lineWidth = 6;
-  ctx.setLineDash([28, 22]);
-  ctx.lineDashOffset = -roadOffset;
-  ctx.beginPath();
-  ctx.moveTo(w*0.5, roadTop+8);
-  ctx.lineTo(w*0.5, h);
-  ctx.stroke();
+  ctx.lineWidth = 5;
+  ctx.setLineDash([36, 28]);
+  ctx.lineDashOffset = roadOffset;
+  const laneYs = [rg.top + rg.height*0.33, rg.top + rg.height*0.66];
+  laneYs.forEach(ly => {
+    ctx.beginPath(); ctx.moveTo(0, ly); ctx.lineTo(w, ly); ctx.stroke();
+  });
   ctx.setLineDash([]);
-  // car
-  const boost = now < boostUntil;
-  const cx = w * (0.22 + carX * 0.2);
-  const cy = h * 0.78;
-  const scale = Math.min(w,h) * 0.0009 + 0.85;
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.scale(scale, scale);
-  if(boost){
-    ctx.fillStyle = "rgba(251,191,36,.55)";
-    ctx.beginPath(); ctx.ellipse(-70,10,40,14,0,0,Math.PI*2); ctx.fill();
-  }
-  // body
-  ctx.fillStyle = "#ef4444";
-  roundRect(-55,-18,110,36,12);
-  ctx.fillStyle = "#1e293b";
-  roundRect(-20,-28,55,18,8);
-  ctx.fillStyle = "#7dd3fc";
-  roundRect(-10,-26,40,12,5);
-  ctx.fillStyle = "#0f172a";
-  circle(-32,18,12); circle(34,18,12);
-  ctx.fillStyle = "#94a3b8";
-  circle(-32,18,5); circle(34,18,5);
-  // number plate
-  ctx.fillStyle = "#fff";
-  roundRect(38,-8,22,14,3);
-  ctx.fillStyle = "#0f172a";
-  ctx.font = "bold 10px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(String((currentPlayer&&currentPlayer.no)||1), 49, 3);
-  ctx.restore();
-  // speed badge
-  if(running){
-    ctx.fillStyle = "rgba(15,23,42,.55)";
-    roundRect(14, h-54, 120, 36, 12);
+
+  // finish flag (race mode)
+  if(mode === 'race' || mode === 'menu'){
+    const fx = w * 0.92;
+    ctx.fillStyle = "rgba(15,23,42,.35)";
+    ctx.fillRect(fx-6, rg.top, 12, rg.height);
+    ctx.fillStyle = "#fff";
+    for(let r=0;r<6;r++){
+      for(let c=0;c<4;c++){
+        ctx.fillStyle = ((r+c)%2===0) ? "#fff" : "#0f172a";
+        ctx.fillRect(fx+8+c*10, rg.top+8+r*10, 10, 10);
+      }
+    }
     ctx.fillStyle = "#fbbf24";
-    ctx.font = "bold 16px sans-serif";
+    ctx.font = "bold 14px sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("SPEED " + carSpeed.toFixed(1) + "x", 28, h-30);
+    ctx.fillText("FINISH", fx+8, rg.top - 8);
+  }
+
+  if(mode === 'bonus'){
+    // enemy cars
+    bonusCars.forEach(c => {
+      const ey = rg.top + (0.18 + c.lane * 0.32) * rg.height;
+      const scale = Math.min(w,h) * 0.00085 + 0.75;
+      drawCarSprite(c.x, ey, scale, c.color, c.no, false, false);
+    });
+    // player
+    const py = rg.top + (0.18 + carY * 0.64) * rg.height;
+    const inv = now < bonusInvulnUntil;
+    const scale = Math.min(w,h) * 0.00095 + 0.9;
+    if(now < boostUntil){
+      ctx.fillStyle = "rgba(251,191,36,.5)";
+      ctx.beginPath(); ctx.ellipse(w*0.14-50, py, 36, 16, 0,0,Math.PI*2); ctx.fill();
+    }
+    drawCarSprite(w*0.14, py, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, inv);
+    // bonus banner
+    ctx.fillStyle = "rgba(15,23,42,.6)";
+    roundRect(w/2-160, 16, 320, 36, 12);
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = "bold 18px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🎁 BONUS DODGE", w/2, 40);
+  } else {
+    // race / menu player — progress left→right
+    const prog = mode === 'race' ? raceProgress : 0.08;
+    const cx = w * (0.10 + prog * 0.78);
+    const bob = Math.sin(now/500) * 4;
+    const py = rg.mid + bob;
+    const scale = Math.min(w,h) * 0.00095 + 0.9;
+    if(now < boostUntil){
+      ctx.fillStyle = "rgba(251,191,36,.55)";
+      ctx.beginPath(); ctx.ellipse(cx-70, py+4, 40, 14, 0,0,Math.PI*2); ctx.fill();
+    }
+    drawCarSprite(cx, py, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, false);
+    if(running && mode === 'race'){
+      ctx.fillStyle = "rgba(15,23,42,.55)";
+      roundRect(14, h-54, 150, 36, 12);
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("SPEED " + carSpeed.toFixed(1) + "x", 28, h-30);
+    }
   }
 }
 function roundRect(x,y,w,h,r){
@@ -854,14 +951,89 @@ function roundRect(x,y,w,h,r){
 }
 function circle(x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
 
+const BONUS_COLORS = ["#3b82f6","#a855f7","#22c55e","#f97316","#06b6d4","#eab308"];
+function spawnBonusCar(w){
+  const lane = randInt(0,2);
+  bonusCars.push({
+    x: w + randInt(40, 220),
+    lane: lane,
+    speed: 3.2 + Math.random()*2.8 + (correctCount*0.05),
+    color: pick(BONUS_COLORS),
+    no: randInt(10,99),
+    passed: false
+  });
+}
+function updateBonus(dt, now){
+  const w = window.innerWidth, h = window.innerHeight;
+  const rg = roadGeom(w,h);
+  // ease toward finger / mouse / keyboard target
+  carY += (pointerTargetY - carY) * Math.min(1, dt/80);
+  carY = Math.max(0, Math.min(1, carY));
+
+  roadOffset += (4.5 + carSpeed) * (dt/16);
+
+  if(now >= bonusSpawnAt){
+    spawnBonusCar(w);
+    const gap = Math.max(420, 900 - correctCount*30);
+    bonusSpawnAt = now + gap + Math.random()*350;
+  }
+
+  const px = w * 0.14;
+  const py = rg.top + (0.18 + carY * 0.64) * rg.height;
+  const hitR = Math.min(w,h) * 0.045;
+
+  for(let i=bonusCars.length-1;i>=0;i--){
+    const c = bonusCars[i];
+    c.x -= c.speed * (dt/16) * 6.2;
+    const ey = rg.top + (0.18 + c.lane * 0.32) * rg.height;
+    if(!c.passed && c.x < px - 40){
+      c.passed = true;
+      bonusDodged += 1;
+      beep(660, 0.05, "sine");
+    }
+    // collision
+    if(now >= bonusInvulnUntil){
+      const dx = c.x - px, dy = ey - py;
+      if(dx*dx + dy*dy < hitR*hitR){
+        bonusLives -= 1;
+        lives = bonusLives;
+        bonusInvulnUntil = now + 1400;
+        flash(false); beep(160, 0.2, "sawtooth");
+        boostUntil = now + 200;
+        updateHud();
+        if(bonusLives <= 0){
+          endBonus(false);
+          return;
+        }
+      }
+    }
+    if(c.x < -120) bonusCars.splice(i,1);
+  }
+
+  bonusLeft = Math.max(0, (bonusEndsAt - now)/1000);
+  if(bonusLeft <= 0){
+    endBonus(true);
+    return;
+  }
+  updateHud();
+}
+
 let lastTs = 0;
 function loop(ts){
   if(!lastTs) lastTs = ts;
   const dt = Math.min(40, ts - lastTs);
   lastTs = ts;
   if(running && !paused){
-    roadOffset += (2.2 + carSpeed * 2.4) * (dt/16);
-    carX = 0.5 + Math.sin(ts/700)*0.08;
+    if(mode === 'race'){
+      roadOffset += (2.6 + carSpeed * 2.8) * (dt/16);
+      // ease raceProgress toward answered fraction
+      const target = Math.min(1, qIndex / Q_TOTAL);
+      raceProgress += (target - raceProgress) * Math.min(1, dt/280);
+    } else if(mode === 'bonus' && bonusActive){
+      updateBonus(dt, ts);
+    }
+  } else if(mode === 'menu'){
+    roadOffset += 1.2 * (dt/16);
   }
   drawScene(ts);
   requestAnimationFrame(loop);
@@ -872,7 +1044,28 @@ function updateHud(){
   document.getElementById("hudQ").textContent = String(Math.min(qIndex+1, Q_TOTAL));
   document.getElementById("hudTotal").textContent = String(Q_TOTAL);
   document.getElementById("hudSpeed").textContent = carSpeed.toFixed(1);
-  document.getElementById("hudLives").textContent = "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0, MAX_LIVES-lives));
+  const showBonus = mode === 'bonus';
+  document.getElementById("hudMainQ").style.display = showBonus ? "none" : "";
+  document.getElementById("hudMainSpeed").style.display = showBonus ? "none" : "";
+  document.getElementById("hudBonusTime").style.display = showBonus ? "" : "none";
+  document.getElementById("hudBonusDodge").style.display = showBonus ? "" : "none";
+  if(showBonus){
+    document.getElementById("hudTime").textContent = String(Math.ceil(bonusLeft));
+    document.getElementById("hudDodged").textContent = String(bonusDodged);
+    document.getElementById("hudLives").textContent = "❤️".repeat(Math.max(0,bonusLives)) + "🖤".repeat(Math.max(0, MAX_LIVES-bonusLives));
+  } else {
+    document.getElementById("hudLives").textContent = "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0, MAX_LIVES-lives));
+  }
+  const rail = document.getElementById("progressRail");
+  const fill = document.getElementById("progressFill");
+  if(rail && fill){
+    if(mode === 'race' && running){
+      rail.classList.add("show");
+      fill.style.width = Math.round(Math.min(1, qIndex/Q_TOTAL)*100) + "%";
+    } else {
+      rail.classList.remove("show");
+    }
+  }
 }
 
 function renderCalHead(focusWeekday){
@@ -1081,25 +1274,101 @@ function submitTypeB(){
   }
 }
 
-async function endRace(finished){
-  running = false; paused = false; answering = false; stopTimer();
+async function saveMainScoreOnce(){
+  if(mainScoreSaved) return;
+  mainScoreSaved = true;
+  const local = upsertLocalScore(currentPlayer, score, correctCount);
+  const statusEl = document.getElementById("lbStatus");
+  if(statusEl) statusEl.textContent = "Saving to cloud… · " + local.status;
+  const cloud = await cloudUpsertPlayer(currentPlayer, score, correctCount);
+  if(statusEl) statusEl.textContent = cloud.status + " · " + local.status;
+}
+
+function showFinalOverlay(title, extraHtml){
   document.getElementById("hud").style.display = "none";
   document.getElementById("playWrap").classList.remove("show");
   document.getElementById("btnPause").style.display = "none";
+  document.getElementById("progressRail").classList.remove("show");
+  document.getElementById("bonusHint").classList.remove("show");
   document.getElementById("playingAs").classList.remove("show");
-  document.getElementById("endTitle").textContent = finished ? "🏆 Finished!" : "💥 Out of lives";
+  document.getElementById("endTitle").textContent = title;
   document.getElementById("endStats").innerHTML =
     "Score <b>"+score+"</b> · Correct <b>"+correctCount+"</b>/"+Q_TOTAL+" · Speed <b>"+carSpeed.toFixed(1)+"x</b>" +
-    "<br>Playing as: <b>"+esc(playerLabel(currentPlayer))+"</b>";
+    "<br>Playing as: <b>"+esc(playerLabel(currentPlayer))+"</b>" +
+    (extraHtml || "");
   document.getElementById("endReport").innerHTML = report.map(r =>
     '<div class="row">'+(r.ok?'<span class="okb">✓</span>':'<span class="badb">✗</span>')+' '+esc(r.text)+
     '<br><span class="muted">'+esc(r.detail)+'</span></div>'
   ).join("");
-  const local = upsertLocalScore(currentPlayer, score, correctCount);
-  document.getElementById("lbStatus").textContent = "Saving to cloud… · " + local.status;
   showOverlay("overlayEnd");
-  const cloud = await cloudUpsertPlayer(currentPlayer, score, correctCount);
-  document.getElementById("lbStatus").textContent = cloud.status + " · " + local.status;
+}
+
+async function endRace(finished){
+  answering = false; stopTimer();
+  raceFinishedClear = !!finished;
+  document.getElementById("playWrap").classList.remove("show");
+  document.getElementById("progressRail").classList.remove("show");
+  // Persist main race score (bonus does not write again)
+  await saveMainScoreOnce();
+  if(finished){
+    // start bonus dodge stage
+    startBonus();
+    return;
+  }
+  running = false; paused = false; mode = 'menu'; bonusActive = false;
+  showFinalOverlay("💥 Out of lives", "");
+}
+
+function startBonus(){
+  mode = 'bonus';
+  bonusActive = true;
+  running = true;
+  paused = false;
+  bonusDuration = 10 + correctCount * 4;
+  bonusLeft = bonusDuration;
+  bonusEndsAt = performance.now() + bonusDuration * 1000;
+  bonusLives = MAX_LIVES;
+  lives = bonusLives;
+  bonusDodged = 0;
+  bonusCars = [];
+  bonusInvulnUntil = performance.now() + 800;
+  bonusSpawnAt = performance.now() + 600;
+  carY = 0.5;
+  pointerTargetY = 0.5;
+  raceProgress = 1;
+  hideOverlays();
+  document.getElementById("hud").style.display = "flex";
+  document.getElementById("btnPause").style.display = "inline-flex";
+  document.getElementById("playingAs").classList.add("show");
+  document.getElementById("bonusHint").classList.add("show");
+  document.getElementById("playWrap").classList.remove("show");
+  updatePlayerUI();
+  updateHud();
+  beep(920, 0.12, "triangle");
+  setTimeout(()=>beep(1100,0.12,"triangle"), 140);
+}
+
+function endBonus(survived){
+  bonusActive = false;
+  running = false;
+  paused = false;
+  mode = 'menu';
+  const left = Math.max(0, Math.ceil(bonusLeft));
+  const title = survived ? "🏆 Bonus clear!" : (bonusLives<=0 ? "💥 Bonus: out of lives" : "⏱️ Bonus time up");
+  const extra =
+    "<br><br><b>🎁 Bonus dodge</b>: Dodged <b>"+bonusDodged+"</b> cars · Time left <b>"+left+"</b>s · Lives left <b>"+Math.max(0,bonusLives)+"</b>" +
+    "<br><span class='muted'>Bonus time was "+bonusDuration+"s (10 + "+correctCount+"×4)</span>";
+  showFinalOverlay(title, extra);
+}
+
+function setPointerYFromEvent(e){
+  const h = window.innerHeight;
+  const rg = roadGeom(window.innerWidth, h);
+  let clientY;
+  if(e.touches && e.touches[0]) clientY = e.touches[0].clientY;
+  else clientY = e.clientY;
+  const t = (clientY - rg.top) / rg.height;
+  pointerTargetY = Math.max(0, Math.min(1, (t - 0.18) / 0.64));
 }
 
 function startRace(){
@@ -1108,6 +1377,13 @@ function startRace(){
   carSpeed = 1; boostUntil = 0; report = [];
   queue = buildQueue();
   running = true; paused = false;
+  mode = 'race';
+  bonusActive = false;
+  raceProgress = 0;
+  carX = 0.12; carY = 0.5;
+  mainScoreSaved = false;
+  raceFinishedClear = false;
+  document.getElementById("bonusHint").classList.remove("show");
   hideOverlays();
   document.getElementById("hud").style.display = "flex";
   document.getElementById("btnPause").style.display = "inline-flex";
@@ -1120,13 +1396,19 @@ function startRace(){
 function pauseGame(){
   if(!running || paused) return;
   paused = true;
+  if(mode === 'bonus' && bonusActive){
+    bonusLeft = Math.max(0, (bonusEndsAt - performance.now())/1000);
+  }
   showOverlay("overlayPause");
 }
 function resumeGame(){
   if(!running || !paused) return;
   paused = false;
   hideOverlays();
-  if(answering){
+  if(mode === 'bonus' && bonusActive){
+    bonusEndsAt = performance.now() + bonusLeft * 1000;
+  }
+  if(answering && mode === 'race'){
     // rebuild remaining time from timerLeft
     timerEndsAt = performance.now() + timerLeft * 1000;
     const tick = () => {
@@ -1142,9 +1424,12 @@ function resumeGame(){
 }
 function quitToMenu(){
   running=false; paused=false; answering=false; stopTimer();
+  mode='menu'; bonusActive=false; bonusCars=[];
   document.getElementById("hud").style.display="none";
   document.getElementById("playWrap").classList.remove("show");
   document.getElementById("btnPause").style.display="none";
+  document.getElementById("progressRail").classList.remove("show");
+  document.getElementById("bonusHint").classList.remove("show");
   document.getElementById("playingAs").classList.add("show");
   updatePlayerUI();
   showOverlay("overlayStart");
@@ -1179,6 +1464,37 @@ window.addEventListener("keydown", (e) => {
     if(map[e.code] != null){ e.preventDefault(); submitTypeA(ADVERBS[map[e.code]]); }
   } else if(e.code === "Enter" || e.code === "Space"){
     e.preventDefault(); submitTypeB();
+  }
+});
+
+function onPointerDown(e){
+  if(mode !== 'bonus' || !bonusActive || paused) return;
+  const t = e.target;
+  if(t && t.closest && t.closest('.overlay, .controls-bar, .playing-as, button, a')) return;
+  pointerDragging = true;
+  setPointerYFromEvent(e);
+  if(e.cancelable) e.preventDefault();
+}
+function onPointerMove(e){
+  if(mode !== 'bonus' || !bonusActive || paused) return;
+  if(!pointerDragging && !(e.touches && e.touches.length)) return;
+  if(e.touches && e.touches.length) pointerDragging = true;
+  setPointerYFromEvent(e);
+  if(e.cancelable) e.preventDefault();
+}
+function onPointerUp(){ pointerDragging = false; }
+
+window.addEventListener("mousedown", onPointerDown);
+window.addEventListener("mousemove", onPointerMove);
+window.addEventListener("mouseup", onPointerUp);
+window.addEventListener("touchstart", onPointerDown, {passive:false});
+window.addEventListener("touchmove", onPointerMove, {passive:false});
+window.addEventListener("touchend", onPointerUp);
+
+window.addEventListener("keydown", (e) => {
+  if(mode === 'bonus' && bonusActive && !paused){
+    if(e.code === 'ArrowUp' || e.code === 'KeyW'){ e.preventDefault(); pointerTargetY = Math.max(0, pointerTargetY - 0.22); }
+    if(e.code === 'ArrowDown' || e.code === 'KeyS'){ e.preventDefault(); pointerTargetY = Math.min(1, pointerTargetY + 0.22); }
   }
 });
 
