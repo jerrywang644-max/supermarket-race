@@ -211,10 +211,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
     <p id="startPlayerLine" style="font-weight:800;color:#7dd3fc;margin-bottom:4px">Playing as: —</p>
     <p>
       Look at the <b>week calendar</b> · pick the right adverb · accelerate!<br>
-      <b>Type A:</b> calendar → always / usually / sometimes / never<br>
+      <b>Type A:</b> calendar → always / sometimes / seldom / never<br>
       <b>Type B:</b> read the sentence → tap the right days → GO<br>
       <b>12 questions</b> · <b>3 lives</b> · score = 100 + leftover seconds × 10<br>
-      <span class="muted">always=7 · usually=5–6 · sometimes=2–4 · never=0–1</span>
+      <span class="muted">always=7 · sometimes=3–5 · seldom=1–2 · never=0</span>
     </p>
     <button class="btn" id="btnStart">START RACE ▶</button>
     <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
@@ -273,12 +273,12 @@ const CLASS_ROSTER = [
   {name:"Eva", no:25},{name:"Sam", no:26}
 ];
 const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const ADVERBS = ["always","usually","sometimes","never"];
+const ADVERBS = ["always","sometimes","seldom","never"];
 const ADV_RANGE = {
   always:[7,7],
-  usually:[5,6],
-  sometimes:[2,4],
-  never:[0,1]
+  sometimes:[3,5],
+  seldom:[1,2],
+  never:[0,0]
 };
 const ACTIVITIES = [
   {base:"swim", do:"swim", does:"swims", gerund:"swimming", emoji:"🏊"},
@@ -332,8 +332,8 @@ function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function adverbForCount(n){
   if(n >= 7) return "always";
-  if(n >= 5) return "usually";
-  if(n >= 2) return "sometimes";
+  if(n >= 3) return "sometimes";
+  if(n >= 1) return "seldom";
   return "never";
 }
 function makeDayMask(count){
