@@ -47,9 +47,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   padding:8px 12px;font-weight:700;font-size:.9rem;backdrop-filter:blur(4px)}
 .hud .lives{letter-spacing:1px;font-size:1.05rem}
 .play-wrap{
-  position:fixed;left:50%;transform:translateX(-50%);top:52px;z-index:6;
-  max-width:min(980px,96vw);width:100%;display:none;flex-direction:column;gap:8px;
-  pointer-events:none;max-height:52vh;overflow:auto
+  position:fixed;left:50%;transform:translateX(-50%);top:58px;z-index:6;
+  max-width:min(1100px,96vw);width:100%;display:none;flex-direction:column;gap:10px;
+  pointer-events:none
 }
 .play-wrap.show{display:flex}
 .q-banner{
@@ -66,8 +66,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 .cal-card{
   pointer-events:auto;
   background:rgba(255,250,240,.98);border:3px solid #fdba74;border-radius:18px;
-  padding:8px 8px 10px;color:#2d3436;box-shadow:0 10px 28px rgba(0,0,0,.28);
-  max-height:min(34vh,300px);overflow:auto
+  padding:10px 10px 12px;color:#2d3436;box-shadow:0 10px 28px rgba(0,0,0,.28);
+  max-height:min(58vh,520px);overflow:auto
 }
 .cal-card .cal-title{font-weight:900;font-size:.9rem;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
 .cal-card .cal-title .act{color:#c2410c}
@@ -79,13 +79,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 }
 .cal-head span.focus{color:#0369a1;background:#e0f2fe;border-radius:8px}
 .day-cell{
-  border:1.5px solid #fed7aa;border-radius:8px;background:#fff7ed;min-height:28px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
-  font-weight:800;font-size:.65rem;color:#9a3412;padding:2px 1px
+  border:1.5px solid #fed7aa;border-radius:10px;background:#fff7ed;min-height:38px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-weight:800;font-size:.75rem;color:#9a3412;padding:3px 2px
 }
-.day-cell .dnum{font-size:.62rem;opacity:.9;line-height:1}
-.day-cell .mark{font-size:.95rem;line-height:1}
-.day-cell.blank{visibility:hidden;border:none;background:transparent;pointer-events:none;min-height:28px}
+.day-cell .dnum{font-size:.78rem;opacity:.95;line-height:1}
+.day-cell .mark{font-size:1.15rem;line-height:1}
+.day-cell.blank{visibility:hidden;border:none;background:transparent;pointer-events:none;min-height:38px}
 .day-cell.mute{background:#f8fafc;border-color:#e2e8f0;color:#94a3b8}
 .day-cell.focus-col{border-color:#fb923c;box-shadow:inset 0 0 0 1px #fdba74}
 .day-cell.on{background:#dcfce7;border-color:#4ade80;color:#166534}
@@ -95,8 +95,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 .day-cell.tap.picked{background:#dbeafe;border-color:#38bdf8;color:#075985}
 .day-cell.tap:disabled{opacity:.55;cursor:not-allowed}
 @media (min-height:700px){
-  .day-cell,.day-cell.blank{min-height:34px}
-  .day-cell .mark{font-size:1.05rem}
+  .day-cell,.day-cell.blank{min-height:44px}
+  .day-cell .dnum{font-size:.88rem}
+  .day-cell .mark{font-size:1.25rem}
 }
 .answer-area{
   pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:0 2px
@@ -177,13 +178,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 .board-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px}
 #lbStatus{margin-top:8px;font-size:.85rem;color:#7dd3fc;min-height:1.2em}
 @media (max-height:700px){
-  .day-cell{min-height:34px}
+  .day-cell,.day-cell.blank{min-height:36px}
   .play-wrap{top:54px}
-  .cal-card{max-height:46vh}
+  .cal-card{max-height:50vh}
 }
 @media (max-width:520px){
-  .day-cell{min-height:32px;font-size:.62rem}
-  .day-cell .mark{font-size:.95rem}
+  .day-cell,.day-cell.blank{min-height:34px;font-size:.7rem}
+  .day-cell .dnum{font-size:.72rem}
+  .day-cell .mark{font-size:1.05rem}
 }
 
 .bonus-hint{
@@ -314,7 +316,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const FREQ_RACE_CACHE_V = 8; // calendar 1/2/3-of-4 + bonus countdown/ramp/hitstun
+const FREQ_RACE_CACHE_V = 9; // restore large calendar + teach denom /4
 const CLASS_ROSTER = [
   {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
   {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
@@ -456,12 +458,18 @@ function adverbForCount(n, total){
   if(n === 2) return "sometimes";
   return "often"; // 3+ but not all (e.g. 3/4, 3/5)
 }
-function pickWeekdayForMonth(month){
+function pickWeekdayForMonth(month, preferFour){
   // Prefer weekdays with exactly 4 dates so 1/4·2/4·3/4 teaching is clean
   const fours = WEEKDAYS.filter(w => month.byWeekday[w.i].length === 4);
+  if(preferFour && fours.length) return pick(fours);
   if(fours.length) return pick(fours);
   const usable = WEEKDAYS.filter(w => month.byWeekday[w.i].length >= 4);
   return pick(usable.length ? usable : WEEKDAYS);
+}
+function teachDenom(adv, total){
+  // Mid-frequency always taught as /4; always/never use real weekday count
+  if(adv === "always" || adv === "never") return total;
+  return 4;
 }
 function pickMarkedDates(candidates, count){
   return shuffle(candidates).slice(0, count).sort((a,b)=>a-b);
@@ -737,16 +745,19 @@ function flash(ok){
 
 function makeTypeA(){
   const month = buildMonthMeta();
-  const wd = pickWeekdayForMonth(month);
+  // Pick adverb first-ish: build pool, then weekday with 4 dates for mid-freq
+  let adv = pick(ADVERBS);
+  const preferFour = (adv !== "always" && adv !== "never");
+  const wd = pickWeekdayForMonth(month, preferFour);
   const candidates = month.byWeekday[wd.i].slice();
   const total = candidates.length;
-  const advPool = total >= 4 ? ADVERBS : ADVERBS.filter(a => a !== "often");
-  const adv = pick(advPool);
+  if(total < 4 && adv === "often") adv = pick(["always","sometimes","seldom","never"]);
   const [lo, hi] = rangeForAdverb(adv, total);
   let count = randInt(lo, hi);
   // Safety: never mark 5+ for mid-frequency words
   if(adv !== "always" && adv !== "never") count = Math.min(count, 3);
   const marked = pickMarkedDates(candidates, count);
+  const denom = teachDenom(adv, total);
   const act = pick(ACTIVITIES);
   const who = Math.random() < 0.45 ? "I" : pick(NAMES3);
   let q;
@@ -766,6 +777,7 @@ function makeTypeA(){
     adverb:adv,
     count:count,
     total:total,
+    denom:denom,
     weekday:wd,
     month:month,
     marked:marked,
@@ -777,15 +789,17 @@ function makeTypeA(){
 }
 function makeTypeB(){
   const month = buildMonthMeta();
-  const wd = pickWeekdayForMonth(month);
+  let adv = pick(ADVERBS);
+  const preferFour = (adv !== "always" && adv !== "never");
+  const wd = pickWeekdayForMonth(month, preferFour);
   const candidates = month.byWeekday[wd.i].slice();
   const total = candidates.length;
-  const advPool = total >= 4 ? ADVERBS : ADVERBS.filter(a => a !== "often");
-  const adv = pick(advPool);
+  if(total < 4 && adv === "often") adv = pick(["always","sometimes","seldom","never"]);
   let [lo, hi] = rangeForAdverb(adv, total);
   if(adv !== "always" && adv !== "never"){
     lo = Math.min(lo, 3); hi = Math.min(hi, 3);
   }
+  const denom = teachDenom(adv, total);
   const act = pick(ACTIVITIES);
   const who = Math.random() < 0.5 ? "I" : pick(NAMES3);
   let sentence;
@@ -801,6 +815,7 @@ function makeTypeB(){
     countMin:lo,
     countMax:hi,
     total:total,
+    denom:denom,
     weekday:wd,
     month:month,
     candidates:candidates,
@@ -1408,17 +1423,18 @@ function showQuestion(){
   document.getElementById("qText").textContent = currentQ.prompt;
   document.getElementById("qHint").textContent = currentQ.hint;
   document.getElementById("calAct").textContent = (currentQ.activity.emoji||"") + " " + currentQ.activity.base + " · " + currentQ.weekday.on;
+  const denom = currentQ.denom || teachDenom(currentQ.adverb, currentQ.total);
   if(currentQ.type === "A"){
     renderCalendar(currentQ, false);
     document.getElementById("calLegend").textContent =
       "Focus " + currentQ.weekday.plural + ": ✓ = did it · ✗ = did not · " +
-      currentQ.count + "/" + currentQ.total + " " + currentQ.weekday.plural;
+      currentQ.count + "/" + denom + " " + currentQ.weekday.plural;
   } else {
     renderCalendar(currentQ, true);
     document.getElementById("calLegend").textContent =
       "Tap " + currentQ.weekday.plural + " only · " + currentQ.adverb + " = " +
       currentQ.countMin + (currentQ.countMin===currentQ.countMax?"":"–"+currentQ.countMax) +
-      "/" + currentQ.total;
+      "/" + denom;
   }
   renderAnswers(currentQ);
   const t = Math.max(TIMER_FLOOR, TIMER_START - Math.floor(qIndex * 0.5));
@@ -1476,9 +1492,10 @@ function onWrong(reason){
   lives -= 1;
   carSpeed = Math.max(1, +(carSpeed - 0.25).toFixed(2));
   flash(false); beep(180, 0.18, "sawtooth");
+  const dnm = currentQ.denom || teachDenom(currentQ.adverb, currentQ.total);
   const expect = currentQ.type === "A"
-    ? ("Answer: " + currentQ.adverb + " (" + currentQ.count + "/" + currentQ.total + " " + currentQ.weekday.plural + ")")
-    : ("Need " + currentQ.countMin + (currentQ.countMin===currentQ.countMax?"":"–"+currentQ.countMax) + " " + currentQ.weekday.plural + " for " + currentQ.adverb);
+    ? ("Answer: " + currentQ.adverb + " (" + currentQ.count + "/" + dnm + " " + currentQ.weekday.plural + ")")
+    : ("Need " + currentQ.countMin + (currentQ.countMin===currentQ.countMax?"":"–"+currentQ.countMax) + "/" + dnm + " " + currentQ.weekday.plural + " for " + currentQ.adverb);
   report.push({ok:false, text: currentQ.prompt, detail: reason + " · " + expect});
   updateHud();
   if(lives <= 0){
@@ -1501,9 +1518,9 @@ function submitTypeB(){
   const valid = pickedDays.every(d => allowed[d]);
   const n = pickedDays.length;
   if(valid && n >= currentQ.countMin && n <= currentQ.countMax){
-    onCorrect("✓ " + n + "/" + currentQ.total + " " + currentQ.weekday.plural);
+    onCorrect("✓ " + n + "/" + (currentQ.denom || teachDenom(currentQ.adverb, currentQ.total)) + " " + currentQ.weekday.plural);
   } else {
-    onWrong("Selected " + n + "/" + currentQ.total + " " + currentQ.weekday.plural);
+    onWrong("Selected " + n + "/" + (currentQ.denom || teachDenom(currentQ.adverb, currentQ.total)) + " " + currentQ.weekday.plural);
   }
 }
 
