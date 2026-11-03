@@ -288,14 +288,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   </div>
 </div>
 
-<div class="overlay hidden" id="overlayBonusIntro">
-  <div class="panel">
-    <h1>🎁 BONUS DODGE!</h1>
-    <p id="bonusIntroText">通關成功！用手指／滑鼠上下移動賽車躲避其他車。<br>Clear! Drag up/down to dodge · 3 lives</p>
-    <button class="btn btn-alt" id="btnBonusGo" type="button">START BONUS ▶</button>
-  </div>
-</div>
-
 <div class="overlay hidden" id="overlayBoard">
   <div class="panel">
     <h1>🏆 Leaderboard</h1>
@@ -316,7 +308,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const FREQ_RACE_CACHE_V = 9; // restore large calendar + teach denom /4
+const FREQ_RACE_CACHE_V = 10; // auto-start bonus 3-2-1 (no dead START button)
 const CLASS_ROSTER = [
   {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
   {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
@@ -523,12 +515,12 @@ function goNameSelect(){
   showOverlay("overlayName");
 }
 function showOverlay(id){
-  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBonusIntro","overlayBoard"].forEach(x=>{
+  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBoard"].forEach(x=>{
     document.getElementById(x).classList.toggle("hidden", x!==id);
   });
 }
 function hideOverlays(){
-  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBonusIntro","overlayBoard"].forEach(x=>{
+  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBoard"].forEach(x=>{
     document.getElementById(x).classList.add("hidden");
   });
 }
@@ -1561,15 +1553,8 @@ async function endRace(finished){
   // Persist main race score in background — do NOT block bonus on cloud
   Promise.resolve().then(() => saveMainScoreOnce()).catch(err => console.warn("score save", err));
   if(finished){
-    // Show clear interstitial so bonus cannot be missed
-    running = false; paused = false; bonusActive = false; mode = 'menu';
-    const secs = 10 + correctCount * 4;
-    const intro = document.getElementById("bonusIntroText");
-    if(intro){
-      intro.innerHTML = "通關成功！答對 <b>"+correctCount+"</b> 題 · 獎勵時長 <b>"+secs+"</b> 秒（10＋"+correctCount+"×4）<br>"+
-        "Clear! Drag / finger up·down to dodge other cars · <b>3 lives</b>";
-    }
-    showOverlay("overlayBonusIntro");
+    // Auto-enter bonus: 3-2-1 countdown then dodge (no START button gate)
+    startBonus();
     return;
   }
   running = false; paused = false; mode = 'menu'; bonusActive = false;
