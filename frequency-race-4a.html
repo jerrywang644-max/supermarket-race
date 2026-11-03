@@ -102,15 +102,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:0 2px
 }
 .adv-btn,.go-btn{
-  flex:1 1 140px;max-width:200px;min-height:56px;border-radius:16px;border:3px solid;
+  flex:1 1 110px;max-width:170px;min-height:52px;border-radius:16px;border:3px solid;
   font-weight:900;font-size:clamp(1rem,2.8vw,1.25rem);cursor:pointer;font-family:inherit;
   padding:12px 10px;transition:transform .1s
 }
 .adv-btn:active,.go-btn:active{transform:scale(.97)}
 .adv-btn.a0{background:rgba(14,165,233,.95);border-color:#7dd3fc;color:#082f49}
-.adv-btn.a1{background:rgba(251,191,36,.95);border-color:#fde68a;color:#78350f}
-.adv-btn.a2{background:rgba(244,114,182,.95);border-color:#f9a8d4;color:#500724}
-.adv-btn.a3{background:rgba(52,211,153,.95);border-color:#6ee7b7;color:#064e3b}
+.adv-btn.a1{background:rgba(251,146,60,.95);border-color:#fdba74;color:#7c2d12}
+.adv-btn.a2{background:rgba(251,191,36,.95);border-color:#fde68a;color:#78350f}
+.adv-btn.a3{background:rgba(244,114,182,.95);border-color:#f9a8d4;color:#500724}
+.adv-btn.a4{background:rgba(52,211,153,.95);border-color:#6ee7b7;color:#064e3b}
 .go-btn{background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#fecaca;color:#fff;max-width:280px}
 .legend{font-size:.8rem;color:#64748b;font-weight:700;margin-top:6px;text-align:center}
 .controls-bar{position:fixed;bottom:14px;right:14px;z-index:8;display:flex;gap:8px}
@@ -233,10 +234,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
     <p id="startPlayerLine" style="font-weight:800;color:#7dd3fc;margin-bottom:4px">Playing as: —</p>
     <p>
       Look at the <b>month calendar</b> · practise <b>on Mondays / on Fridays</b> · accelerate!<br>
-      <b>Type A:</b> month calendar → always / sometimes / seldom / never<br>
+      <b>Type A:</b> month calendar → always / often / sometimes / seldom / never<br>
       <b>Type B:</b> read the sentence → tap the right weekday dates → GO<br>
       <b>12 questions</b> · <b>3 lives</b> · score = 100 + leftover seconds × 10<br>
-      <span class="muted">Full month grid (not one week) · focus one weekday · always=all · sometimes=some · seldom=1 · never=0</span>
+      <span class="muted">Full month grid · focus one weekday · always=all · often≈3/4+ · sometimes=2 · seldom=1 · never=0</span>
     </p>
     <button class="btn" id="btnStart">START RACE ▶</button>
     <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
@@ -285,7 +286,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const FREQ_RACE_CACHE_V = 4; // Month calendar multi-week grid
+const FREQ_RACE_CACHE_V = 5; // often + month weekday counts
 const CLASS_ROSTER = [
   {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
   {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
@@ -306,7 +307,7 @@ const WEEKDAYS = [
   {i:6, short:"Sun", plural:"Sundays", on:"on Sundays"}
 ];
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const ADVERBS = ["always","sometimes","seldom","never"];
+const ADVERBS = ["always","often","sometimes","seldom","never"];
 const ACTIVITIES = [
   {base:"swim", do:"swim", does:"swims", gerund:"swimming", emoji:"🏊"},
   {base:"play football", do:"play football", does:"plays football", gerund:"playing football", emoji:"⚽"},
@@ -389,20 +390,25 @@ function buildMonthMeta(){
   return {year, month, name: MONTH_NAMES[month], cells, byWeekday, dim, weeks: cells.length / 7};
 }
 function rangeForAdverb(adv, total){
-  // total = how many of that weekday exist in the month (4 or 5)
+  // total = how many of that weekday exist in the month (usually 4 or 5)
+  // Mapping: always=N/N · often≈3/4+ · sometimes=2 · seldom=1 · never=0
   if(adv === "always") return [total, total];
   if(adv === "never") return [0, 0];
   if(adv === "seldom") return [1, 1];
-  // sometimes: some but not all / not just one
-  if(total <= 3) return [2, Math.max(2, total-1)];
-  if(total === 4) return [2, 3];
-  return [2, 3]; // total 5
+  if(adv === "sometimes") return [2, 2];
+  if(adv === "often"){
+    if(total <= 3) return [Math.max(2, total - 1), Math.max(2, total - 1)];
+    if(total === 4) return [3, 3]; // 3/4
+    return [3, total - 1]; // N=5 → 3–4; N=6 → 3–5
+  }
+  return [2, 2];
 }
 function adverbForCount(n, total){
   if(n <= 0) return "never";
   if(n >= total) return "always";
   if(n === 1) return "seldom";
-  return "sometimes";
+  if(n === 2) return "sometimes";
+  return "often"; // 3 .. total-1 (e.g. 3/4, 3–4/5)
 }
 function pickMarkedDates(candidates, count){
   return shuffle(candidates).slice(0, count).sort((a,b)=>a-b);
@@ -678,10 +684,12 @@ function flash(ok){
 
 function makeTypeA(){
   const month = buildMonthMeta();
-  const wd = pick(WEEKDAYS);
+  const usable = WEEKDAYS.filter(w => month.byWeekday[w.i].length >= 4);
+  const wd = pick(usable.length ? usable : WEEKDAYS);
   const candidates = month.byWeekday[wd.i].slice();
   const total = candidates.length;
-  const adv = pick(ADVERBS);
+  const advPool = total >= 4 ? ADVERBS : ADVERBS.filter(a => a !== "often");
+  const adv = pick(advPool);
   const [lo, hi] = rangeForAdverb(adv, total);
   const count = randInt(lo, hi);
   const marked = pickMarkedDates(candidates, count);
@@ -715,10 +723,12 @@ function makeTypeA(){
 }
 function makeTypeB(){
   const month = buildMonthMeta();
-  const wd = pick(WEEKDAYS);
+  const usable = WEEKDAYS.filter(w => month.byWeekday[w.i].length >= 4);
+  const wd = pick(usable.length ? usable : WEEKDAYS);
   const candidates = month.byWeekday[wd.i].slice();
   const total = candidates.length;
-  const adv = pick(ADVERBS);
+  const advPool = total >= 4 ? ADVERBS : ADVERBS.filter(a => a !== "often");
+  const adv = pick(advPool);
   const [lo, hi] = rangeForAdverb(adv, total);
   const act = pick(ACTIVITIES);
   const who = Math.random() < 0.5 ? "I" : pick(NAMES3);
@@ -1163,8 +1173,9 @@ document.getElementById("btnMute").onclick = () => {
 window.addEventListener("keydown", (e) => {
   if(!running || paused || !answering || !currentQ) return;
   if(currentQ.type === "A"){
-    const map = {Digit1:0,Digit2:1,Digit3:2,Digit4:3,Numpad1:0,Numpad2:1,Numpad3:2,Numpad4:3,
-      KeyA:0,KeyS:1,KeyD:2,KeyF:3};
+    const map = {Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,
+      Numpad1:0,Numpad2:1,Numpad3:2,Numpad4:3,Numpad5:4,
+      KeyA:0,KeyS:1,KeyD:2,KeyF:3,KeyG:4};
     if(map[e.code] != null){ e.preventDefault(); submitTypeA(ADVERBS[map[e.code]]); }
   } else if(e.code === "Enter" || e.code === "Space"){
     e.preventDefault(); submitTypeB();
