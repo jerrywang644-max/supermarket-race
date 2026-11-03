@@ -66,23 +66,33 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 .cal-card{
   pointer-events:auto;
   background:rgba(255,250,240,.96);border:3px solid #fdba74;border-radius:18px;
-  padding:12px 12px 14px;color:#2d3436;box-shadow:0 10px 28px rgba(0,0,0,.28)
+  padding:10px 10px 12px;color:#2d3436;box-shadow:0 10px 28px rgba(0,0,0,.28);
+  max-height:min(52vh,420px);overflow:auto
 }
-.cal-card .cal-title{font-weight:900;font-size:1rem;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.cal-card .cal-title{font-weight:900;font-size:.95rem;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
 .cal-card .cal-title .act{color:#c2410c}
-.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
-.day-cell{
-  border:2px solid #fed7aa;border-radius:12px;background:#fff7ed;min-height:64px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  font-weight:800;font-size:.78rem;color:#9a3412;padding:6px 2px
+.cal-card .cal-title .month{color:#9a3412}
+.cal-head,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-head span{
+  text-align:center;font-size:.72rem;font-weight:900;color:#9a3412;padding:2px 0
 }
-.day-cell .mark{font-size:1.35rem;line-height:1}
+.cal-head span.focus{color:#0369a1;background:#e0f2fe;border-radius:8px}
+.day-cell{
+  border:2px solid #fed7aa;border-radius:10px;background:#fff7ed;min-height:40px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  font-weight:800;font-size:.7rem;color:#9a3412;padding:3px 1px
+}
+.day-cell .dnum{font-size:.68rem;opacity:.85;line-height:1}
+.day-cell .mark{font-size:1.05rem;line-height:1}
+.day-cell.blank{visibility:hidden;border:none;background:transparent;pointer-events:none}
+.day-cell.mute{background:#f8fafc;border-color:#e2e8f0;color:#94a3b8}
+.day-cell.focus-col{border-color:#fdba74}
 .day-cell.on{background:#dcfce7;border-color:#4ade80;color:#166534}
 .day-cell.off{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
 .day-cell.tap{cursor:pointer;transition:transform .1s,background .12s,border-color .12s}
 .day-cell.tap:active{transform:scale(.96)}
 .day-cell.tap.picked{background:#dbeafe;border-color:#38bdf8;color:#075985}
-.day-cell.tap.picked .mark{content:""}
+.day-cell.tap:disabled{opacity:.45;cursor:not-allowed}
 .answer-area{
   pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:0 2px
 }
@@ -161,8 +171,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 .board-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px}
 #lbStatus{margin-top:8px;font-size:.85rem;color:#7dd3fc;min-height:1.2em}
 @media (max-height:700px){
-  .day-cell{min-height:52px}
-  .play-wrap{top:58px}
+  .day-cell{min-height:34px}
+  .play-wrap{top:54px}
+  .cal-card{max-height:46vh}
+}
+@media (max-width:520px){
+  .day-cell{min-height:32px;font-size:.62rem}
+  .day-cell .mark{font-size:.95rem}
 }
 </style>
 </head>
@@ -184,9 +199,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
     <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
   </div>
   <div class="cal-card" id="calCard">
-    <div class="cal-title"><span>📅 Week calendar</span><span class="act" id="calAct">—</span></div>
+    <div class="cal-title"><span>📅 <span class="month" id="calMonth">Month</span></span><span class="act" id="calAct">—</span></div>
+    <div class="cal-head" id="calHead"></div>
     <div class="cal-grid" id="calGrid"></div>
-    <div class="legend" id="calLegend">✓ = did it · ✗ = did not</div>
+    <div class="legend" id="calLegend">✓ = did it · ✗ = did not · focus on one weekday</div>
   </div>
   <div class="answer-area" id="answerArea"></div>
 </div>
@@ -210,16 +226,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
     <p style="font-weight:800;letter-spacing:.02em;margin:0 0 6px;color:#fbbf24">Adverbs of Frequency · Longman 4A</p>
     <p id="startPlayerLine" style="font-weight:800;color:#7dd3fc;margin-bottom:4px">Playing as: —</p>
     <p>
-      Look at the <b>week calendar</b> · pick the right adverb · accelerate!<br>
-      <b>Type A:</b> calendar → always / sometimes / seldom / never<br>
-      <b>Type B:</b> read the sentence → tap the right days → GO<br>
+      Look at the <b>month calendar</b> · practise <b>on Mondays / on Fridays</b> · accelerate!<br>
+      <b>Type A:</b> month calendar → always / sometimes / seldom / never<br>
+      <b>Type B:</b> read the sentence → tap the right weekday dates → GO<br>
       <b>12 questions</b> · <b>3 lives</b> · score = 100 + leftover seconds × 10<br>
-      <span class="muted">always=7 · sometimes=3–5 · seldom=1–2 · never=0</span>
+      <span class="muted">Focus one weekday in the month · always=all · sometimes=some · seldom=1 · never=0</span>
     </p>
     <button class="btn" id="btnStart">START RACE ▶</button>
     <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
     <button class="btn btn-ghost" id="btnChangeName" type="button">Not me? Change name</button>
-    <p class="muted" style="margin-top:14px">老師說明：P4 Jacky 英文班 · Longman Elect 4A adverbs of frequency（日曆配對）。本遊戲雲端榜鍵前綴 <strong>f</strong>。清除密碼 teacher。</p>
+    <p class="muted" style="margin-top:14px">老師說明：P4 Jacky 英文班 · Longman Elect 4A adverbs of frequency（月份日曆 · on Mondays/Fridays…）。本遊戲雲端榜鍵前綴 <strong>f</strong>。清除密碼 teacher。</p>
   </div>
 </div>
 
@@ -273,13 +289,17 @@ const CLASS_ROSTER = [
   {name:"Eva", no:25},{name:"Sam", no:26}
 ];
 const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const WEEKDAYS = [
+  {i:0, short:"Mon", plural:"Mondays", on:"on Mondays"},
+  {i:1, short:"Tue", plural:"Tuesdays", on:"on Tuesdays"},
+  {i:2, short:"Wed", plural:"Wednesdays", on:"on Wednesdays"},
+  {i:3, short:"Thu", plural:"Thursdays", on:"on Thursdays"},
+  {i:4, short:"Fri", plural:"Fridays", on:"on Fridays"},
+  {i:5, short:"Sat", plural:"Saturdays", on:"on Saturdays"},
+  {i:6, short:"Sun", plural:"Sundays", on:"on Sundays"}
+];
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const ADVERBS = ["always","sometimes","seldom","never"];
-const ADV_RANGE = {
-  always:[7,7],
-  sometimes:[3,5],
-  seldom:[1,2],
-  never:[0,0]
-};
 const ACTIVITIES = [
   {base:"swim", do:"swim", does:"swims", gerund:"swimming", emoji:"🏊"},
   {base:"play football", do:"play football", does:"plays football", gerund:"playing football", emoji:"⚽"},
@@ -301,8 +321,8 @@ const LS_BOARD = "freq_race_board_cum_v1";
 const TEACHER_CLEAR_PW = "teacher";
 const Q_TOTAL = 12;
 const MAX_LIVES = 3;
-const TIMER_START = 16;
-const TIMER_FLOOR = 8;
+const TIMER_START = 20;
+const TIMER_FLOOR = 10;
 const CLOUD_PREFIX = "f";
 const CLOUD_BASE = "https://keyvalue.immanuel.co/api/KeyVal";
 const CLOUD_APP = "9qeew60c";
@@ -330,17 +350,55 @@ function shuffle(arr){
 }
 function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function adverbForCount(n){
-  if(n >= 7) return "always";
-  if(n >= 3) return "sometimes";
-  if(n >= 1) return "seldom";
-  return "never";
+function daysInMonth(year, month){ return new Date(year, month+1, 0).getDate(); }
+function weekdayDatesInMonth(year, month, weekday){
+  // weekday: 0=Mon ... 6=Sun (our index)
+  const out = [];
+  const dim = daysInMonth(year, month);
+  for(let d=1; d<=dim; d++){
+    const js = new Date(year, month, d).getDay(); // 0=Sun..6=Sat
+    const our = (js + 6) % 7; // Mon=0
+    if(our === weekday) out.push(d);
+  }
+  return out;
 }
-function makeDayMask(count){
-  const idx = shuffle([0,1,2,3,4,5,6]).slice(0, count).sort((a,b)=>a-b);
-  const mask = [false,false,false,false,false,false,false];
-  idx.forEach(i => { mask[i] = true; });
-  return mask;
+function buildMonthMeta(){
+  // school-year friendly months; year chosen so layout is stable
+  const month = pick([0,1,2,3,4,5,8,9,10]); // avoid long holidays a bit
+  const year = 2026;
+  const cells = [];
+  const dim = daysInMonth(year, month);
+  const firstJs = new Date(year, month, 1).getDay();
+  const firstOur = (firstJs + 6) % 7; // Mon-start offset
+  for(let i=0;i<firstOur;i++) cells.push(null);
+  for(let d=1; d<=dim; d++){
+    const js = new Date(year, month, d).getDay();
+    const our = (js + 6) % 7;
+    cells.push({date:d, weekday:our});
+  }
+  while(cells.length % 7 !== 0) cells.push(null);
+  const byWeekday = {};
+  for(let w=0;w<7;w++) byWeekday[w] = weekdayDatesInMonth(year, month, w);
+  return {year, month, name: MONTH_NAMES[month], cells, byWeekday, dim};
+}
+function rangeForAdverb(adv, total){
+  // total = how many of that weekday exist in the month (4 or 5)
+  if(adv === "always") return [total, total];
+  if(adv === "never") return [0, 0];
+  if(adv === "seldom") return [1, 1];
+  // sometimes: some but not all / not just one
+  if(total <= 3) return [2, Math.max(2, total-1)];
+  if(total === 4) return [2, 3];
+  return [2, 3]; // total 5
+}
+function adverbForCount(n, total){
+  if(n <= 0) return "never";
+  if(n >= total) return "always";
+  if(n === 1) return "seldom";
+  return "sometimes";
+}
+function pickMarkedDates(candidates, count){
+  return shuffle(candidates).slice(0, count).sort((a,b)=>a-b);
 }
 function playerLabel(p){ return p ? (p.name + " (" + p.no + ")") : "—"; }
 function loadPlayer(){
@@ -612,48 +670,71 @@ function flash(ok){
 }
 
 function makeTypeA(){
+  const month = buildMonthMeta();
+  const wd = pick(WEEKDAYS);
+  const candidates = month.byWeekday[wd.i].slice();
+  const total = candidates.length;
   const adv = pick(ADVERBS);
-  const [lo, hi] = ADV_RANGE[adv];
+  const [lo, hi] = rangeForAdverb(adv, total);
   const count = randInt(lo, hi);
+  const marked = pickMarkedDates(candidates, count);
   const act = pick(ACTIVITIES);
   const who = Math.random() < 0.45 ? "I" : pick(NAMES3);
-  const mask = makeDayMask(count);
   let q;
-  if(who === "I"){
-    q = "How often do you " + act.do + "?";
+  const style = Math.random();
+  if(style < 0.55){
+    if(who === "I") q = "How often do you " + act.do + " " + wd.on + "?";
+    else q = "How often does " + who + " " + act.do + " " + wd.on + "?";
+  } else if(style < 0.8){
+    if(who === "I") q = "I _____ " + act.do + " " + wd.on + ".";
+    else q = who + " _____ " + act.does + " " + wd.on + ".";
   } else {
-    q = "How often does " + who + " " + act.do + "?";
+    if(who === "I") q = "How often do you " + act.do + " " + wd.on + "? Look at " + month.name + ".";
+    else q = "How often does " + who + " " + act.do + " " + wd.on + "?";
   }
   return {
     type:"A",
     adverb:adv,
     count:count,
-    mask:mask,
+    total:total,
+    weekday:wd,
+    month:month,
+    marked:marked,
     activity:act,
     who:who,
     prompt:q,
-    hint:"Look at the calendar. Choose the adverb."
+    hint:"Look at all the " + wd.plural + " in " + month.name + ". Choose the adverb."
   };
 }
 function makeTypeB(){
+  const month = buildMonthMeta();
+  const wd = pick(WEEKDAYS);
+  const candidates = month.byWeekday[wd.i].slice();
+  const total = candidates.length;
   const adv = pick(ADVERBS);
+  const [lo, hi] = rangeForAdverb(adv, total);
   const act = pick(ACTIVITIES);
   const who = Math.random() < 0.5 ? "I" : pick(NAMES3);
   let sentence;
   if(who === "I"){
-    sentence = "I " + adv + " " + act.do + ".";
+    sentence = "I " + adv + " " + act.do + " " + wd.on + ".";
   } else {
-    sentence = who + " " + adv + " " + act.does + ".";
+    sentence = who + " " + adv + " " + act.does + " " + wd.on + ".";
   }
+  const rangeLabel = lo === hi ? String(lo) : (lo + "–" + hi);
   return {
     type:"B",
     adverb:adv,
-    countMin:ADV_RANGE[adv][0],
-    countMax:ADV_RANGE[adv][1],
+    countMin:lo,
+    countMax:hi,
+    total:total,
+    weekday:wd,
+    month:month,
+    candidates:candidates,
     activity:act,
     who:who,
     prompt:sentence,
-    hint:"Tap " + ADV_RANGE[adv][0] + (ADV_RANGE[adv][0]===ADV_RANGE[adv][1] ? "" : ("–"+ADV_RANGE[adv][1])) + " day(s), then press GO."
+    hint:"Tap " + rangeLabel + " " + wd.plural + " in " + month.name + ", then press GO."
   };
 }
 function buildQueue(){
@@ -777,30 +858,69 @@ function updateHud(){
   document.getElementById("hudLives").textContent = "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0, MAX_LIVES-lives));
 }
 
-function renderCalendar(mask, interactive){
+function renderCalHead(focusWeekday){
+  const head = document.getElementById("calHead");
+  if(!head) return;
+  head.innerHTML = DAYS.map((d,i) =>
+    '<span class="'+(i===focusWeekday?'focus':'')+'">'+d+'</span>'
+  ).join("");
+}
+function renderCalendar(q, interactive){
   const grid = document.getElementById("calGrid");
   grid.innerHTML = "";
-  DAYS.forEach((d,i)=>{
-    const cell = document.createElement("button");
-    cell.type = "button";
-    cell.className = "day-cell" + (interactive ? " tap" : (mask && mask[i] ? " on" : " off"));
-    if(interactive){
-      const on = pickedDays.indexOf(i) >= 0;
-      if(on) cell.classList.add("picked");
-      cell.innerHTML = "<div>"+d+"</div><div class='mark'>"+(on?"✓":"·")+"</div>";
-      cell.onclick = () => {
-        if(!answering || paused) return;
-        const idx = pickedDays.indexOf(i);
-        if(idx >= 0) pickedDays.splice(idx,1);
-        else pickedDays.push(i);
-        pickedDays.sort((a,b)=>a-b);
-        renderCalendar(null, true);
-        document.getElementById("calLegend").textContent = "Selected: " + pickedDays.length + " day(s)";
-      };
-    } else {
-      cell.innerHTML = "<div>"+d+"</div><div class='mark'>"+(mask[i]?"✓":"✗")+"</div>";
+  if(!q || !q.month) return;
+  const focus = q.weekday.i;
+  const markedSet = {};
+  (q.marked || []).forEach(d => { markedSet[d] = true; });
+  const pickedSet = {};
+  pickedDays.forEach(d => { pickedSet[d] = true; });
+  renderCalHead(focus);
+  document.getElementById("calMonth").textContent = q.month.name + " " + q.month.year;
+  q.month.cells.forEach(cell => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    if(!cell){
+      btn.className = "day-cell blank";
+      btn.tabIndex = -1;
+      btn.innerHTML = "&nbsp;";
+      grid.appendChild(btn);
+      return;
     }
-    grid.appendChild(cell);
+    const isFocus = cell.weekday === focus;
+    if(interactive){
+      btn.className = "day-cell tap" + (isFocus ? " focus-col" : " mute");
+      if(!isFocus){
+        btn.disabled = true;
+        btn.innerHTML = "<div class='dnum'>"+cell.date+"</div><div class='mark'>·</div>";
+      } else {
+        const on = !!pickedSet[cell.date];
+        if(on) btn.classList.add("picked");
+        btn.innerHTML = "<div class='dnum'>"+cell.date+"</div><div class='mark'>"+(on?"✓":"·")+"</div>";
+        btn.onclick = () => {
+          if(!answering || paused) return;
+          const idx = pickedDays.indexOf(cell.date);
+          if(idx >= 0) pickedDays.splice(idx,1);
+          else pickedDays.push(cell.date);
+          pickedDays.sort((a,b)=>a-b);
+          renderCalendar(q, true);
+          document.getElementById("calLegend").textContent =
+            "Selected: " + pickedDays.length + " " + q.weekday.plural +
+            " (need " + q.countMin + (q.countMin===q.countMax?"":"–"+q.countMax) + ")";
+        };
+      }
+    } else {
+      if(!isFocus){
+        btn.className = "day-cell mute";
+        btn.innerHTML = "<div class='dnum'>"+cell.date+"</div><div class='mark'>·</div>";
+      } else if(markedSet[cell.date]){
+        btn.className = "day-cell on focus-col";
+        btn.innerHTML = "<div class='dnum'>"+cell.date+"</div><div class='mark'>✓</div>";
+      } else {
+        btn.className = "day-cell off focus-col";
+        btn.innerHTML = "<div class='dnum'>"+cell.date+"</div><div class='mark'>✗</div>";
+      }
+    }
+    grid.appendChild(btn);
   });
 }
 
@@ -838,20 +958,25 @@ function showQuestion(){
   updateHud();
   document.getElementById("playWrap").classList.add("show");
   document.getElementById("qTag").textContent = currentQ.type === "A"
-    ? "TYPE A · CALENDAR → ADVERB"
-    : "TYPE B · SENTENCE → TAP DAYS";
+    ? "TYPE A · MONTH → ADVERB · " + currentQ.weekday.on
+    : "TYPE B · SENTENCE → TAP " + currentQ.weekday.plural.toUpperCase();
   document.getElementById("qText").textContent = currentQ.prompt;
   document.getElementById("qHint").textContent = currentQ.hint;
-  document.getElementById("calAct").textContent = (currentQ.activity.emoji||"") + " " + currentQ.activity.base;
+  document.getElementById("calAct").textContent = (currentQ.activity.emoji||"") + " " + currentQ.activity.base + " · " + currentQ.weekday.on;
   if(currentQ.type === "A"){
-    renderCalendar(currentQ.mask, false);
-    document.getElementById("calLegend").textContent = "✓ = did it · ✗ = did not · " + currentQ.count + "/7 days";
+    renderCalendar(currentQ, false);
+    document.getElementById("calLegend").textContent =
+      "Focus " + currentQ.weekday.plural + ": ✓ = did it · ✗ = did not · " +
+      currentQ.count + "/" + currentQ.total + " " + currentQ.weekday.plural;
   } else {
-    renderCalendar(null, true);
-    document.getElementById("calLegend").textContent = "Tap days to match: " + currentQ.adverb + " (" + currentQ.countMin + (currentQ.countMin===currentQ.countMax?"":"–"+currentQ.countMax) + ")";
+    renderCalendar(currentQ, true);
+    document.getElementById("calLegend").textContent =
+      "Tap " + currentQ.weekday.plural + " only · " + currentQ.adverb + " = " +
+      currentQ.countMin + (currentQ.countMin===currentQ.countMax?"":"–"+currentQ.countMax) +
+      "/" + currentQ.total;
   }
   renderAnswers(currentQ);
-  const t = Math.max(TIMER_FLOOR, TIMER_START - Math.floor(qIndex * 0.6));
+  const t = Math.max(TIMER_FLOOR, TIMER_START - Math.floor(qIndex * 0.5));
   startTimer(t);
 }
 
@@ -907,8 +1032,8 @@ function onWrong(reason){
   carSpeed = Math.max(1, +(carSpeed - 0.25).toFixed(2));
   flash(false); beep(180, 0.18, "sawtooth");
   const expect = currentQ.type === "A"
-    ? ("Answer: " + currentQ.adverb + " (" + currentQ.count + "/7)")
-    : ("Need " + currentQ.countMin + (currentQ.countMin===currentQ.countMax?"":"–"+currentQ.countMax) + " day(s) for " + currentQ.adverb);
+    ? ("Answer: " + currentQ.adverb + " (" + currentQ.count + "/" + currentQ.total + " " + currentQ.weekday.plural + ")")
+    : ("Need " + currentQ.countMin + (currentQ.countMin===currentQ.countMax?"":"–"+currentQ.countMax) + " " + currentQ.weekday.plural + " for " + currentQ.adverb);
   report.push({ok:false, text: currentQ.prompt, detail: reason + " · " + expect});
   updateHud();
   if(lives <= 0){
@@ -926,9 +1051,15 @@ function submitTypeA(adv){
 }
 function submitTypeB(){
   if(!answering || paused || !currentQ || currentQ.type !== "B") return;
+  const allowed = {};
+  (currentQ.candidates || []).forEach(d => { allowed[d] = true; });
+  const valid = pickedDays.every(d => allowed[d]);
   const n = pickedDays.length;
-  if(n >= currentQ.countMin && n <= currentQ.countMax) onCorrect("✓ " + n + "/7 days");
-  else onWrong("Selected " + n + "/7");
+  if(valid && n >= currentQ.countMin && n <= currentQ.countMax){
+    onCorrect("✓ " + n + "/" + currentQ.total + " " + currentQ.weekday.plural);
+  } else {
+    onWrong("Selected " + n + "/" + currentQ.total + " " + currentQ.weekday.plural);
+  }
 }
 
 async function endRace(finished){
