@@ -65,34 +65,39 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
   transition:width .05s linear;border-radius:99px}
 .cal-card{
   pointer-events:auto;
-  background:rgba(255,250,240,.96);border:3px solid #fdba74;border-radius:18px;
-  padding:10px 10px 12px;color:#2d3436;box-shadow:0 10px 28px rgba(0,0,0,.28);
-  max-height:min(52vh,420px);overflow:auto
+  background:rgba(255,250,240,.98);border:3px solid #fdba74;border-radius:18px;
+  padding:8px 8px 10px;color:#2d3436;box-shadow:0 10px 28px rgba(0,0,0,.28);
+  max-height:min(58vh,480px);overflow:auto
 }
-.cal-card .cal-title{font-weight:900;font-size:.95rem;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.cal-card .cal-title{font-weight:900;font-size:.9rem;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
 .cal-card .cal-title .act{color:#c2410c}
 .cal-card .cal-title .month{color:#9a3412}
-.cal-head,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-card .cal-label{font-size:.72rem;font-weight:800;color:#b45309;letter-spacing:.03em;margin-bottom:4px}
+.cal-head,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
 .cal-head span{
-  text-align:center;font-size:.72rem;font-weight:900;color:#9a3412;padding:2px 0
+  text-align:center;font-size:.7rem;font-weight:900;color:#9a3412;padding:2px 0
 }
 .cal-head span.focus{color:#0369a1;background:#e0f2fe;border-radius:8px}
 .day-cell{
-  border:2px solid #fed7aa;border-radius:10px;background:#fff7ed;min-height:40px;
+  border:1.5px solid #fed7aa;border-radius:8px;background:#fff7ed;min-height:28px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
-  font-weight:800;font-size:.7rem;color:#9a3412;padding:3px 1px
+  font-weight:800;font-size:.65rem;color:#9a3412;padding:2px 1px
 }
-.day-cell .dnum{font-size:.68rem;opacity:.85;line-height:1}
-.day-cell .mark{font-size:1.05rem;line-height:1}
-.day-cell.blank{visibility:hidden;border:none;background:transparent;pointer-events:none}
+.day-cell .dnum{font-size:.62rem;opacity:.9;line-height:1}
+.day-cell .mark{font-size:.95rem;line-height:1}
+.day-cell.blank{visibility:hidden;border:none;background:transparent;pointer-events:none;min-height:28px}
 .day-cell.mute{background:#f8fafc;border-color:#e2e8f0;color:#94a3b8}
-.day-cell.focus-col{border-color:#fdba74}
+.day-cell.focus-col{border-color:#fb923c;box-shadow:inset 0 0 0 1px #fdba74}
 .day-cell.on{background:#dcfce7;border-color:#4ade80;color:#166534}
 .day-cell.off{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
 .day-cell.tap{cursor:pointer;transition:transform .1s,background .12s,border-color .12s}
 .day-cell.tap:active{transform:scale(.96)}
 .day-cell.tap.picked{background:#dbeafe;border-color:#38bdf8;color:#075985}
-.day-cell.tap:disabled{opacity:.45;cursor:not-allowed}
+.day-cell.tap:disabled{opacity:.55;cursor:not-allowed}
+@media (min-height:700px){
+  .day-cell,.day-cell.blank{min-height:34px}
+  .day-cell .mark{font-size:1.05rem}
+}
 .answer-area{
   pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:0 2px
 }
@@ -199,10 +204,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
     <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
   </div>
   <div class="cal-card" id="calCard">
-    <div class="cal-title"><span>📅 <span class="month" id="calMonth">Month</span></span><span class="act" id="calAct">—</span></div>
+    <div class="cal-label" id="calLabel">📅 Month calendar</div>
+    <div class="cal-title"><span class="month" id="calMonth">November 2026</span><span class="act" id="calAct">—</span></div>
     <div class="cal-head" id="calHead"></div>
-    <div class="cal-grid" id="calGrid"></div>
-    <div class="legend" id="calLegend">✓ = did it · ✗ = did not · focus on one weekday</div>
+    <div class="cal-grid" id="calGrid" aria-label="Month calendar grid"></div>
+    <div class="legend" id="calLegend">✓ = did it · ✗ = did not · look at one weekday across the month</div>
   </div>
   <div class="answer-area" id="answerArea"></div>
 </div>
@@ -230,7 +236,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
       <b>Type A:</b> month calendar → always / sometimes / seldom / never<br>
       <b>Type B:</b> read the sentence → tap the right weekday dates → GO<br>
       <b>12 questions</b> · <b>3 lives</b> · score = 100 + leftover seconds × 10<br>
-      <span class="muted">Focus one weekday in the month · always=all · sometimes=some · seldom=1 · never=0</span>
+      <span class="muted">Full month grid (not one week) · focus one weekday · always=all · sometimes=some · seldom=1 · never=0</span>
     </p>
     <button class="btn" id="btnStart">START RACE ▶</button>
     <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
@@ -279,6 +285,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+const FREQ_RACE_CACHE_V = 4; // Month calendar multi-week grid
 const CLASS_ROSTER = [
   {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
   {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
@@ -363,8 +370,8 @@ function weekdayDatesInMonth(year, month, weekday){
   return out;
 }
 function buildMonthMeta(){
-  // school-year friendly months; year chosen so layout is stable
-  const month = pick([0,1,2,3,4,5,8,9,10]); // avoid long holidays a bit
+  // Prefer real teaching months with a full Mon–Sun multi-week grid (4–6 rows)
+  const month = pick([1,3,4,8,9,10]); // Feb Apr May Sep Oct Nov — clear 5–6 week layouts
   const year = 2026;
   const cells = [];
   const dim = daysInMonth(year, month);
@@ -379,7 +386,7 @@ function buildMonthMeta(){
   while(cells.length % 7 !== 0) cells.push(null);
   const byWeekday = {};
   for(let w=0;w<7;w++) byWeekday[w] = weekdayDatesInMonth(year, month, w);
-  return {year, month, name: MONTH_NAMES[month], cells, byWeekday, dim};
+  return {year, month, name: MONTH_NAMES[month], cells, byWeekday, dim, weeks: cells.length / 7};
 }
 function rangeForAdverb(adv, total){
   // total = how many of that weekday exist in the month (4 or 5)
@@ -682,15 +689,15 @@ function makeTypeA(){
   const who = Math.random() < 0.45 ? "I" : pick(NAMES3);
   let q;
   const style = Math.random();
-  if(style < 0.55){
+  if(style < 0.5){
     if(who === "I") q = "How often do you " + act.do + " " + wd.on + "?";
     else q = "How often does " + who + " " + act.do + " " + wd.on + "?";
   } else if(style < 0.8){
     if(who === "I") q = "I _____ " + act.do + " " + wd.on + ".";
     else q = who + " _____ " + act.does + " " + wd.on + ".";
   } else {
-    if(who === "I") q = "How often do you " + act.do + " " + wd.on + "? Look at " + month.name + ".";
-    else q = "How often does " + who + " " + act.do + " " + wd.on + "?";
+    if(who === "I") q = "Look at " + month.name + ". How often do you " + act.do + " " + wd.on + "?";
+    else q = "Look at " + month.name + ". How often does " + who + " " + act.do + " " + wd.on + "?";
   }
   return {
     type:"A",
@@ -875,6 +882,8 @@ function renderCalendar(q, interactive){
   const pickedSet = {};
   pickedDays.forEach(d => { pickedSet[d] = true; });
   renderCalHead(focus);
+  const lab = document.getElementById("calLabel");
+  if(lab) lab.textContent = "📅 Month calendar · " + q.month.weeks + " weeks";
   document.getElementById("calMonth").textContent = q.month.name + " " + q.month.year;
   q.month.cells.forEach(cell => {
     const btn = document.createElement("button");
