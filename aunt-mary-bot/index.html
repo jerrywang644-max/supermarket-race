@@ -10,7 +10,6 @@
     --muted: #6a5a48;
     --panel: rgba(255,250,242,.94);
     --accent: #8b5a2b;
-    --accent2: #c47a2c;
     --bot-bg: #fff6e8;
     --you-bg: #e8f3ec;
     --line: rgba(139,90,43,.22);
@@ -24,7 +23,6 @@
     overflow: hidden;
   }
 
-  /* ===== Room stage ===== */
   #stage {
     position: relative;
     width: 100%; height: 100%;
@@ -34,7 +32,7 @@
   .room-bg {
     position: absolute; inset: -1.5%;
     background: #000 center/cover no-repeat;
-    background-image: url("room-scene.jpg?v=4");
+    background-image: url("room-scene.jpg?v=5");
     animation: roomBreathe 6.5s ease-in-out infinite;
     will-change: transform;
   }
@@ -42,7 +40,6 @@
     0%,100% { transform: scale(1); }
     50% { transform: scale(1.018); }
   }
-  /* soft lamp glow (left mid of room) */
   .lamp-glow {
     position: absolute;
     left: 18%; top: 42%;
@@ -58,8 +55,6 @@
     0%,100% { opacity: .55; transform: scale(1); }
     50% { opacity: .95; transform: scale(1.08); }
   }
-
-  /* floating letter (Communication / ago letters) */
   .letter-float {
     position: absolute;
     left: 78%;
@@ -177,8 +172,8 @@
     width: min(96vw, 1180px);
     height: min(92vh, 860px);
     display: grid;
-    grid-template-columns: minmax(160px, 240px) 1fr;
-    gap: 16px;
+    grid-template-columns: minmax(220px, 300px) 1fr;
+    gap: 18px;
     align-items: stretch;
     padding: 18px;
     box-sizing: border-box;
@@ -186,16 +181,18 @@
 
   .avatar-col {
     width: 100%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 10px;
+    min-height: 0;
   }
   .avatar-frame {
-    width: min(100%, 220px); aspect-ratio: 1;
-    border-radius: 22px;
+    width: min(100%, 280px); aspect-ratio: 1;
+    border-radius: 24px;
     overflow: hidden;
     border: 4px solid #fff;
     box-shadow: 0 10px 28px rgba(0,0,0,.35);
     background: #f5ebe0;
     position: relative;
+    flex: 0 0 auto;
     animation: avatarIdle 3.2s ease-in-out infinite;
     will-change: transform;
   }
@@ -220,34 +217,47 @@
   .avatar-frame.talking img#avWait { opacity: 0; }
   .avatar-frame.talking img#avTalk { opacity: 1; transform: scale(1); }
 
-  /* blink eyelids overlay (only while waiting) */
-  .blink-lid {
-    position: absolute; left: 18%; right: 18%; top: 34%;
-    height: 10%;
-    background: linear-gradient(#c9a48a, #b08968);
-    border-radius: 40% 40% 55% 55%;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 3;
-    transform-origin: center;
-  }
-  .avatar-frame:not(.talking) .blink-lid {
-    animation: blink 4.8s ease-in-out infinite;
-  }
-  @keyframes blink {
-    0%, 88%, 100% { opacity: 0; transform: scaleY(0.15); }
-    90%, 93% { opacity: .92; transform: scaleY(1); }
-    95% { opacity: 0; transform: scaleY(0.15); }
-  }
-
   .avatar-name {
     background: rgba(0,0,0,.55); color: #fff;
     padding: 4px 12px; border-radius: 999px;
-    font-size: 13px; font-weight: 700;
+    font-size: 14px; font-weight: 700;
   }
   .mood {
-    font-size: 11px; color: #fff; background: rgba(139,90,43,.85);
-    padding: 2px 8px; border-radius: 8px; min-height: 18px;
+    font-size: 12px; color: #fff; background: rgba(139,90,43,.85);
+    padding: 3px 10px; border-radius: 8px; min-height: 18px;
+  }
+
+  /* topic illustration under avatar */
+  .illust-wrap {
+    width: 100%;
+    max-width: 280px;
+    flex: 1 1 auto;
+    min-height: 120px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .illust-frame {
+    width: 100%;
+    aspect-ratio: 1;
+    max-height: min(34vh, 260px);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 3px solid rgba(255,255,255,.9);
+    box-shadow: 0 8px 20px rgba(0,0,0,.28);
+    background: #fff8ee;
+    position: relative;
+  }
+  .illust-frame img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity .35s ease;
+  }
+  .illust-frame img.show { opacity: 1; }
+  .illust-caption {
+    font-size: 12px; font-weight: 700; color: #fff;
+    background: rgba(0,0,0,.5);
+    padding: 3px 10px; border-radius: 999px;
+    min-height: 18px;
   }
 
   .panel {
@@ -285,6 +295,13 @@
   .bubble.bot { align-self: flex-start; background: var(--bot-bg); border: 1px solid #edd9b8; }
   .bubble.you { align-self: flex-end; background: var(--you-bg); border: 1px solid #c9dfd0; }
   .who { font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: 3px; }
+  .bubble .caret {
+    display: inline-block; width: .55em;
+    border-right: 2px solid var(--accent);
+    animation: caretBlink .8s step-end infinite;
+    margin-left: 1px;
+  }
+  @keyframes caretBlink { 50% { border-color: transparent; } }
 
   .choices {
     border-top: 1px solid var(--line);
@@ -313,11 +330,13 @@
       padding: 10px; gap: 10px;
     }
     .avatar-col {
-      width: 100%; flex-direction: row; justify-content: flex-start;
+      width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: flex-start;
       gap: 10px; padding-left: 4px;
     }
-    .avatar-frame { width: 88px; border-radius: 16px; border-width: 3px; }
-    .avatar-name, .mood { font-size: 11px; }
+    .avatar-frame { width: 110px; border-radius: 16px; border-width: 3px; }
+    .illust-wrap { max-width: 140px; min-height: 90px; }
+    .illust-frame { max-height: 120px; }
+    .avatar-name, .mood, .illust-caption { font-size: 11px; }
     #charHotspot { left: 18%; right: 18%; }
     .lamp-glow { left: 12%; width: 40vw; height: 40vw; }
     .letter-float { left: 82%; top: 32%; width: 22vw; }
@@ -327,7 +346,7 @@
   @media (prefers-reduced-motion: reduce) {
     .room-bg, .lamp-glow, .letter-float, .letter-float .spark,
     .avatar-frame, .avatar-frame.talking,
-    .blink-lid, #charHotspot::before, .tap-btn {
+    #charHotspot::before, .tap-btn, .bubble .caret {
       animation: none !important;
     }
   }
@@ -339,7 +358,7 @@
     <div class="lamp-glow" aria-hidden="true"></div>
     <div class="letter-float" aria-hidden="true" title="letter">
       <div class="spark"></div>
-      <img src="letter-float.png?v=4" alt="" />
+      <img src="letter-float.png?v=5" alt="" />
     </div>
 
     <div class="hud-top">
@@ -359,12 +378,17 @@
       <div class="dock">
         <div class="avatar-col">
           <div class="avatar-frame" id="avatarFrame">
-            <img id="avWait" src="avatar-waiting.jpg?v=4" alt="Aunt Mary waiting" />
-            <img id="avTalk" src="avatar-answering.jpg?v=4" alt="Aunt Mary answering" />
-            <div class="blink-lid" aria-hidden="true"></div>
+            <img id="avWait" src="avatar-waiting.jpg?v=5" alt="Aunt Mary waiting" />
+            <img id="avTalk" src="avatar-answering.jpg?v=5" alt="Aunt Mary answering" />
           </div>
           <div class="avatar-name">Aunt Mary</div>
           <div class="mood" id="mood">Listening…</div>
+          <div class="illust-wrap">
+            <div class="illust-frame" id="illustFrame">
+              <img id="illustImg" alt="" />
+            </div>
+            <div class="illust-caption" id="illustCap"> </div>
+          </div>
         </div>
         <div class="panel">
           <div class="panel-bar">
@@ -379,37 +403,63 @@
   </div>
 
 <script>
+const ILLUST = {
+  letter: { src: "illust-letter.jpg?v=5", cap: "letter" },
+  telephone: { src: "illust-telephone.jpg?v=5", cap: "telephone" },
+  radio: { src: "illust-radio.jpg?v=5", cap: "radio" },
+  mobile: { src: "illust-mobile.jpg?v=5", cap: "mobile phone" },
+  camera: { src: "illust-camera.jpg?v=5", cap: "digital camera" },
+  mp3: { src: "illust-mp3.jpg?v=5", cap: "MP3 player" },
+  computer: { src: "illust-computer.jpg?v=5", cap: "computer" },
+  electronics: { src: "illust-electronics.jpg?v=5", cap: "electronic products" }
+};
+
 const QUESTIONS = [
   { q: "Was there a mobile phone ago?",
-    a: "No, there wasn’t a mobile phone sixty years ago.\nThere was a telephone in some flats, and we wrote letters.\nWas there a radio at your grandma’s home?" },
+    a: "No, there wasn’t any mobile phone sixty years ago.\nThere was a telephone in some flats, and we wrote letters.\nWas there a radio at your grandma’s home?",
+    imgs: ["mobile", "telephone", "letter"] },
   { q: "Was there an MP3 player ago?",
-    a: "No, there wasn’t an MP3 player seventy years ago.\nThere was a radio at home. We listened to songs on the radio.\nWere there any electronic products when you were little?" },
+    a: "No, there wasn’t any MP3 player seventy years ago.\nThere was a radio at home. We listened to songs on the radio.\nWere there any electronic products when you were little?",
+    imgs: ["mp3", "radio"] },
   { q: "Was there a digital camera ago?",
-    a: "No, there wasn’t a digital camera sixty years ago.\nThere weren’t many electronic products then.\nWas there a telephone in your family?" },
+    a: "No, there wasn’t any digital camera sixty years ago.\nThere weren’t any electronic products like that then.\nWas there a telephone in your family?",
+    imgs: ["camera", "electronics", "telephone"] },
   { q: "Were there any electronic products ago?",
-    a: "There weren’t many electronic products sixty years ago.\nThere was a radio in many homes.\nWere there any mobile phones nowadays?" },
+    a: "There weren’t any electronic products like today sixty years ago.\nThere was a radio in many homes.\nWere there any mobile phones nowadays?",
+    imgs: ["electronics", "radio", "mobile"] },
   { q: "Was there a telephone ago?",
-    a: "Yes, there was a telephone in some flats sixty years ago.\nThere wasn’t a telephone in every flat.\nWe wrote letters too. Were there any letters in your home?" },
+    a: "Yes, there was a telephone in some flats sixty years ago.\nThere wasn’t any telephone in every flat.\nWe wrote letters too. Were there any letters in your home?",
+    imgs: ["telephone", "letter"] },
   { q: "Was there a radio ago?",
-    a: "Yes, there was a radio at home sixty years ago.\nThere were music and news programmes.\nWas there a radio nowadays in your home?" },
+    a: "Yes, there was a radio at home sixty years ago.\nThere were music and news programmes.\nWas there a radio nowadays in your home?",
+    imgs: ["radio"] },
   { q: "Were there any letters ago?",
-    a: "Yes, there were letters sixty years ago.\nWe kept in touch by writing letters.\nWas there an email ago?" },
+    a: "Yes, there were letters sixty years ago.\nWe kept in touch by writing letters.\nWas there an email ago?",
+    imgs: ["letter", "computer"] },
   { q: "Was there a computer ago?",
-    a: "No, there wasn’t a home computer for children sixty years ago.\nThere weren’t any emails then.\nWas there a mobile phone nowadays?" },
+    a: "No, there wasn’t any home computer for children sixty years ago.\nThere weren’t any emails then.\nWas there a mobile phone nowadays?",
+    imgs: ["computer", "letter", "mobile"] },
   { q: "Were there any emails ago?",
-    a: "No, there weren’t any emails sixty years ago.\nThere were letters, and there was a telephone in some flats.\nHow do you keep in touch nowadays?" },
+    a: "No, there weren’t any emails sixty years ago.\nThere were letters, and there was a telephone in some flats.\nHow do you keep in touch nowadays?",
+    imgs: ["computer", "letter", "telephone"] },
   { q: "Was there a smartphone nowadays?",
-    a: "Nowadays there are smartphones everywhere.\nSixty years ago, there wasn’t a smartphone.\nThere was only a telephone in some flats." },
+    a: "Nowadays there are smartphones everywhere.\nSixty years ago, there wasn’t any smartphone.\nThere was only a telephone in some flats.",
+    imgs: ["mobile", "telephone"] },
   { q: "Were there any digital cameras nowadays?",
-    a: "Nowadays there are digital cameras and phone cameras.\nSixty years ago, there wasn’t a digital camera.\nWere there any electronic products ago?" },
+    a: "Nowadays there are digital cameras and phone cameras.\nSixty years ago, there wasn’t any digital camera.\nWere there any electronic products ago?",
+    imgs: ["camera", "mobile", "electronics"] },
   { q: "Was there a letter nowadays?",
-    a: "Nowadays there are still some letters, but not many.\nSixty years ago, there were many letters.\nWe kept in touch by post." },
+    a: "Nowadays there are still some letters, but not many.\nSixty years ago, there were many letters.\nWe kept in touch by post.",
+    imgs: ["letter", "mobile"] },
   { q: "Were there any mobile phones ago?",
-    a: "No, there weren’t any mobile phones sixty years ago.\nThere was a telephone in some flats.\nWas there a radio ago?" },
+    a: "No, there weren’t any mobile phones sixty years ago.\nThere was a telephone in some flats.\nWas there a radio ago?",
+    imgs: ["mobile", "telephone", "radio"] },
   { q: "Was there an MP3 player nowadays?",
-    a: "Nowadays there are MP3 players and phones for music.\nSeventy years ago, there wasn’t an MP3 player.\nThere was a radio at home." },
+    a: "Nowadays there are MP3 players and phones for music.\nSeventy years ago, there wasn’t any MP3 player.\nThere was a radio at home.",
+    imgs: ["mp3", "mobile", "radio"] },
   { q: "Was there a fax machine ago?",
-    a: "No, there wasn’t a fax machine in most homes sixty years ago.\nThere were letters, and there was a telephone in some places.\nWere there any emails ago?" }
+    a: "No, there wasn’t any fax machine in most homes sixty years ago.\nThere were letters, and there was a telephone in some places.\nWere there any emails ago?",
+    imgs: ["letter", "telephone", "computer"] }
 ];
 
 const landingUI = document.getElementById("landingUI");
@@ -418,7 +468,12 @@ const thread = document.getElementById("thread");
 const choices = document.getElementById("choices");
 const avatarFrame = document.getElementById("avatarFrame");
 const mood = document.getElementById("mood");
+const illustImg = document.getElementById("illustImg");
+const illustCap = document.getElementById("illustCap");
 const asked = new Set();
+let typingToken = 0;
+let cycleTimer = null;
+let reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function setWaiting() {
   avatarFrame.classList.remove("talking");
@@ -429,13 +484,85 @@ function setTalking() {
   mood.textContent = "Answering…";
 }
 
+function clearIllustCycle() {
+  if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
+}
+
+function showIllust(key) {
+  const item = ILLUST[key];
+  if (!item) return;
+  illustImg.classList.remove("show");
+  const next = () => {
+    illustImg.src = item.src;
+    illustImg.alt = item.cap;
+    illustCap.textContent = item.cap;
+    requestAnimationFrame(() => illustImg.classList.add("show"));
+  };
+  setTimeout(next, illustImg.classList.contains("show") ? 180 : 0);
+}
+
+function startIllustCycle(keys) {
+  clearIllustCycle();
+  if (!keys || !keys.length) {
+    illustImg.classList.remove("show");
+    illustCap.textContent = " ";
+    return;
+  }
+  let i = 0;
+  showIllust(keys[0]);
+  if (keys.length > 1 && !reduceMotion) {
+    cycleTimer = setInterval(() => {
+      i = (i + 1) % keys.length;
+      showIllust(keys[i]);
+    }, 1600);
+  }
+}
+
 function addBubble(who, text) {
   const div = document.createElement("div");
   div.className = "bubble " + (who === "you" ? "you" : "bot");
   div.innerHTML = `<div class="who">${who === "you" ? "You" : "Aunt Mary"}</div>`;
-  div.appendChild(document.createTextNode(text));
+  const body = document.createElement("span");
+  body.className = "body";
+  body.textContent = text;
+  div.appendChild(body);
   thread.appendChild(div);
   thread.scrollTop = thread.scrollHeight;
+  return { div, body };
+}
+
+function typeBot(text, onDone) {
+  const token = ++typingToken;
+  const { body } = addBubble("bot", "");
+  const caret = document.createElement("span");
+  caret.className = "caret";
+  caret.setAttribute("aria-hidden", "true");
+  body.after(caret);
+
+  if (reduceMotion) {
+    body.textContent = text;
+    caret.remove();
+    thread.scrollTop = thread.scrollHeight;
+    if (onDone) onDone();
+    return;
+  }
+
+  let i = 0;
+  const step = () => {
+    if (token !== typingToken) return;
+    i += 1;
+    body.textContent = text.slice(0, i);
+    thread.scrollTop = thread.scrollHeight;
+    if (i < text.length) {
+      const ch = text[i - 1];
+      const delay = ch === "\n" ? 90 : (ch === "." || ch === "?" || ch === "!") ? 55 : 22;
+      setTimeout(step, delay);
+    } else {
+      caret.remove();
+      if (onDone) onDone();
+    }
+  };
+  step();
 }
 
 function renderChoices() {
@@ -457,19 +584,26 @@ function ask(i) {
   asked.add(i);
   setWaiting();
   choices.querySelectorAll(".qbtn").forEach(b => b.disabled = true);
+  startIllustCycle(item.imgs);
   setTimeout(() => {
     setTalking();
-    addBubble("bot", item.a);
-    setTimeout(() => {
+    typeBot(item.a, () => {
       setWaiting();
+      clearIllustCycle();
+      // keep last related image visible
+      if (item.imgs && item.imgs.length) showIllust(item.imgs[item.imgs.length - 1]);
       renderChoices();
       if (asked.size === QUESTIONS.length) {
         setTalking();
-        addBubble("bot", "Well done! You asked all my questions.\nThere were letters long ago. Nowadays there are mobile phones.");
-        setTimeout(setWaiting, 900);
+        startIllustCycle(["letter", "mobile"]);
+        typeBot("Well done! You asked all my questions.\nThere were letters long ago. Nowadays there are mobile phones.", () => {
+          setWaiting();
+          clearIllustCycle();
+          showIllust("letter");
+        });
       }
-    }, 700);
-  }, 500);
+    });
+  }, 400);
 }
 
 function openChat() {
@@ -479,14 +613,22 @@ function openChat() {
   dialogue.style.display = "block";
   thread.innerHTML = "";
   asked.clear();
+  typingToken++;
+  clearIllustCycle();
   setWaiting();
-  addBubble("bot", "Hello! I’m Aunt Mary.\nLong ago we kept in touch with letters and telephones.\nAsk me with Was there…? or Were there any…?");
+  startIllustCycle(["letter", "telephone"]);
   setTalking();
-  setTimeout(setWaiting, 900);
-  renderChoices();
+  typeBot("Hello! I’m Aunt Mary.\nLong ago we kept in touch with letters and telephones.\nAsk me with Was there…? or Were there any…?", () => {
+    setWaiting();
+    clearIllustCycle();
+    showIllust("letter");
+    renderChoices();
+  });
 }
 
 function goBack() {
+  typingToken++;
+  clearIllustCycle();
   document.getElementById("stage").classList.remove("chat-open");
   dialogue.style.display = "none";
   landingUI.style.display = "block";
