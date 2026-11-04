@@ -28,13 +28,40 @@
   #stage {
     position: relative;
     width: 100%; height: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+  .room-bg {
+    position: absolute; inset: -1.5%;
     background: #000 center/cover no-repeat;
-    background-image: url("room-scene.jpg");
+    background-image: url("room-scene.jpg?v=2");
+    animation: roomBreathe 6.5s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes roomBreathe {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.018); }
+  }
+  /* soft lamp glow (left mid of room) */
+  .lamp-glow {
+    position: absolute;
+    left: 18%; top: 42%;
+    width: min(28vw, 280px); height: min(28vw, 280px);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,200,90,.38) 0%, rgba(255,170,60,.14) 42%, transparent 70%);
+    pointer-events: none;
+    animation: lampPulse 2.8s ease-in-out infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+  }
+  @keyframes lampPulse {
+    0%,100% { opacity: .55; transform: scale(1); }
+    50% { opacity: .95; transform: scale(1.08); }
   }
   #stage::after {
     content: "";
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(20,12,6,.55) 0%, transparent 42%);
+    position: absolute; inset: 0; z-index: 3;
+    background: linear-gradient(to top, rgba(20,12,6,.48) 0%, transparent 42%);
     pointer-events: none;
   }
 
@@ -52,7 +79,6 @@
   }
   .pill .stars { color: #ffc56b; margin-right: 6px; }
 
-  /* Landing caption / tap */
   #landingUI {
     position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
     padding: 0 16px 28px; text-align: center;
@@ -78,11 +104,25 @@
     0%,100% { transform: translateY(0); }
     50% { transform: translateY(-3px); }
   }
-  /* invisible clickable hot zone on character area */
   #charHotspot {
     position: absolute; z-index: 4; cursor: pointer;
     left: 28%; right: 28%; top: 12%; bottom: 28%;
     border-radius: 24px;
+  }
+  #charHotspot::before {
+    content: "";
+    position: absolute; left: 50%; top: 58%;
+    width: 70%; height: 55%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(255,200,120,.35);
+    animation: hotspotRing 2.4s ease-out infinite;
+    pointer-events: none;
+  }
+  @keyframes hotspotRing {
+    0% { box-shadow: 0 0 0 0 rgba(255,200,120,.4); opacity: 1; }
+    70% { box-shadow: 0 0 0 28px rgba(255,200,120,0); opacity: 0; }
+    100% { opacity: 0; }
   }
 
   /* ===== Dialogue layer ===== */
@@ -104,7 +144,6 @@
     max-width: 980px; margin: 0 auto;
   }
 
-  /* Left avatar with two expressions */
   .avatar-col {
     width: min(210px, 34vw);
     display: flex; flex-direction: column; align-items: center; gap: 8px;
@@ -117,6 +156,19 @@
     box-shadow: 0 10px 28px rgba(0,0,0,.35);
     background: #f5ebe0;
     position: relative;
+    animation: avatarIdle 3.2s ease-in-out infinite;
+    will-change: transform;
+  }
+  .avatar-frame.talking {
+    animation: avatarTalk 0.55s ease-in-out infinite;
+  }
+  @keyframes avatarIdle {
+    0%,100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-4px) scale(1.015); }
+  }
+  @keyframes avatarTalk {
+    0%,100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-2px) scale(1.03); }
   }
   .avatar-frame img {
     position: absolute; inset: 0; width: 100%; height: 100%;
@@ -127,6 +179,27 @@
   .avatar-frame img#avTalk { opacity: 0; transform: scale(1.02); }
   .avatar-frame.talking img#avWait { opacity: 0; }
   .avatar-frame.talking img#avTalk { opacity: 1; transform: scale(1); }
+
+  /* blink eyelids overlay (only while waiting) */
+  .blink-lid {
+    position: absolute; left: 18%; right: 18%; top: 34%;
+    height: 10%;
+    background: linear-gradient(#c9a48a, #b08968);
+    border-radius: 40% 40% 55% 55%;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 3;
+    transform-origin: center;
+  }
+  .avatar-frame:not(.talking) .blink-lid {
+    animation: blink 4.8s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%, 88%, 100% { opacity: 0; transform: scaleY(0.15); }
+    90%, 93% { opacity: .92; transform: scaleY(1); }
+    95% { opacity: 0; transform: scaleY(0.15); }
+  }
+
   .avatar-name {
     background: rgba(0,0,0,.55); color: #fff;
     padding: 4px 12px; border-radius: 999px;
@@ -198,11 +271,22 @@
     .avatar-frame { width: 88px; border-radius: 16px; border-width: 3px; }
     .avatar-name, .mood { font-size: 11px; }
     #charHotspot { left: 18%; right: 18%; }
+    .lamp-glow { left: 12%; width: 40vw; height: 40vw; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .room-bg, .lamp-glow, .avatar-frame, .avatar-frame.talking,
+    .blink-lid, #charHotspot::before, .tap-btn {
+      animation: none !important;
+    }
   }
 </style>
 </head>
 <body>
   <div id="stage">
+    <div class="room-bg" aria-hidden="true"></div>
+    <div class="lamp-glow" aria-hidden="true"></div>
+
     <div class="hud-top">
       <div class="pill"><span class="stars">★★★</span>Hard · Communication</div>
       <div class="pill">There was / There were</div>
@@ -220,8 +304,9 @@
       <div class="dock">
         <div class="avatar-col">
           <div class="avatar-frame" id="avatarFrame">
-            <img id="avWait" src="avatar-waiting.jpg" alt="Aunt Mary waiting" />
-            <img id="avTalk" src="avatar-answering.jpg" alt="Aunt Mary answering" />
+            <img id="avWait" src="avatar-waiting.jpg?v=2" alt="Aunt Mary waiting" />
+            <img id="avTalk" src="avatar-answering.jpg?v=2" alt="Aunt Mary answering" />
+            <div class="blink-lid" aria-hidden="true"></div>
           </div>
           <div class="avatar-name">Aunt Mary</div>
           <div class="mood" id="mood">Listening…</div>
@@ -340,7 +425,6 @@ function openChat() {
   asked.clear();
   setWaiting();
   addBubble("bot", "Hello! I’m Aunt Mary.\nLong ago we kept in touch with letters and telephones.\nAsk me with Was there…? or Were there any…?");
-  // brief talking for greeting
   setTalking();
   setTimeout(setWaiting, 900);
   renderChoices();
