@@ -258,7 +258,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
       <b>Type A:</b> month calendar → always / often / sometimes / seldom / never<br>
       <b>Type B:</b> read the sentence → tap the right weekday dates → GO<br>
       <b>12 questions</b> · <b>4 lives</b> · score = 100 + leftover seconds × 10<br>
-      <b>通關獎勵 Bonus:</b> dodge cars · time = 10 + correct×4 sec · 4 lives<br>
+      <b>通關獎勵 Bonus:</b> dodge cars · <b>30 seconds</b> · 4 lives<br>
       <span class="muted">Full month grid · focus one weekday · always=all · often=3/4 · sometimes=2/4 · seldom=1/4 · never=0 · no usually · mid-freq never marks 5 days</span>
     </p>
     <button class="btn" id="btnStart">START RACE ▶</button>
@@ -308,7 +308,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const FREQ_RACE_CACHE_V = 11; // Mr. Wang + 4 lives + solid bonus i-frames
+const FREQ_RACE_CACHE_V = 12; // fixed 30s bonus for everyone
 const CLASS_ROSTER = [
   {name:"Mr. Wang", no:27},
   {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
@@ -1579,7 +1579,7 @@ function startBonus(){
   bonusActive = true;
   running = true;
   paused = false;
-  bonusDuration = 10 + correctCount * 4;
+  bonusDuration = 30; // fixed for everyone
   bonusLeft = bonusDuration;
   bonusEndsAt = 0; // set when play phase starts (after 3-2-1-GO)
   bonusPlayStartedAt = 0;
@@ -1617,7 +1617,7 @@ function endBonus(survived){
   const title = survived ? "🏆 Bonus clear!" : (bonusLives<=0 ? "💥 Bonus: out of lives" : "⏱️ Bonus time up");
   const extra =
     "<br><br><b>🎁 Bonus dodge</b>: Dodged <b>"+bonusDodged+"</b> cars · Time left <b>"+left+"</b>s · Lives left <b>"+Math.max(0,bonusLives)+"</b>" +
-    "<br><span class='muted'>Bonus time was "+bonusDuration+"s (10 + "+correctCount+"×4)</span>";
+    "<br><span class='muted'>Bonus time: "+bonusDuration+"s (fixed)</span>";
   showFinalOverlay(title, extra);
 }
 
