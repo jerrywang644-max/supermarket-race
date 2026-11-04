@@ -34,7 +34,7 @@
   .room-bg {
     position: absolute; inset: -1.5%;
     background: #000 center/cover no-repeat;
-    background-image: url("room-scene.jpg?v=2");
+    background-image: url("room-scene.jpg?v=3");
     animation: roomBreathe 6.5s ease-in-out infinite;
     will-change: transform;
   }
@@ -58,6 +58,41 @@
     0%,100% { opacity: .55; transform: scale(1); }
     50% { opacity: .95; transform: scale(1.08); }
   }
+
+  /* floating letter (Communication / ago letters) */
+  .letter-float {
+    position: absolute;
+    left: 58%;
+    top: 38%;
+    width: min(16vw, 150px);
+    z-index: 3;
+    pointer-events: none;
+    filter: drop-shadow(0 8px 14px rgba(80,40,10,.35));
+    animation: letterBob 2.8s ease-in-out infinite;
+    will-change: transform;
+  }
+  .letter-float img {
+    width: 100%; height: auto; display: block;
+    user-select: none;
+  }
+  .letter-float .spark {
+    position: absolute; inset: -18% -12%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,210,100,.35) 0%, transparent 65%);
+    animation: letterSpark 2.8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+  }
+  @keyframes letterBob {
+    0%,100% { transform: translate(-50%, 0) rotate(-4deg); }
+    50% { transform: translate(-50%, -14px) rotate(3deg); }
+  }
+  @keyframes letterSpark {
+    0%,100% { opacity: .45; transform: scale(0.92); }
+    50% { opacity: .9; transform: scale(1.08); }
+  }
+  #stage.chat-open .letter-float { opacity: .35; }
+
   #stage::after {
     content: "";
     position: absolute; inset: 0; z-index: 3;
@@ -272,10 +307,12 @@
     .avatar-name, .mood { font-size: 11px; }
     #charHotspot { left: 18%; right: 18%; }
     .lamp-glow { left: 12%; width: 40vw; height: 40vw; }
+    .letter-float { left: 62%; top: 34%; width: 22vw; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .room-bg, .lamp-glow, .avatar-frame, .avatar-frame.talking,
+    .room-bg, .lamp-glow, .letter-float, .letter-float .spark,
+    .avatar-frame, .avatar-frame.talking,
     .blink-lid, #charHotspot::before, .tap-btn {
       animation: none !important;
     }
@@ -286,6 +323,10 @@
   <div id="stage">
     <div class="room-bg" aria-hidden="true"></div>
     <div class="lamp-glow" aria-hidden="true"></div>
+    <div class="letter-float" aria-hidden="true" title="letter">
+      <div class="spark"></div>
+      <img src="letter-float.png?v=3" alt="" />
+    </div>
 
     <div class="hud-top">
       <div class="pill"><span class="stars">★★★</span>Hard · Communication</div>
@@ -304,8 +345,8 @@
       <div class="dock">
         <div class="avatar-col">
           <div class="avatar-frame" id="avatarFrame">
-            <img id="avWait" src="avatar-waiting.jpg?v=2" alt="Aunt Mary waiting" />
-            <img id="avTalk" src="avatar-answering.jpg?v=2" alt="Aunt Mary answering" />
+            <img id="avWait" src="avatar-waiting.jpg?v=3" alt="Aunt Mary waiting" />
+            <img id="avTalk" src="avatar-answering.jpg?v=3" alt="Aunt Mary answering" />
             <div class="blink-lid" aria-hidden="true"></div>
           </div>
           <div class="avatar-name">Aunt Mary</div>
@@ -418,6 +459,7 @@ function ask(i) {
 }
 
 function openChat() {
+  document.getElementById("stage").classList.add("chat-open");
   landingUI.style.display = "none";
   document.getElementById("charHotspot").style.display = "none";
   dialogue.style.display = "block";
@@ -431,6 +473,7 @@ function openChat() {
 }
 
 function goBack() {
+  document.getElementById("stage").classList.remove("chat-open");
   dialogue.style.display = "none";
   landingUI.style.display = "block";
   document.getElementById("charHotspot").style.display = "block";
