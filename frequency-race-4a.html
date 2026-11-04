@@ -308,7 +308,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const FREQ_RACE_CACHE_V = 12; // fixed 30s bonus for everyone
+const FREQ_RACE_CACHE_V = 13; // bonus finish-line rush at end of 30s
 const CLASS_ROSTER = [
   {name:"Mr. Wang", no:27},
   {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
@@ -382,12 +382,17 @@ let bonusDodged = 0;
 let bonusInvulnUntil = 0;
 let bonusCars = []; // {x,y,lane,speed,w,h,color,passed}
 let bonusSpawnAt = 0;
-let bonusPhase = 'idle'; // idle | countdown | go | play
+let bonusPhase = 'idle'; // idle | countdown | go | play | finish
 let bonusCountdownN = 0; // 3,2,1,0(GO)
 let bonusCountdownUntil = 0;
 let bonusPlayStartedAt = 0; // when play phase begins (timer + cars)
 let bonusHitstunUntil = 0;
 let bonusFx = null; // {until, x, y, word, shake}
+let bonusFinishX = -1; // finish line x; -1 = hidden
+let bonusPlayerX = 0.16; // normalized 0..1 screen x for player in bonus
+let bonusRushing = false;
+let bonusCrossedAt = 0; // when player crossed finish; 0 = not yet
+const BONUS_FINISH_WARN = 5; // seconds left when finish line appears
 let pointerDragging = false;
 let pointerTargetY = 0.5; // normalized 0..1 within road
 let mainScoreSaved = false;
@@ -1010,6 +1015,23 @@ function drawScene(now){
     ctx.save();
     ctx.translate(shakeX, shakeY);
 
+    // Finish line (appears near end of timer)
+    if(bonusFinishX >= 0){
+      const fx = bonusFinishX;
+      ctx.fillStyle = "rgba(15,23,42,.5)";
+      ctx.fillRect(fx - 8, rg.top, 16, rg.height);
+      for(let r=0;r<6;r++){
+        for(let c=0;c<3;c++){
+          ctx.fillStyle = ((r+c)%2===0) ? "#fff" : "#0f172a";
+          ctx.fillRect(fx + 10 + c*11, rg.top + 8 + r*12, 11, 12);
+        }
+      }
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 18px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(bonusCrossedAt ? "FINISH!" : "FINISH →", fx + 8, rg.top - 14);
+    }
+
     bonusCars.forEach(c => {
       const ey = laneY(c.lane);
       const scale = Math.min(w,h) * 0.0009 + 0.8;
@@ -1018,7 +1040,30 @@ function drawScene(now){
     const playerY = rg.top + (0.17 + carY * 0.66) * rg.height;
     const inv = (typeof bonusIsInvuln === 'function') ? bonusIsInvuln(now) : (now < bonusInvulnUntil);
     const scale = Math.min(w,h) * 0.00105 + 0.95;
-    drawCarSprite(w*0.16, playerY, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, inv);
+    const pxx = w * (bonusPlayerX || 0.16);
+    if(bonusRushing || now < boostUntil){
+      ctx.fillStyle = "rgba(251,191,36,.55)";
+      ctx.beginPath(); ctx.ellipse(pxx-58, playerY, 44, 16, 0,0,Math.PI*2); ctx.fill();
+    }
+    drawCarSprite(pxx, playerY, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, inv);
+
+    if(bonusCrossedAt > 0){
+      ctx.fillStyle = "rgba(15,23,42,.55)";
+      roundRect(w/2-160, h*0.36, 320, 64, 18);
+      ctx.fillStyle = "#34d399";
+      ctx.font = "900 36px Impact, Haettenschweiler, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("🏁 FINISH!", w/2, h*0.36+34);
+      ctx.textBaseline = "alphabetic";
+    } else if(bonusFinishX >= 0 && !bonusRushing){
+      ctx.fillStyle = "rgba(15,23,42,.55)";
+      roundRect(w/2-140, 56, 280, 32, 12);
+      ctx.fillStyle = "#fde68a";
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("終點出現！繼續躲避 → Finish ahead!", w/2, 78);
+    }
 
     // Comic hit burst
     if(bonusFx && now < bonusFx.until){
@@ -1199,20 +1244,85 @@ function updateBonus(dt, now){
   carY = Math.max(0, Math.min(1, carY));
 
   const spd = bonusSpeedFactor(now);
+  const finishing = bonusPhase === 'finish' || bonusRushing || bonusCrossedAt > 0;
+
   if(!inHitstun){
-    roadOffset += (3.2 + spd * 5.5) * (dt/16);
+    roadOffset += (3.2 + spd * 5.5) * (dt/16) * (bonusRushing ? 1.35 : 1);
   }
 
-  if(!inHitstun && now >= bonusSpawnAt){
+  // Keep spawning dodge cars until player has crossed the line
+  if(!inHitstun && !bonusCrossedAt && now >= bonusSpawnAt){
     spawnBonusCar(w);
-    // spawn gap shrinks as speed ramps
     const gap = Math.max(380, (1100 - correctCount*25) * (1.15 - spd*0.45));
     bonusSpawnAt = now + gap + Math.random()*280;
   }
 
-  const px = w * 0.16;
+  // Timer + finish-line reveal (last BONUS_FINISH_WARN seconds)
+  if(bonusLives > 0 && bonusEndsAt && !bonusCrossedAt){
+    if(inHitstun){
+      bonusEndsAt += dt;
+    }
+    bonusLeft = Math.max(0, (bonusEndsAt - now)/1000);
+    if(bonusLeft <= BONUS_FINISH_WARN && bonusFinishX < 0){
+      bonusPhase = 'finish';
+      bonusFinishX = w + 40;
+      beep(640, 0.1, "triangle");
+    }
+    // Move finish line left toward the player
+    if(bonusFinishX >= 0 && !bonusRushing){
+      bonusFinishX -= (4.2 + spd * 6) * (dt/16) * 3.4;
+    }
+    // Start rush when line is close OR time almost gone
+    if(bonusFinishX >= 0 && !bonusRushing && (bonusFinishX < w * 0.58 || bonusLeft <= 1.1)){
+      bonusRushing = true;
+      bonusInvulnUntil = now + 4000; // safe while rushing
+      beep(900, 0.12, "triangle");
+      setTimeout(()=>beep(1100,0.14,"triangle"), 100);
+    }
+    // If timer hits 0 before rush somehow, still force rush
+    if(bonusLeft <= 0 && !bonusRushing){
+      if(bonusFinishX < 0) bonusFinishX = w * 0.72;
+      bonusPhase = 'finish';
+      bonusRushing = true;
+      bonusInvulnUntil = now + 4000;
+    }
+  }
+
+  // Player X: stay left, then rush right across finish
+  if(bonusRushing && !bonusCrossedAt){
+    bonusPlayerX += 0.018 * (dt/16) * (1.2 + spd);
+  } else if(!bonusRushing){
+    bonusPlayerX = 0.16;
+  }
+
+  const px = w * bonusPlayerX;
   const py = rg.top + (0.17 + carY * 0.66) * rg.height;
   const hitR = Math.min(w,h) * 0.05;
+
+  // Crossed finish?
+  if(bonusRushing && bonusFinishX >= 0 && !bonusCrossedAt && px >= bonusFinishX - 8){
+    bonusCrossedAt = now;
+    bonusLeft = 0;
+    flash(true);
+    beep(1200, 0.2, "triangle");
+    setTimeout(()=>beep(1400,0.18,"sine"), 120);
+  }
+  if(bonusCrossedAt > 0){
+    // keep drifting a little past the line
+    bonusPlayerX = Math.min(1.05, bonusPlayerX + 0.01 * (dt/16));
+    if(now - bonusCrossedAt > 900){
+      endBonus(true);
+      return;
+    }
+    updateHud();
+    // still move traffic for drama
+    for(let i=bonusCars.length-1;i>=0;i--){
+      const c = bonusCars[i];
+      c.x -= c.speed * spd * (dt/16) * 6.2;
+      if(c.x < -120) bonusCars.splice(i,1);
+    }
+    return;
+  }
 
   for(let i=bonusCars.length-1;i>=0;i--){
     const c = bonusCars[i];
@@ -1225,14 +1335,13 @@ function updateBonus(dt, now){
       bonusDodged += 1;
       beep(660, 0.05, "sine");
     }
-    // collision — true i-frames during hitstun + 虛化 flash
-    if(!bonusIsInvuln(now)){
+    // collision — true i-frames during hitstun + 虛化 + finish rush
+    if(!bonusIsInvuln(now) && !bonusRushing){
       const dx = c.x - px, dy = ey - py;
       if(dx*dx + dy*dy < hitR*hitR){
         bonusLives -= 1;
         lives = bonusLives;
         triggerHitFx(px, py, now);
-        // shove THIS and any other overlapping cars away so wave can't chain-hit
         for(let j=0;j<bonusCars.length;j++){
           const o = bonusCars[j];
           const oy = rg.top + (0.5 + o.lane) * (rg.height / 3);
@@ -1248,25 +1357,13 @@ function updateBonus(dt, now){
           setTimeout(() => { if(mode === 'bonus') endBonus(false); }, 900);
           return;
         }
-        break; // stop scanning cars this frame; i-frames now active
+        break;
       }
     }
     if(c.x < -120) bonusCars.splice(i,1);
   }
 
   if(bonusFx && now >= bonusFx.until) bonusFx = null;
-
-  if(bonusLives > 0 && bonusEndsAt){
-    // pause timer during hitstun so kids aren't punished while frozen
-    if(inHitstun){
-      bonusEndsAt += dt;
-    }
-    bonusLeft = Math.max(0, (bonusEndsAt - now)/1000);
-    if(bonusLeft <= 0){
-      endBonus(true);
-      return;
-    }
-  }
   updateHud();
 }
 
@@ -1591,6 +1688,10 @@ function startBonus(){
   bonusSpawnAt = 0;
   bonusHitstunUntil = 0;
   bonusFx = null;
+  bonusFinishX = -1;
+  bonusPlayerX = 0.16;
+  bonusRushing = false;
+  bonusCrossedAt = 0;
   bonusPhase = 'countdown';
   bonusCountdownN = 3;
   bonusCountdownUntil = performance.now() + 1000;
@@ -1614,7 +1715,7 @@ function endBonus(survived){
   paused = false;
   mode = 'menu';
   const left = Math.max(0, Math.ceil(bonusLeft));
-  const title = survived ? "🏆 Bonus clear!" : (bonusLives<=0 ? "💥 Bonus: out of lives" : "⏱️ Bonus time up");
+  const title = survived ? "🏆 Bonus clear · FINISH!" : (bonusLives<=0 ? "💥 Bonus: out of lives" : "⏱️ Bonus time up");
   const extra =
     "<br><br><b>🎁 Bonus dodge</b>: Dodged <b>"+bonusDodged+"</b> cars · Time left <b>"+left+"</b>s · Lives left <b>"+Math.max(0,bonusLives)+"</b>" +
     "<br><span class='muted'>Bonus time: "+bonusDuration+"s (fixed)</span>";
