@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Aunt Mary · Old Hong Kong</title>
+<style>
+  :root {
+    --ink: #2a2218;
+    --muted: #6a5a48;
+    --panel: rgba(255,250,242,.94);
+    --accent: #8b5a2b;
+    --accent2: #c47a2c;
+    --bot-bg: #fff6e8;
+    --you-bg: #e8f3ec;
+    --line: rgba(139,90,43,.22);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Segoe UI", "PingFang HK", "Noto Sans TC", sans-serif;
+    color: var(--ink);
+    background: #1a1410;
+    overflow: hidden;
+  }
+
+  /* ===== Room stage ===== */
+  #stage {
+    position: relative;
+    width: 100%; height: 100%;
+    background: #000 center/cover no-repeat;
+    background-image: url("room-scene.jpg");
+  }
+  #stage::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(20,12,6,.55) 0%, transparent 42%);
+    pointer-events: none;
+  }
+
+  .hud-top {
+    position: absolute; top: 14px; left: 14px; right: 14px; z-index: 5;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none;
+  }
+  .pill {
+    pointer-events: none;
+    background: rgba(0,0,0,.45); color: #fff;
+    backdrop-filter: blur(6px);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 700;
+  }
+  .pill .stars { color: #ffc56b; margin-right: 6px; }
+
+  /* Landing caption / tap */
+  #landingUI {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
+    padding: 0 16px 28px; text-align: center;
+  }
+  .caption {
+    display: inline-block;
+    background: rgba(0,0,0,.62); color: #fff;
+    padding: 12px 22px; border-radius: 12px;
+    font-size: clamp(15px, 2.4vw, 18px); font-weight: 600;
+    margin-bottom: 14px; max-width: 92vw;
+  }
+  .tap-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 0; cursor: pointer;
+    background: linear-gradient(180deg, #f3c57a, #d9923a);
+    color: #3a250c; font-weight: 800; font-size: 1.05rem;
+    padding: 14px 28px; border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  .tap-btn:hover { filter: brightness(1.05); }
+  @keyframes pulse {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  /* invisible clickable hot zone on character area */
+  #charHotspot {
+    position: absolute; z-index: 4; cursor: pointer;
+    left: 28%; right: 28%; top: 12%; bottom: 28%;
+    border-radius: 24px;
+  }
+
+  /* ===== Dialogue layer ===== */
+  #dialogue {
+    display: none;
+    position: absolute; inset: 0; z-index: 10;
+  }
+  .dim {
+    position: absolute; inset: 0;
+    background: rgba(12,8,4,.28);
+  }
+  .dock {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: end;
+    padding: 12px 12px 16px;
+    max-width: 980px; margin: 0 auto;
+  }
+
+  /* Left avatar with two expressions */
+  .avatar-col {
+    width: min(210px, 34vw);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .avatar-frame {
+    width: 100%; aspect-ratio: 1;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 4px solid #fff;
+    box-shadow: 0 10px 28px rgba(0,0,0,.35);
+    background: #f5ebe0;
+    position: relative;
+  }
+  .avatar-frame img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center top;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .avatar-frame img#avWait { opacity: 1; }
+  .avatar-frame img#avTalk { opacity: 0; transform: scale(1.02); }
+  .avatar-frame.talking img#avWait { opacity: 0; }
+  .avatar-frame.talking img#avTalk { opacity: 1; transform: scale(1); }
+  .avatar-name {
+    background: rgba(0,0,0,.55); color: #fff;
+    padding: 4px 12px; border-radius: 999px;
+    font-size: 13px; font-weight: 700;
+  }
+  .mood {
+    font-size: 11px; color: #fff; background: rgba(139,90,43,.85);
+    padding: 2px 8px; border-radius: 8px; min-height: 18px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border-radius: 18px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.28);
+    border: 1px solid rgba(255,255,255,.6);
+    min-height: 210px;
+    max-height: min(46vh, 360px);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; border-bottom: 1px solid var(--line);
+    font-size: 13px; color: var(--muted); font-weight: 700;
+  }
+  .panel-bar button {
+    margin-left: auto; border: 0; cursor: pointer;
+    background: #efe2cf; color: var(--accent);
+    padding: 6px 10px; border-radius: 999px; font-weight: 700;
+  }
+  .thread {
+    flex: 1; overflow-y: auto; padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .bubble {
+    max-width: 95%; padding: 10px 12px; border-radius: 14px;
+    line-height: 1.45; font-size: clamp(14px, 2.2vw, 16px);
+    white-space: pre-wrap;
+  }
+  .bubble.bot { align-self: flex-start; background: var(--bot-bg); border: 1px solid #edd9b8; }
+  .bubble.you { align-self: flex-end; background: var(--you-bg); border: 1px solid #c9dfd0; }
+  .who { font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: 3px; }
+
+  .choices {
+    border-top: 1px solid var(--line);
+    padding: 10px; max-height: 42%; overflow-y: auto;
+    background: rgba(255,255,255,.55);
+  }
+  .choices-label {
+    font-size: 11px; font-weight: 800; color: var(--muted);
+    letter-spacing: .04em; text-transform: uppercase; margin: 0 0 6px;
+  }
+  .qbtn {
+    display: block; width: 100%; text-align: left;
+    margin-bottom: 6px; cursor: pointer;
+    border: 1.5px solid var(--line); background: #fff;
+    border-radius: 12px; padding: 10px 12px;
+    font-size: clamp(13px, 2vw, 15px); font-weight: 600; color: var(--ink);
+  }
+  .qbtn:hover:not(:disabled) { border-color: var(--accent); background: #fff8ee; }
+  .qbtn:disabled { opacity: .4; cursor: default; }
+
+  @media (max-width: 640px) {
+    .dock { grid-template-columns: 1fr; }
+    .avatar-col {
+      width: 100%; flex-direction: row; justify-content: flex-start;
+      gap: 10px; padding-left: 4px;
+    }
+    .avatar-frame { width: 88px; border-radius: 16px; border-width: 3px; }
+    .avatar-name, .mood { font-size: 11px; }
+    #charHotspot { left: 18%; right: 18%; }
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div class="hud-top">
+      <div class="pill"><span class="stars">★★★</span>Hard · Communication</div>
+      <div class="pill">There was / There were</div>
+    </div>
+
+    <div id="charHotspot" title="Talk to Aunt Mary"></div>
+
+    <div id="landingUI">
+      <div class="caption">Aunt Mary: I can tell you how we kept in touch.</div>
+      <button class="tap-btn" id="startBtn" type="button">👆 Tap Aunt Mary to talk</button>
+    </div>
+
+    <div id="dialogue">
+      <div class="dim"></div>
+      <div class="dock">
+        <div class="avatar-col">
+          <div class="avatar-frame" id="avatarFrame">
+            <img id="avWait" src="avatar-waiting.jpg" alt="Aunt Mary waiting" />
+            <img id="avTalk" src="avatar-answering.jpg" alt="Aunt Mary answering" />
+          </div>
+          <div class="avatar-name">Aunt Mary</div>
+          <div class="mood" id="mood">Listening…</div>
+        </div>
+        <div class="panel">
+          <div class="panel-bar">
+            How we kept in touch
+            <button type="button" id="backBtn">← Room</button>
+          </div>
+          <div class="thread" id="thread" aria-live="polite"></div>
+          <div class="choices" id="choices"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const QUESTIONS = [
+  { q: "Was there a mobile phone ago?",
+    a: "No, there wasn’t a mobile phone sixty years ago.\nThere was a telephone in some flats, and we wrote letters.\nWas there a radio at your grandma’s home?" },
+  { q: "Was there an MP3 player ago?",
+    a: "No, there wasn’t an MP3 player seventy years ago.\nThere was a radio at home. We listened to songs on the radio.\nWere there any electronic products when you were little?" },
+  { q: "Was there a digital camera ago?",
+    a: "No, there wasn’t a digital camera sixty years ago.\nThere weren’t many electronic products then.\nWas there a telephone in your family?" },
+  { q: "Were there any electronic products ago?",
+    a: "There weren’t many electronic products sixty years ago.\nThere was a radio in many homes.\nWere there any mobile phones nowadays?" },
+  { q: "Was there a telephone ago?",
+    a: "Yes, there was a telephone in some flats sixty years ago.\nThere wasn’t a telephone in every flat.\nWe wrote letters too. Were there any letters in your home?" },
+  { q: "Was there a radio ago?",
+    a: "Yes, there was a radio at home sixty years ago.\nThere were music and news programmes.\nWas there a radio nowadays in your home?" },
+  { q: "Were there any letters ago?",
+    a: "Yes, there were letters sixty years ago.\nWe kept in touch by writing letters.\nWas there an email ago?" },
+  { q: "Was there a computer ago?",
+    a: "No, there wasn’t a home computer for children sixty years ago.\nThere weren’t any emails then.\nWas there a mobile phone nowadays?" },
+  { q: "Were there any emails ago?",
+    a: "No, there weren’t any emails sixty years ago.\nThere were letters, and there was a telephone in some flats.\nHow do you keep in touch nowadays?" },
+  { q: "Was there a smartphone nowadays?",
+    a: "Nowadays there are smartphones everywhere.\nSixty years ago, there wasn’t a smartphone.\nThere was only a telephone in some flats." },
+  { q: "Were there any digital cameras nowadays?",
+    a: "Nowadays there are digital cameras and phone cameras.\nSixty years ago, there wasn’t a digital camera.\nWere there any electronic products ago?" },
+  { q: "Was there a letter nowadays?",
+    a: "Nowadays there are still some letters, but not many.\nSixty years ago, there were many letters.\nWe kept in touch by post." },
+  { q: "Were there any mobile phones ago?",
+    a: "No, there weren’t any mobile phones sixty years ago.\nThere was a telephone in some flats.\nWas there a radio ago?" },
+  { q: "Was there an MP3 player nowadays?",
+    a: "Nowadays there are MP3 players and phones for music.\nSeventy years ago, there wasn’t an MP3 player.\nThere was a radio at home." },
+  { q: "Was there a fax machine ago?",
+    a: "No, there wasn’t a fax machine in most homes sixty years ago.\nThere were letters, and there was a telephone in some places.\nWere there any emails ago?" }
+];
+
+const landingUI = document.getElementById("landingUI");
+const dialogue = document.getElementById("dialogue");
+const thread = document.getElementById("thread");
+const choices = document.getElementById("choices");
+const avatarFrame = document.getElementById("avatarFrame");
+const mood = document.getElementById("mood");
+const asked = new Set();
+
+function setWaiting() {
+  avatarFrame.classList.remove("talking");
+  mood.textContent = "Listening…";
+}
+function setTalking() {
+  avatarFrame.classList.add("talking");
+  mood.textContent = "Answering…";
+}
+
+function addBubble(who, text) {
+  const div = document.createElement("div");
+  div.className = "bubble " + (who === "you" ? "you" : "bot");
+  div.innerHTML = `<div class="who">${who === "you" ? "You" : "Aunt Mary"}</div>`;
+  div.appendChild(document.createTextNode(text));
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function renderChoices() {
+  choices.innerHTML = `<div class="choices-label">Choose a question</div>`;
+  QUESTIONS.forEach((item, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "qbtn";
+    btn.textContent = item.q;
+    if (asked.has(i)) btn.disabled = true;
+    btn.addEventListener("click", () => ask(i));
+    choices.appendChild(btn);
+  });
+}
+
+function ask(i) {
+  const item = QUESTIONS[i];
+  addBubble("you", item.q);
+  asked.add(i);
+  setWaiting();
+  choices.querySelectorAll(".qbtn").forEach(b => b.disabled = true);
+  setTimeout(() => {
+    setTalking();
+    addBubble("bot", item.a);
+    setTimeout(() => {
+      setWaiting();
+      renderChoices();
+      if (asked.size === QUESTIONS.length) {
+        setTalking();
+        addBubble("bot", "Well done! You asked all my questions.\nThere were letters long ago. Nowadays there are mobile phones.");
+        setTimeout(setWaiting, 900);
+      }
+    }, 700);
+  }, 500);
+}
+
+function openChat() {
+  landingUI.style.display = "none";
+  document.getElementById("charHotspot").style.display = "none";
+  dialogue.style.display = "block";
+  thread.innerHTML = "";
+  asked.clear();
+  setWaiting();
+  addBubble("bot", "Hello! I’m Aunt Mary.\nLong ago we kept in touch with letters and telephones.\nAsk me with Was there…? or Were there any…?");
+  // brief talking for greeting
+  setTalking();
+  setTimeout(setWaiting, 900);
+  renderChoices();
+}
+
+function goBack() {
+  dialogue.style.display = "none";
+  landingUI.style.display = "block";
+  document.getElementById("charHotspot").style.display = "block";
+  setWaiting();
+}
+
+document.getElementById("startBtn").addEventListener("click", openChat);
+document.getElementById("charHotspot").addEventListener("click", openChat);
+document.getElementById("backBtn").addEventListener("click", goBack);
+</script>
+</body>
+</html>
