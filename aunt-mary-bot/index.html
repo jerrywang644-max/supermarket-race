@@ -32,7 +32,7 @@
   .room-bg {
     position: absolute; inset: -1.5%;
     background: #000 center/cover no-repeat;
-    background-image: url("room-scene.jpg?v=9");
+    background-image: url("room-scene.jpg?v=10");
     animation: roomBreathe 6.5s ease-in-out infinite;
     will-change: transform;
   }
@@ -434,7 +434,7 @@
     <div class="lamp-glow" aria-hidden="true"></div>
     <div class="letter-float" aria-hidden="true" title="letter">
       <div class="spark"></div>
-      <img src="letter-float.png?v=9" alt="" />
+      <img src="letter-float.png?v=10" alt="" />
     </div>
 
     <div class="hud-top">
@@ -454,8 +454,8 @@
       <div class="dock">
         <div class="avatar-col">
           <div class="avatar-frame" id="avatarFrame">
-            <img id="avWait" src="avatar-waiting.jpg?v=9" alt="Aunt Mary waiting" />
-            <img id="avTalk" src="avatar-answering.jpg?v=9" alt="Aunt Mary answering" />
+            <img id="avWait" src="avatar-waiting.jpg?v=10" alt="Aunt Mary waiting" />
+            <img id="avTalk" src="avatar-answering.jpg?v=10" alt="Aunt Mary answering" />
           </div>
           <div class="avatar-name">Aunt Mary</div>
           <div class="mood" id="mood">Listening…</div>
@@ -481,13 +481,13 @@
 
 <script>
 const ILLUST = {
-  question: { src: "illust-question.jpg?v=9", cap: "?", mark: "", markText: "" },
-  email: { src: "illust-email.jpg?v=9", cap: "e-mail", mark: "cross", markText: "✗" },
-  mobile: { src: "illust-mobile.jpg?v=9", cap: "mobile phones", mark: "cross", markText: "✗" },
-  mp3: { src: "illust-mp3.jpg?v=9", cap: "MP3 players", mark: "cross", markText: "✗" },
-  letter: { src: "illust-letter.jpg?v=9", cap: "letter", mark: "tick", markText: "✓" },
-  telephone: { src: "illust-telephone.jpg?v=9", cap: "telephones", mark: "tick", markText: "✓" },
-  radio: { src: "illust-radio.jpg?v=9", cap: "radio", mark: "tick", markText: "✓" }
+  question: { src: "illust-question.jpg?v=10", cap: "?", mark: "", markText: "" },
+  email: { src: "illust-email.jpg?v=10", cap: "e-mail", mark: "cross", markText: "✗" },
+  mobile: { src: "illust-mobile.jpg?v=10", cap: "mobile phones", mark: "cross", markText: "✗" },
+  mp3: { src: "illust-mp3.jpg?v=10", cap: "MP3 players", mark: "cross", markText: "✗" },
+  letter: { src: "illust-letter.jpg?v=10", cap: "letter", mark: "tick", markText: "✓" },
+  telephone: { src: "illust-telephone.jpg?v=10", cap: "telephones", mark: "tick", markText: "✓" },
+  radio: { src: "illust-radio.jpg?v=10", cap: "radio", mark: "tick", markText: "✓" }
 };
 
 const MOBILE = {
@@ -676,7 +676,7 @@ function renderMobileChoice() {
 
 function renderReorderTask(task) {
   clearChoices();
-  showIdleQuestion();
+  // Keep previous contrast collage under avatar (? only before first question)
   const box = document.createElement("div");
   box.className = "reorder-box";
   box.innerHTML = `
@@ -774,8 +774,9 @@ function askItem(item, onAfterAnswer) {
     setTalking();
     typeBot(item.a, () => {
       setWaiting();
-      clearIllustCycle();
-      if (item.imgs && item.imgs.length) showIllust(item.imgs[item.imgs.length - 1]);
+      // After answering: keep contrast collage (✗ modern / ✓ past). Never return to ?.
+      if (item.imgs && item.imgs.length) startIllustCycle(item.imgs);
+      else clearIllustCycle();
       busy = false;
       if (onAfterAnswer) onAfterAnswer();
     });
@@ -788,8 +789,7 @@ function finishAll() {
   startIllustCycle(["letter", "telephone", "radio"]);
   typeBot("Well done! You asked all my questions.\nThere weren’t any e-mails, mobile phones or MP3 players 50 years ago.\nThere were letters, telephones and radios.", () => {
     setWaiting();
-    clearIllustCycle();
-    showIllust("letter");
+    startIllustCycle(["letter", "telephone", "radio"]);
   });
 }
 
