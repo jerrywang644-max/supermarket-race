@@ -32,7 +32,7 @@
   .room-bg {
     position: absolute; inset: -1.5%;
     background: #000 center/cover no-repeat;
-    background-image: url("room-scene.jpg?v=8");
+    background-image: url("room-scene.jpg?v=9");
     animation: roomBreathe 6.5s ease-in-out infinite;
     will-change: transform;
   }
@@ -348,6 +348,54 @@
     font-size: clamp(15px, 2.1vw, 18px); font-weight: 600; color: var(--ink);
   }
   .qbtn:hover:not(:disabled) { border-color: var(--accent); background: #fff8ee; }
+
+  .reorder-box {
+    border-top: 1px solid var(--line);
+    padding: 12px 14px;
+    background: rgba(255,255,255,.7);
+  }
+  .reorder-title {
+    font-size: 13px; font-weight: 800; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .04em; margin: 0 0 6px;
+  }
+  .reorder-hint {
+    font-size: clamp(14px, 2vw, 16px); font-weight: 600; margin: 0 0 10px; color: var(--ink);
+  }
+  .reorder-slots {
+    min-height: 52px;
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 10px; margin-bottom: 10px;
+    border: 2px dashed rgba(139,90,43,.35);
+    border-radius: 12px; background: #fffdf8;
+  }
+  .reorder-bank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .wchip {
+    border: 1.5px solid var(--line);
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: clamp(14px, 2vw, 17px);
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .wchip:hover { border-color: var(--accent); background: #fff8ee; }
+  .wchip.in-slot { background: #efe2cf; }
+  .reorder-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .reorder-actions button {
+    border: 0; cursor: pointer; border-radius: 999px;
+    padding: 8px 14px; font-weight: 800; font-size: 14px;
+  }
+  .btn-check { background: linear-gradient(180deg,#f3c57a,#d9923a); color: #3a250c; }
+  .btn-reset { background: #efe2cf; color: var(--accent); }
+  .reorder-feedback {
+    margin-top: 8px; font-weight: 700; font-size: 14px; min-height: 1.2em;
+  }
+  .reorder-feedback.ok { color: #2e7d32; }
+  .reorder-feedback.bad { color: #c62828; }
   .qbtn:disabled { opacity: .4; cursor: default; }
 
   @media (max-width: 640px) {
@@ -386,7 +434,7 @@
     <div class="lamp-glow" aria-hidden="true"></div>
     <div class="letter-float" aria-hidden="true" title="letter">
       <div class="spark"></div>
-      <img src="letter-float.png?v=8" alt="" />
+      <img src="letter-float.png?v=9" alt="" />
     </div>
 
     <div class="hud-top">
@@ -406,8 +454,8 @@
       <div class="dock">
         <div class="avatar-col">
           <div class="avatar-frame" id="avatarFrame">
-            <img id="avWait" src="avatar-waiting.jpg?v=8" alt="Aunt Mary waiting" />
-            <img id="avTalk" src="avatar-answering.jpg?v=8" alt="Aunt Mary answering" />
+            <img id="avWait" src="avatar-waiting.jpg?v=9" alt="Aunt Mary waiting" />
+            <img id="avTalk" src="avatar-answering.jpg?v=9" alt="Aunt Mary answering" />
           </div>
           <div class="avatar-name">Aunt Mary</div>
           <div class="mood" id="mood">Listening…</div>
@@ -433,25 +481,37 @@
 
 <script>
 const ILLUST = {
-  question: { src: "illust-question.jpg?v=8", cap: "?", mark: "", markText: "" },
-  email: { src: "illust-email.jpg?v=8", cap: "e-mail", mark: "cross", markText: "✗" },
-  mobile: { src: "illust-mobile.jpg?v=8", cap: "mobile phones", mark: "cross", markText: "✗" },
-  mp3: { src: "illust-mp3.jpg?v=8", cap: "MP3 players", mark: "cross", markText: "✗" },
-  letter: { src: "illust-letter.jpg?v=8", cap: "letter", mark: "tick", markText: "✓" },
-  telephone: { src: "illust-telephone.jpg?v=8", cap: "telephones", mark: "tick", markText: "✓" },
-  radio: { src: "illust-radio.jpg?v=8", cap: "radio", mark: "tick", markText: "✓" }
+  question: { src: "illust-question.jpg?v=9", cap: "?", mark: "", markText: "" },
+  email: { src: "illust-email.jpg?v=9", cap: "e-mail", mark: "cross", markText: "✗" },
+  mobile: { src: "illust-mobile.jpg?v=9", cap: "mobile phones", mark: "cross", markText: "✗" },
+  mp3: { src: "illust-mp3.jpg?v=9", cap: "MP3 players", mark: "cross", markText: "✗" },
+  letter: { src: "illust-letter.jpg?v=9", cap: "letter", mark: "tick", markText: "✓" },
+  telephone: { src: "illust-telephone.jpg?v=9", cap: "telephones", mark: "tick", markText: "✓" },
+  radio: { src: "illust-radio.jpg?v=9", cap: "radio", mark: "tick", markText: "✓" }
 };
 
-const QUESTIONS = [
-  { q: "Were there any e-mails 50 years ago?",
+const MOBILE = {
+  id: "mobile",
+  q: "Were there any mobile phones 50 years ago?",
+  a: "No, there weren’t.\nThere were telephones 50 years ago.",
+  imgs: ["mobile", "telephone"]
+};
+
+const REORDER = [
+  {
+    id: "email",
+    q: "Were there any e-mails 50 years ago?",
     a: "No, there weren’t.\nThere were letters 50 years ago.",
-    imgs: ["email", "letter"] },
-  { q: "Were there any mobile phones 50 years ago?",
-    a: "No, there weren’t.\nThere were telephones 50 years ago.",
-    imgs: ["mobile", "telephone"] },
-  { q: "Were there any MP3 players 50 years ago?",
+    imgs: ["email", "letter"],
+    words: ["Were", "there", "any", "e-mails", "50", "years", "ago", "?"]
+  },
+  {
+    id: "mp3",
+    q: "Were there any MP3 players 50 years ago?",
     a: "No, there weren’t.\nThere was a radio 50 years ago.",
-    imgs: ["mp3", "radio"] }
+    imgs: ["mp3", "radio"],
+    words: ["Were", "there", "any", "MP3", "players", "50", "years", "ago", "?"]
+  }
 ];
 
 const landingUI = document.getElementById("landingUI");
@@ -462,10 +522,13 @@ const avatarFrame = document.getElementById("avatarFrame");
 const mood = document.getElementById("mood");
 const illustImg = document.getElementById("illustImg");
 const illustCap = document.getElementById("illustCap");
-const asked = new Set();
+
 let typingToken = 0;
 let cycleTimer = null;
 let reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let mobileDone = false;
+let reorderIndex = 0; // which REORDER task next
+let busy = false;
 
 function setWaiting() {
   avatarFrame.classList.remove("talking");
@@ -575,45 +638,159 @@ function typeBot(text, onDone) {
   step();
 }
 
-function renderChoices() {
-  choices.innerHTML = `<div class="choices-label">Choose a question</div>`;
-  QUESTIONS.forEach((item, i) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "qbtn";
-    btn.textContent = item.q;
-    if (asked.has(i)) btn.disabled = true;
-    btn.addEventListener("click", () => ask(i));
-    choices.appendChild(btn);
-  });
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  // avoid starting already correct
+  if (a.join(" ") === arr.join(" ")) return shuffle(arr);
+  return a;
 }
 
-function ask(i) {
-  const item = QUESTIONS[i];
+function clearChoices() {
+  choices.innerHTML = "";
+}
+
+function renderMobileChoice() {
+  clearChoices();
+  const label = document.createElement("div");
+  label.className = "choices-label";
+  label.textContent = "Choose a question";
+  choices.appendChild(label);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "qbtn";
+  btn.textContent = MOBILE.q;
+  btn.addEventListener("click", () => {
+    if (busy) return;
+    askItem(MOBILE, () => {
+      mobileDone = true;
+      reorderIndex = 0;
+      renderReorderTask(REORDER[0]);
+    });
+  });
+  choices.appendChild(btn);
+}
+
+function renderReorderTask(task) {
+  clearChoices();
+  showIdleQuestion();
+  const box = document.createElement("div");
+  box.className = "reorder-box";
+  box.innerHTML = `
+    <div class="reorder-title">Make the question</div>
+    <div class="reorder-hint">Put the words in order to ask Aunt Mary.</div>
+    <div class="reorder-slots" id="reorderSlots"></div>
+    <div class="reorder-bank" id="reorderBank"></div>
+    <div class="reorder-actions">
+      <button type="button" class="btn-check" id="reorderCheck">Check ✓</button>
+      <button type="button" class="btn-reset" id="reorderReset">Reset</button>
+    </div>
+    <div class="reorder-feedback" id="reorderFeedback"></div>
+  `;
+  choices.appendChild(box);
+
+  const slots = box.querySelector("#reorderSlots");
+  const bank = box.querySelector("#reorderBank");
+  const feedback = box.querySelector("#reorderFeedback");
+  const selected = []; // words in order
+  let bankWords = shuffle(task.words);
+
+  function paint() {
+    slots.innerHTML = "";
+    selected.forEach((w, idx) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "wchip in-slot";
+      chip.textContent = w;
+      chip.addEventListener("click", () => {
+        selected.splice(idx, 1);
+        bankWords.push(w);
+        paint();
+      });
+      slots.appendChild(chip);
+    });
+    bank.innerHTML = "";
+    bankWords.forEach((w, idx) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "wchip";
+      chip.textContent = w;
+      chip.addEventListener("click", () => {
+        bankWords.splice(idx, 1);
+        selected.push(w);
+        feedback.textContent = "";
+        feedback.className = "reorder-feedback";
+        paint();
+      });
+      bank.appendChild(chip);
+    });
+  }
+
+  box.querySelector("#reorderReset").addEventListener("click", () => {
+    bankWords = shuffle(task.words);
+    selected.length = 0;
+    feedback.textContent = "";
+    feedback.className = "reorder-feedback";
+    paint();
+  });
+
+  box.querySelector("#reorderCheck").addEventListener("click", () => {
+    if (busy) return;
+    const built = selected.join(" ");
+    const target = task.words.join(" ");
+    if (built === target) {
+      feedback.textContent = "Great! Now ask Aunt Mary.";
+      feedback.className = "reorder-feedback ok";
+      // lock chips briefly then ask
+      box.querySelectorAll("button").forEach(b => b.disabled = true);
+      setTimeout(() => askItem(task, () => {
+        reorderIndex += 1;
+        if (reorderIndex < REORDER.length) {
+          renderReorderTask(REORDER[reorderIndex]);
+        } else {
+          finishAll();
+        }
+      }), 450);
+    } else {
+      feedback.textContent = "Not yet — try again!";
+      feedback.className = "reorder-feedback bad";
+    }
+  });
+
+  paint();
+}
+
+function askItem(item, onAfterAnswer) {
+  if (busy) return;
+  busy = true;
+  clearChoices();
   addBubble("you", item.q);
-  asked.add(i);
   setWaiting();
-  choices.querySelectorAll(".qbtn").forEach(b => b.disabled = true);
   startIllustCycle(item.imgs);
   setTimeout(() => {
     setTalking();
     typeBot(item.a, () => {
       setWaiting();
       clearIllustCycle();
-      // keep last related image visible
       if (item.imgs && item.imgs.length) showIllust(item.imgs[item.imgs.length - 1]);
-      renderChoices();
-      if (asked.size === QUESTIONS.length) {
-        setTalking();
-        startIllustCycle(["letter", "telephone", "radio"]);
-        typeBot("Well done! You asked all my questions.\nThere weren’t any e-mails, mobile phones or MP3 players 50 years ago.\nThere were letters, telephones and radios.", () => {
-          setWaiting();
-          clearIllustCycle();
-          showIllust("letter");
-        });
-      }
+      busy = false;
+      if (onAfterAnswer) onAfterAnswer();
     });
   }, 400);
+}
+
+function finishAll() {
+  clearChoices();
+  setTalking();
+  startIllustCycle(["letter", "telephone", "radio"]);
+  typeBot("Well done! You asked all my questions.\nThere weren’t any e-mails, mobile phones or MP3 players 50 years ago.\nThere were letters, telephones and radios.", () => {
+    setWaiting();
+    clearIllustCycle();
+    showIllust("letter");
+  });
 }
 
 function openChat() {
@@ -622,22 +799,25 @@ function openChat() {
   document.getElementById("charHotspot").style.display = "none";
   dialogue.style.display = "block";
   thread.innerHTML = "";
-  asked.clear();
   typingToken++;
   clearIllustCycle();
+  busy = false;
+  mobileDone = false;
+  reorderIndex = 0;
   setWaiting();
   showIdleQuestion();
   setTalking();
-  typeBot("Hello! I’m Aunt Mary.\nAsk me: Were there any … 50 years ago?\nI will tell you what there was and what there wasn’t.", () => {
+  typeBot("Hello! I’m Aunt Mary.\nStart with this question about mobile phones.", () => {
     setWaiting();
     showIdleQuestion();
-    renderChoices();
+    renderMobileChoice();
   });
 }
 
 function goBack() {
   typingToken++;
   clearIllustCycle();
+  busy = false;
   document.getElementById("stage").classList.remove("chat-open");
   dialogue.style.display = "none";
   landingUI.style.display = "block";
