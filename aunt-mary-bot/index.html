@@ -32,7 +32,7 @@
   .room-bg {
     position: absolute; inset: -1.5%;
     background: #000 center/cover no-repeat;
-    background-image: url("room-scene.jpg?v=10");
+    background-image: url("room-scene.jpg?v=11");
     animation: roomBreathe 6.5s ease-in-out infinite;
     will-change: transform;
   }
@@ -254,6 +254,21 @@
   }
   .illust-frame img.show { opacity: 1; }
 
+  .illust-frame.vintage img {
+    filter: sepia(.55) contrast(1.05) brightness(.92) saturate(.85);
+  }
+  .illust-frame.vintage::after {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at center, transparent 40%, rgba(60,35,10,.22) 100%),
+      repeating-linear-gradient(0deg, rgba(80,50,20,.03) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    z-index: 2;
+  }
+  .bubble .body strong { font-weight: 800; }
+
   .illust-frame.floating {
     animation: illustFloat 2.6s ease-in-out infinite;
   }
@@ -434,7 +449,7 @@
     <div class="lamp-glow" aria-hidden="true"></div>
     <div class="letter-float" aria-hidden="true" title="letter">
       <div class="spark"></div>
-      <img src="letter-float.png?v=10" alt="" />
+      <img src="letter-float.png?v=11" alt="" />
     </div>
 
     <div class="hud-top">
@@ -454,8 +469,8 @@
       <div class="dock">
         <div class="avatar-col">
           <div class="avatar-frame" id="avatarFrame">
-            <img id="avWait" src="avatar-waiting.jpg?v=10" alt="Aunt Mary waiting" />
-            <img id="avTalk" src="avatar-answering.jpg?v=10" alt="Aunt Mary answering" />
+            <img id="avWait" src="avatar-waiting.jpg?v=11" alt="Aunt Mary waiting" />
+            <img id="avTalk" src="avatar-answering.jpg?v=11" alt="Aunt Mary answering" />
           </div>
           <div class="avatar-name">Aunt Mary</div>
           <div class="mood" id="mood">Listening…</div>
@@ -481,13 +496,13 @@
 
 <script>
 const ILLUST = {
-  question: { src: "illust-question.jpg?v=10", cap: "?", mark: "", markText: "" },
-  email: { src: "illust-email.jpg?v=10", cap: "e-mail", mark: "cross", markText: "✗" },
-  mobile: { src: "illust-mobile.jpg?v=10", cap: "mobile phones", mark: "cross", markText: "✗" },
-  mp3: { src: "illust-mp3.jpg?v=10", cap: "MP3 players", mark: "cross", markText: "✗" },
-  letter: { src: "illust-letter.jpg?v=10", cap: "letter", mark: "tick", markText: "✓" },
-  telephone: { src: "illust-telephone.jpg?v=10", cap: "telephones", mark: "tick", markText: "✓" },
-  radio: { src: "illust-radio.jpg?v=10", cap: "radio", mark: "tick", markText: "✓" }
+  question: { src: "illust-question.jpg?v=11", cap: "?", mark: "", markText: "" },
+  email: { src: "illust-email.jpg?v=11", cap: "e-mail", mark: "cross", markText: "✗" },
+  mobile: { src: "illust-mobile.jpg?v=11", cap: "mobile phones", mark: "cross", markText: "✗" },
+  mp3: { src: "illust-mp3.jpg?v=11", cap: "MP3 players", mark: "cross", markText: "✗" },
+  letter: { src: "illust-letter.jpg?v=11", cap: "letter", mark: "tick", markText: "✓" },
+  telephone: { src: "illust-telephone.jpg?v=11", cap: "telephones", mark: "tick", markText: "✓" },
+  radio: { src: "illust-radio.jpg?v=11", cap: "radio", mark: "tick", markText: "✓" }
 };
 
 const MOBILE = {
@@ -554,7 +569,10 @@ function showIllust(key) {
     illustImg.src = item.src;
     illustImg.alt = item.cap;
     illustCap.textContent = item.cap === "?" ? "ask a question" : item.cap;
-    if (frame) frame.classList.toggle("floating", key === "question");
+    if (frame) {
+      frame.classList.toggle("floating", key === "question");
+      frame.classList.toggle("vintage", item.mark === "tick");
+    }
     if (markEl) {
       markEl.textContent = item.markText || "";
       markEl.className = "illust-mark " + (item.mark || "");
@@ -604,6 +622,30 @@ function addBubble(who, text) {
   return { div, body };
 }
 
+function formatBotHtml(full, typedLen) {
+  // Bold the opening "No, there weren’t." / "No, there wasn't." while typing
+  const m = full.match(/^(No, there (?:weren’t|weren't|wasn’t|wasn't)\.)(\n|[\s\S]*)?$/);
+  if (!m) {
+    const span = document.createElement("span");
+    span.textContent = full.slice(0, typedLen);
+    return span;
+  }
+  const head = m[1];
+  const rest = m[2] || "";
+  const wrap = document.createElement("span");
+  if (typedLen <= 0) return wrap;
+  const strong = document.createElement("strong");
+  if (typedLen <= head.length) {
+    strong.textContent = head.slice(0, typedLen);
+    wrap.appendChild(strong);
+  } else {
+    strong.textContent = head;
+    wrap.appendChild(strong);
+    wrap.appendChild(document.createTextNode(rest.slice(0, typedLen - head.length)));
+  }
+  return wrap;
+}
+
 function typeBot(text, onDone) {
   const token = ++typingToken;
   const { body } = addBubble("bot", "");
@@ -612,10 +654,14 @@ function typeBot(text, onDone) {
   caret.setAttribute("aria-hidden", "true");
   body.after(caret);
 
-  if (reduceMotion) {
-    body.textContent = text;
-    caret.remove();
+  const paint = (n) => {
+    body.replaceChildren(formatBotHtml(text, n));
     thread.scrollTop = thread.scrollHeight;
+  };
+
+  if (reduceMotion) {
+    paint(text.length);
+    caret.remove();
     if (onDone) onDone();
     return;
   }
@@ -624,8 +670,7 @@ function typeBot(text, onDone) {
   const step = () => {
     if (token !== typingToken) return;
     i += 1;
-    body.textContent = text.slice(0, i);
-    thread.scrollTop = thread.scrollHeight;
+    paint(i);
     if (i < text.length) {
       const ch = text[i - 1];
       const delay = ch === "\n" ? 90 : (ch === "." || ch === "?" || ch === "!") ? 55 : 22;
