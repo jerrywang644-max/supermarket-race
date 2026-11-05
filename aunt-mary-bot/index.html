@@ -32,7 +32,7 @@
   .room-bg {
     position: absolute; inset: -1.5%;
     background: #000 center/cover no-repeat;
-    background-image: url("room-scene.jpg?v=6");
+    background-image: url("room-scene.jpg?v=7");
     animation: roomBreathe 6.5s ease-in-out infinite;
     will-change: transform;
   }
@@ -254,6 +254,14 @@
   }
   .illust-frame img.show { opacity: 1; }
 
+  .illust-frame.floating {
+    animation: illustFloat 2.6s ease-in-out infinite;
+  }
+  @keyframes illustFloat {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
   .illust-mark {
     position: absolute;
     right: 8px; bottom: 8px;
@@ -364,6 +372,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .room-bg, .lamp-glow, .letter-float, .letter-float .spark,
+    .illust-frame.floating,
     .avatar-frame, .avatar-frame.talking,
     #charHotspot::before, .tap-btn, .bubble .caret {
       animation: none !important;
@@ -377,7 +386,7 @@
     <div class="lamp-glow" aria-hidden="true"></div>
     <div class="letter-float" aria-hidden="true" title="letter">
       <div class="spark"></div>
-      <img src="letter-float.png?v=6" alt="" />
+      <img src="letter-float.png?v=7" alt="" />
     </div>
 
     <div class="hud-top">
@@ -397,8 +406,8 @@
       <div class="dock">
         <div class="avatar-col">
           <div class="avatar-frame" id="avatarFrame">
-            <img id="avWait" src="avatar-waiting.jpg?v=6" alt="Aunt Mary waiting" />
-            <img id="avTalk" src="avatar-answering.jpg?v=6" alt="Aunt Mary answering" />
+            <img id="avWait" src="avatar-waiting.jpg?v=7" alt="Aunt Mary waiting" />
+            <img id="avTalk" src="avatar-answering.jpg?v=7" alt="Aunt Mary answering" />
           </div>
           <div class="avatar-name">Aunt Mary</div>
           <div class="mood" id="mood">Listening…</div>
@@ -424,12 +433,13 @@
 
 <script>
 const ILLUST = {
-  email: { src: "illust-email.jpg?v=6", cap: "e-mail", mark: "cross", markText: "✗" },
-  mobile: { src: "illust-mobile.jpg?v=6", cap: "mobile phones", mark: "cross", markText: "✗" },
-  mp3: { src: "illust-mp3.jpg?v=6", cap: "MP3 players", mark: "cross", markText: "✗" },
-  letter: { src: "illust-letter.jpg?v=6", cap: "letter", mark: "tick", markText: "✓" },
-  telephone: { src: "illust-telephone.jpg?v=6", cap: "telephones", mark: "tick", markText: "✓" },
-  radio: { src: "illust-radio.jpg?v=6", cap: "radio", mark: "tick", markText: "✓" }
+  question: { src: "illust-question.jpg?v=7", cap: "?", mark: "", markText: "" },
+  email: { src: "illust-email.jpg?v=7", cap: "e-mail", mark: "cross", markText: "✗" },
+  mobile: { src: "illust-mobile.jpg?v=7", cap: "mobile phones", mark: "cross", markText: "✗" },
+  mp3: { src: "illust-mp3.jpg?v=7", cap: "MP3 players", mark: "cross", markText: "✗" },
+  letter: { src: "illust-letter.jpg?v=7", cap: "letter", mark: "tick", markText: "✓" },
+  telephone: { src: "illust-telephone.jpg?v=7", cap: "telephones", mark: "tick", markText: "✓" },
+  radio: { src: "illust-radio.jpg?v=7", cap: "radio", mark: "tick", markText: "✓" }
 };
 
 const QUESTIONS = [
@@ -473,13 +483,15 @@ function clearIllustCycle() {
 function showIllust(key) {
   const item = ILLUST[key];
   if (!item) return;
+  const frame = document.getElementById("illustFrame");
   const markEl = document.getElementById("illustMark");
   illustImg.classList.remove("show");
   if (markEl) markEl.classList.remove("show", "cross", "tick");
   const next = () => {
     illustImg.src = item.src;
     illustImg.alt = item.cap;
-    illustCap.textContent = item.cap;
+    illustCap.textContent = item.cap === "?" ? "ask a question" : item.cap;
+    if (frame) frame.classList.toggle("floating", key === "question");
     if (markEl) {
       markEl.textContent = item.markText || "";
       markEl.className = "illust-mark " + (item.mark || "");
@@ -490,6 +502,11 @@ function showIllust(key) {
     });
   };
   setTimeout(next, illustImg.classList.contains("show") ? 180 : 0);
+}
+
+function showIdleQuestion() {
+  clearIllustCycle();
+  showIllust("question");
 }
 
 function startIllustCycle(keys) {
@@ -609,12 +626,11 @@ function openChat() {
   typingToken++;
   clearIllustCycle();
   setWaiting();
-  startIllustCycle(["letter", "telephone", "radio"]);
+  showIdleQuestion();
   setTalking();
   typeBot("Hello! I’m Aunt Mary.\nAsk me: Were there any … 50 years ago?\nI will tell you what there was and what there wasn’t.", () => {
     setWaiting();
-    clearIllustCycle();
-    showIllust("letter");
+    showIdleQuestion();
     renderChoices();
   });
 }
