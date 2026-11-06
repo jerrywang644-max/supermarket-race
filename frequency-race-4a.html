@@ -2,30 +2,1888 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Frequency Race — 暫時下架</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Frequency Race — P4 Adverbs of Frequency</title>
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-font-family:"Segoe UI","PingFang HK","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
-background:radial-gradient(ellipse at center,#ecfeff,#fff7ed);color:#134e4a;padding:24px}
-.card{max-width:480px;width:100%;background:#fff;border:3px solid #99f6e4;border-radius:24px;
-padding:32px 28px;text-align:center;box-shadow:0 12px 32px rgba(15,118,110,.12)}
-h1{margin:0 0 10px;font-size:clamp(1.4rem,4vw,1.9rem)}
-p{margin:8px 0;line-height:1.55;font-weight:600;color:#0f766e}
-.en{color:#64748b;font-weight:700}
-.badge{display:inline-block;margin-bottom:14px;padding:6px 14px;border-radius:999px;
-background:#fff7ed;border:2px solid #fdba74;color:#9a3412;font-weight:900;font-size:.9rem}
-a{color:#0d9488;font-weight:800}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#07111f;
+  font-family:"Segoe UI","PingFang HK","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:#e8fffa;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none}
+#game{display:block;width:100%;height:100%;background:#07111f}
+.overlay{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,rgba(30,80,120,.92),rgba(8,20,40,.96));
+  z-index:10;padding:20px
+}
+.overlay.hidden{display:none}
+.panel{
+  max-width:560px;width:100%;background:linear-gradient(160deg,#1a3a5c,#0f2740);
+  border:3px solid #38bdf8;border-radius:24px;padding:28px 24px;text-align:center;
+  box-shadow:0 0 40px rgba(56,189,248,.25), inset 0 0 30px rgba(0,0,0,.3)
+}
+.panel h1{
+  font-size:clamp(1.5rem,5vw,2.2rem);font-weight:900;letter-spacing:-.5px;
+  background:linear-gradient(90deg,#7dd3fc,#fbbf24,#fb7185);
+  -webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px
+}
+.panel p{color:#a5c4d8;font-size:.95rem;margin:8px 0 16px;line-height:1.5}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 32px;margin:6px;border:none;border-radius:999px;font-weight:800;
+  font-size:1.05rem;cursor:pointer;font-family:inherit;
+  background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;
+  box-shadow:0 4px 20px rgba(14,165,233,.4);transition:transform .15s
+}
+.btn:hover{transform:translateY(-2px)}
+.btn-alt{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff}
+.btn-ghost{background:transparent;border:2px solid #38bdf8;color:#7dd3fc;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.hud{
+  position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;
+  padding:10px 14px;display:flex;justify-content:space-between;align-items:flex-start;
+  background:linear-gradient(180deg,rgba(0,0,0,.55),transparent);gap:8px;flex-wrap:wrap
+}
+.hud .stat{background:rgba(8,30,50,.75);border:1px solid #38bdf855;border-radius:12px;
+  padding:8px 12px;font-weight:700;font-size:.9rem;backdrop-filter:blur(4px)}
+.hud .lives{letter-spacing:1px;font-size:1.05rem}
+.play-wrap{
+  position:fixed;left:50%;transform:translateX(-50%);top:58px;z-index:6;
+  max-width:min(1100px,96vw);width:100%;display:none;flex-direction:column;gap:10px;
+  pointer-events:none
+}
+.play-wrap.show{display:flex}
+.q-banner{
+  pointer-events:none;
+  background:rgba(8,30,50,.94);border:3px solid #7dd3fc;border-radius:18px;
+  padding:14px 18px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.45)
+}
+.q-banner .tag{font-size:.85rem;font-weight:800;color:#fbbf24;margin-bottom:6px;letter-spacing:.05em}
+.q-banner .q{font-size:clamp(1.25rem,3.6vw,1.85rem);font-weight:900;color:#ecfeff;line-height:1.35}
+.q-banner .hint{font-size:clamp(.95rem,2.2vw,1.15rem);color:#99b8b8;margin-top:6px;font-weight:700}
+.q-banner .timer-bar{height:6px;background:#1e3a5f;border-radius:99px;margin-top:10px;overflow:hidden}
+.q-banner .timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#34d399,#fbbf24,#f87171);
+  transition:width .05s linear;border-radius:99px}
+.cal-card{
+  pointer-events:auto;
+  background:rgba(255,250,240,.98);border:3px solid #fdba74;border-radius:18px;
+  padding:10px 10px 12px;color:#2d3436;box-shadow:0 10px 28px rgba(0,0,0,.28);
+  max-height:min(58vh,520px);overflow:auto
+}
+.cal-card .cal-title{font-weight:900;font-size:.9rem;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.cal-card .cal-title .act{color:#c2410c}
+.cal-card .cal-title .month{color:#9a3412}
+.cal-card .cal-label{font-size:.72rem;font-weight:800;color:#b45309;letter-spacing:.03em;margin-bottom:4px}
+.cal-head,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.cal-head span{
+  text-align:center;font-size:.7rem;font-weight:900;color:#9a3412;padding:2px 0
+}
+.cal-head span.focus{color:#0369a1;background:#e0f2fe;border-radius:8px}
+.day-cell{
+  border:1.5px solid #fed7aa;border-radius:10px;background:#fff7ed;min-height:38px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-weight:800;font-size:.75rem;color:#9a3412;padding:3px 2px
+}
+.day-cell .dnum{font-size:.78rem;opacity:.95;line-height:1}
+.day-cell .mark{font-size:1.15rem;line-height:1}
+.day-cell.blank{visibility:hidden;border:none;background:transparent;pointer-events:none;min-height:38px}
+.day-cell.mute{background:#f8fafc;border-color:#e2e8f0;color:#94a3b8}
+.day-cell.focus-col{border-color:#fb923c;box-shadow:inset 0 0 0 1px #fdba74}
+.day-cell.on{background:#dcfce7;border-color:#4ade80;color:#166534}
+.day-cell.off{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
+.day-cell.tap{cursor:pointer;transition:transform .1s,background .12s,border-color .12s}
+.day-cell.tap:active{transform:scale(.96)}
+.day-cell.tap.picked{background:#dbeafe;border-color:#38bdf8;color:#075985}
+.day-cell.tap:disabled{opacity:.55;cursor:not-allowed}
+@media (min-height:700px){
+  .day-cell,.day-cell.blank{min-height:44px}
+  .day-cell .dnum{font-size:.88rem}
+  .day-cell .mark{font-size:1.25rem}
+}
+.answer-area{
+  pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:0 2px
+}
+.adv-btn,.go-btn{
+  flex:1 1 130px;max-width:200px;min-height:64px;border-radius:18px;border:3px solid;
+  font-weight:900;font-size:clamp(1.15rem,3.2vw,1.45rem);cursor:pointer;font-family:inherit;
+  padding:14px 12px;transition:transform .1s
+}
+.adv-btn:active,.go-btn:active{transform:scale(.97)}
+.adv-btn.a0{background:rgba(14,165,233,.95);border-color:#7dd3fc;color:#082f49}
+.adv-btn.a1{background:rgba(251,146,60,.95);border-color:#fdba74;color:#7c2d12}
+.adv-btn.a2{background:rgba(251,191,36,.95);border-color:#fde68a;color:#78350f}
+.adv-btn.a3{background:rgba(244,114,182,.95);border-color:#f9a8d4;color:#500724}
+.adv-btn.a4{background:rgba(52,211,153,.95);border-color:#6ee7b7;color:#064e3b}
+.go-btn{background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#fecaca;color:#fff;max-width:280px}
+.legend{font-size:.8rem;color:#64748b;font-weight:700;margin-top:6px;text-align:center}
+.controls-bar{position:fixed;bottom:14px;right:14px;z-index:8;display:flex;gap:8px}
+.icon-btn{
+  width:44px;height:44px;border-radius:12px;border:2px solid #38bdf855;
+  background:rgba(8,30,50,.75);color:#7dd3fc;font-size:1.2rem;cursor:pointer
+}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:7;opacity:0;transition:opacity .15s}
+.flash.ok{background:rgba(52,211,153,.25);opacity:1}
+.flash.bad{background:rgba(248,113,113,.3);opacity:1}
+.report{text-align:left;max-height:36vh;overflow:auto;margin:12px 0;font-size:.88rem}
+.report .row{padding:8px;border-bottom:1px solid #1e4a5f;color:#b6d4d4}
+.report .okb{color:#6ee7b7}.report .badb{color:#fca5a5}
+.muted{color:#7a9ab0;font-size:.85rem}
+#overlayName{
+  background:radial-gradient(ellipse at 30% 20%,rgba(253,121,168,.18),transparent 45%),
+    radial-gradient(ellipse at 80% 10%,rgba(52,152,219,.14),transparent 40%),
+    #fffaf0 !important;
+  overflow:auto;align-items:flex-start;padding:28px 16px 40px
+}
+#overlayName .panel{
+  max-width:820px;background:#fff;border:2px solid rgba(0,0,0,.06);
+  box-shadow:0 8px 28px rgba(45,52,54,.1);color:#2d3436
+}
+#overlayName .panel h1{
+  background:none;-webkit-background-clip:unset;background-clip:unset;
+  color:#2d3436;font-size:clamp(1.4rem,4vw,2rem)
+}
+#overlayName .panel h1 span.c1{color:#ff6b6b}
+#overlayName .panel h1 span.c2{color:#f39c12}
+#overlayName .panel h1 span.c3{color:#1abc9c}
+#overlayName .panel p{color:#636e72}
+.name-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:10px;margin:16px 0;text-align:left
+}
+.name-chip{
+  padding:12px 10px;border-radius:14px;border:2px solid #eee;background:linear-gradient(145deg,#fff,#f8f9fa);
+  font-weight:700;font-size:.92rem;color:#2d3436;cursor:pointer;font-family:inherit;
+  transition:transform .12s,border-color .12s,background .12s
+}
+.name-chip:hover,.name-chip.sel{border-color:#0ea5e9;background:#e0f2fe;transform:translateY(-2px)}
+.name-chip .no{display:block;font-size:.72rem;color:#636e72;font-weight:600}
+.playing-as{
+  position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:9;
+  background:rgba(255,250,240,.92);color:#2d3436;border:2px solid #0ea5e955;
+  border-radius:999px;padding:6px 14px;font-weight:700;font-size:.85rem;
+  display:none;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.12)
+}
+.playing-as.show{display:flex;align-items:center;gap:10px}
+.playing-as button{
+  border:none;background:#fff;border:1px solid #ddd;border-radius:999px;
+  padding:4px 10px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;color:#636e72
+}
+#overlayBoard .panel{max-width:560px;text-align:left}
+#overlayBoard .panel h1{text-align:center}
+.board-list{max-height:50vh;overflow:auto;margin:12px 0;font-size:.9rem}
+.board-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid #1e4a5f;color:#b6d4d4}
+.board-row .rank{font-weight:900;width:2.2em;color:#7dd3fc;flex-shrink:0}
+.board-row .who{flex:1;font-weight:700;color:#ecfeff;min-width:0}
+.board-row .meta{font-size:.82rem;color:#99b8b8;white-space:nowrap;text-align:right}
+.board-empty,.board-status{text-align:center;color:#7a9ab0;padding:18px 8px}
+.board-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px}
+#lbStatus{margin-top:8px;font-size:.85rem;color:#7dd3fc;min-height:1.2em}
+@media (max-height:700px){
+  .day-cell,.day-cell.blank{min-height:36px}
+  .play-wrap{top:54px}
+  .cal-card{max-height:50vh}
+}
+@media (max-width:520px){
+  .day-cell,.day-cell.blank{min-height:34px;font-size:.7rem}
+  .day-cell .dnum{font-size:.72rem}
+  .day-cell .mark{font-size:1.05rem}
+}
+
+.bonus-hint{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:6;
+  background:rgba(8,30,50,.88);border:2px solid #fbbf24;border-radius:999px;
+  padding:10px 18px;font-weight:800;font-size:clamp(.9rem,2.4vw,1.1rem);color:#fde68a;
+  display:none;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.35)
+}
+.bonus-hint.show{display:block}
+.progress-rail{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:5;
+  width:min(640px,86vw);height:10px;border-radius:999px;background:rgba(15,23,42,.55);
+  border:1px solid #38bdf855;overflow:hidden;display:none;pointer-events:none
+}
+.progress-rail.show{display:block}
+.progress-rail .fill{height:100%;width:0%;background:linear-gradient(90deg,#34d399,#38bdf8,#fbbf24);transition:width .35s ease}
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="badge">⏸️ Offline</div>
-  <h1>🏎️ Frequency Race</h1>
-  <p>暫時下架 · 請稍後再試</p>
-  <p class="en">Temporarily offline. Please check back later.</p>
-  <p style="margin-top:16px">趁住休息，溫習返課堂學過嘅文法啦！💪</p>
-  <p class="en">Great time to revise what we learnt in class!</p>
+<canvas id="game"></canvas>
+<div class="flash" id="flash"></div>
+<div class="playing-as" id="playingAs"><span id="playingAsText"></span><button type="button" id="btnNotMe">Not me?</button></div>
+<div class="hud" id="hud" style="display:none">
+  <div class="stat">⭐ <span id="hudScore">0</span></div>
+  <div class="stat" id="hudMainQ">🏁 Q <span id="hudQ">1</span>/<span id="hudTotal">12</span></div>
+  <div class="stat" id="hudMainSpeed">⚡ <span id="hudSpeed">1</span>x</div>
+  <div class="stat" id="hudBonusTime" style="display:none">⏱️ <span id="hudTime">0</span>s</div>
+  <div class="stat" id="hudBonusDodge" style="display:none">🚗 Dodged <span id="hudDodged">0</span></div>
+  <div class="stat lives" id="hudLives">❤️❤️❤️❤️</div>
 </div>
+<div class="progress-rail" id="progressRail"><div class="fill" id="progressFill"></div></div>
+<div class="bonus-hint" id="bonusHint">👆 Drag up / down to dodge · 手指上下拖動躲避</div>
+<div class="play-wrap" id="playWrap">
+  <div class="q-banner" id="qBanner">
+    <div class="tag" id="qTag">TYPE A · CALENDAR → ADVERB</div>
+    <div class="q" id="qText"></div>
+    <div class="hint" id="qHint"></div>
+    <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+  </div>
+  <div class="cal-card" id="calCard">
+    <div class="cal-label" id="calLabel">📅 Month calendar</div>
+    <div class="cal-title"><span class="month" id="calMonth">November 2026</span><span class="act" id="calAct">—</span></div>
+    <div class="cal-head" id="calHead"></div>
+    <div class="cal-grid" id="calGrid" aria-label="Month calendar grid"></div>
+    <div class="legend" id="calLegend">✓ = did it · ✗ = did not · look at one weekday across the month</div>
+  </div>
+  <div class="answer-area" id="answerArea"></div>
+</div>
+<div class="controls-bar">
+  <button class="icon-btn" id="btnMute" title="Sound on/off" aria-label="Sound">🔇</button>
+  <button class="icon-btn" id="btnPause" title="Pause" style="display:none">⏸</button>
+</div>
+
+<div class="overlay" id="overlayName">
+  <div class="panel">
+    <h1><span class="c1">Who</span> <span class="c2">are</span> <span class="c3">you?</span></h1>
+    <p>點選你的姓名（班號）· Tap your name (class no.) · 26 classmates</p>
+    <div class="name-grid" id="nameGrid"></div>
+    <p class="muted" style="margin-top:8px">選好後會進入 START 畫面</p>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayStart">
+  <div class="panel">
+    <h1>🏎️ FREQUENCY RACE</h1>
+    <p style="font-weight:800;letter-spacing:.02em;margin:0 0 6px;color:#fbbf24">Adverbs of Frequency · Longman 4A</p>
+    <p id="startPlayerLine" style="font-weight:800;color:#7dd3fc;margin-bottom:4px">Playing as: —</p>
+    <p>
+      <b>橫版賽道 Landscape race</b> · Look at the <b>month calendar</b> · practise <b>on Mondays / on Fridays</b>!<br>
+      <b>Type A:</b> month calendar → always / often / sometimes / seldom / never<br>
+      <b>Type B:</b> read the sentence → tap the right weekday dates → GO<br>
+      <b>12 questions</b> · <b>4 lives</b> · score = 100 + leftover seconds × 10<br>
+      <b>通關獎勵 Bonus:</b> dodge cars · <b>30 seconds</b> · 4 lives<br>
+      <span class="muted">Full month grid · focus one weekday · always=all · often=3/4 · sometimes=2/4 · seldom=1/4 · never=0 · no usually · mid-freq never marks 5 days</span>
+    </p>
+    <button class="btn" id="btnStart">START RACE ▶</button>
+    <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
+    <button class="btn btn-ghost" id="btnChangeName" type="button">Not me? Change name</button>
+    <p class="muted" style="margin-top:14px">老師說明：P4 Jacky 英文班 · Longman Elect 4A adverbs of frequency（月份日曆 · on Mondays/Fridays…）。本遊戲雲端榜鍵前綴 <strong>f</strong>。清除密碼 teacher。</p>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayPause">
+  <div class="panel">
+    <h1>⏸ Paused</h1>
+    <button class="btn" id="btnResume">Resume</button>
+    <button class="btn btn-ghost" id="btnQuit">Quit to menu</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayEnd">
+  <div class="panel">
+    <h1 id="endTitle">🏁 Race Over</h1>
+    <p id="endStats"></p>
+    <div class="report" id="endReport"></div>
+    <p id="lbStatus" class="muted"></p>
+    <button class="btn btn-alt" id="btnAgain">Race again 🔄</button>
+    <button class="btn btn-ghost" id="btnBoardEnd" type="button">🏆 Leaderboard</button>
+    <button class="btn btn-ghost" id="btnMenu">Main menu</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayBoard">
+  <div class="panel">
+    <h1>🏆 Leaderboard</h1>
+    <p class="muted" style="text-align:center;margin:0 0 4px">Class Top · cloud shared · Frequency Race</p>
+    <div class="board-list" id="boardList"><div class="board-status">Loading…</div></div>
+    <div class="board-actions">
+      <button class="btn" id="btnBoardRefresh" type="button">Refresh</button>
+      <button class="btn btn-alt" id="btnBoardClear" type="button">Clear (teacher)</button>
+      <button class="btn btn-ghost" id="btnBoardClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const FREQ_RACE_CACHE_V = 13; // bonus finish-line rush at end of 30s
+const CLASS_ROSTER = [
+  {name:"Mr. Wang", no:27},
+  {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
+  {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
+  {name:"Helios", no:9},{name:"Emma", no:10},{name:"Hugo", no:11},{name:"Hannah", no:12},
+  {name:"Luna", no:13},{name:"Emily", no:14},{name:"Brian", no:15},{name:"Felix", no:16},
+  {name:"Vincent", no:17},{name:"Issac", no:18},{name:"Howard", no:19},{name:"Fung", no:20},
+  {name:"Damon", no:21},{name:"Coly", no:22},{name:"Isa", no:23},{name:"Natalie", no:24},
+  {name:"Eva", no:25},{name:"Sam", no:26}
+];
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const WEEKDAYS = [
+  {i:0, short:"Mon", plural:"Mondays", on:"on Mondays"},
+  {i:1, short:"Tue", plural:"Tuesdays", on:"on Tuesdays"},
+  {i:2, short:"Wed", plural:"Wednesdays", on:"on Wednesdays"},
+  {i:3, short:"Thu", plural:"Thursdays", on:"on Thursdays"},
+  {i:4, short:"Fri", plural:"Fridays", on:"on Fridays"},
+  {i:5, short:"Sat", plural:"Saturdays", on:"on Saturdays"},
+  {i:6, short:"Sun", plural:"Sundays", on:"on Sundays"}
+];
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const ADVERBS = ["always","often","sometimes","seldom","never"];
+const ACTIVITIES = [
+  {base:"swim", do:"swim", does:"swims", gerund:"swimming", emoji:"🏊"},
+  {base:"play football", do:"play football", does:"plays football", gerund:"playing football", emoji:"⚽"},
+  {base:"play the piano", do:"play the piano", does:"plays the piano", gerund:"playing the piano", emoji:"🎹"},
+  {base:"read", do:"read", does:"reads", gerund:"reading", emoji:"📖"},
+  {base:"help Mum", do:"help Mum", does:"helps Mum", gerund:"helping Mum", emoji:"🧹"},
+  {base:"watch TV", do:"watch TV", does:"watches TV", gerund:"watching TV", emoji:"📺"},
+  {base:"go to school by bus", do:"go to school by bus", does:"goes to school by bus", gerund:"going to school by bus", emoji:"🚌"},
+  {base:"do homework", do:"do homework", does:"does homework", gerund:"doing homework", emoji:"✏️"},
+  {base:"ride a bike", do:"ride a bike", does:"rides a bike", gerund:"riding a bike", emoji:"🚲"},
+  {base:"draw pictures", do:"draw pictures", does:"draws pictures", gerund:"drawing pictures", emoji:"🎨"},
+  {base:"visit Grandma", do:"visit Grandma", does:"visits Grandma", gerund:"visiting Grandma", emoji:"👵"},
+  {base:"eat fruit", do:"eat fruit", does:"eats fruit", gerund:"eating fruit", emoji:"🍎"}
+];
+const NAMES3 = ["Tom","Amy","Ken","May","Sam","Lily","Ben","Ann"];
+
+const LS_PLAYER = "freq_race_player_v1";
+const LS_BOARD = "freq_race_board_cum_v1";
+const TEACHER_CLEAR_PW = "teacher";
+const Q_TOTAL = 12;
+const MAX_LIVES = 4;
+const TIMER_START = 20;
+const TIMER_FLOOR = 10;
+const CLOUD_PREFIX = "f";
+const CLOUD_BASE = "https://keyvalue.immanuel.co/api/KeyVal";
+const CLOUD_APP = "9qeew60c";
+
+let currentPlayer = null;
+let boardReturnOverlay = "overlayStart";
+let running = false, paused = false, muted = true;
+let score = 0, lives = MAX_LIVES, qIndex = 0, correctCount = 0;
+let queue = [], currentQ = null;
+let timerTotal = TIMER_START, timerLeft = TIMER_START, timerRaf = 0, timerEndsAt = 0;
+let pickedDays = [];
+let answering = false;
+let report = [];
+let carX = 0.12, carY = 0.5, carSpeed = 1, boostUntil = 0;
+let roadOffset = 0;
+let audioCtx = null;
+// modes: 'menu' | 'race' | 'bonus'
+let mode = 'menu';
+let raceProgress = 0; // 0..1 toward finish (landscape)
+let bonusActive = false;
+let bonusEndsAt = 0;
+let bonusLeft = 0;
+let bonusDuration = 0;
+let bonusLives = MAX_LIVES;
+let bonusDodged = 0;
+let bonusInvulnUntil = 0;
+let bonusCars = []; // {x,y,lane,speed,w,h,color,passed}
+let bonusSpawnAt = 0;
+let bonusPhase = 'idle'; // idle | countdown | go | play | finish
+let bonusCountdownN = 0; // 3,2,1,0(GO)
+let bonusCountdownUntil = 0;
+let bonusPlayStartedAt = 0; // when play phase begins (timer + cars)
+let bonusHitstunUntil = 0;
+let bonusFx = null; // {until, x, y, word, shake}
+let bonusFinishX = -1; // finish line x; -1 = hidden
+let bonusPlayerX = 0.16; // normalized 0..1 screen x for player in bonus
+let bonusRushing = false;
+let bonusCrossedAt = 0; // when player crossed finish; 0 = not yet
+const BONUS_FINISH_WARN = 5; // seconds left when finish line appears
+let pointerDragging = false;
+let pointerTargetY = 0.5; // normalized 0..1 within road
+let mainScoreSaved = false;
+let raceFinishedClear = false;
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function daysInMonth(year, month){ return new Date(year, month+1, 0).getDate(); }
+function weekdayDatesInMonth(year, month, weekday){
+  // weekday: 0=Mon ... 6=Sun (our index)
+  const out = [];
+  const dim = daysInMonth(year, month);
+  for(let d=1; d<=dim; d++){
+    const js = new Date(year, month, d).getDay(); // 0=Sun..6=Sat
+    const our = (js + 6) % 7; // Mon=0
+    if(our === weekday) out.push(d);
+  }
+  return out;
+}
+function buildMonthMeta(){
+  // Prefer real teaching months with a full Mon–Sun multi-week grid (4–6 rows)
+  const month = pick([1,3,4,8,9,10]); // Feb Apr May Sep Oct Nov — clear 5–6 week layouts
+  const year = 2026;
+  const cells = [];
+  const dim = daysInMonth(year, month);
+  const firstJs = new Date(year, month, 1).getDay();
+  const firstOur = (firstJs + 6) % 7; // Mon-start offset
+  for(let i=0;i<firstOur;i++) cells.push(null);
+  for(let d=1; d<=dim; d++){
+    const js = new Date(year, month, d).getDay();
+    const our = (js + 6) % 7;
+    cells.push({date:d, weekday:our});
+  }
+  while(cells.length % 7 !== 0) cells.push(null);
+  const byWeekday = {};
+  for(let w=0;w<7;w++) byWeekday[w] = weekdayDatesInMonth(year, month, w);
+  return {year, month, name: MONTH_NAMES[month], cells, byWeekday, dim, weeks: cells.length / 7};
+}
+function rangeForAdverb(adv, total){
+  // Teaching map (of ~4): 1→seldom · 2→sometimes · 3→often · all→always · 0→never
+  // For non-always/never: never mark 5 days (even if weekday appears 5× in month)
+  if(adv === "always") return [total, total];
+  if(adv === "never") return [0, 0];
+  if(adv === "seldom") return [1, 1];
+  if(adv === "sometimes") return [2, 2];
+  if(adv === "often") return [3, 3]; // always 3/4-style, never 4 or 5
+  return [2, 2];
+}
+function adverbForCount(n, total){
+  if(n <= 0) return "never";
+  if(n >= total) return "always";
+  if(n === 1) return "seldom";
+  if(n === 2) return "sometimes";
+  return "often"; // 3+ but not all (e.g. 3/4, 3/5)
+}
+function pickWeekdayForMonth(month, preferFour){
+  // Prefer weekdays with exactly 4 dates so 1/4·2/4·3/4 teaching is clean
+  const fours = WEEKDAYS.filter(w => month.byWeekday[w.i].length === 4);
+  if(preferFour && fours.length) return pick(fours);
+  if(fours.length) return pick(fours);
+  const usable = WEEKDAYS.filter(w => month.byWeekday[w.i].length >= 4);
+  return pick(usable.length ? usable : WEEKDAYS);
+}
+function teachDenom(adv, total){
+  // Mid-frequency always taught as /4; always/never use real weekday count
+  if(adv === "always" || adv === "never") return total;
+  return 4;
+}
+function pickMarkedDates(candidates, count){
+  return shuffle(candidates).slice(0, count).sort((a,b)=>a-b);
+}
+function playerLabel(p){ return p ? (p.name + " (" + p.no + ")") : "—"; }
+function loadPlayer(){
+  try{
+    const raw = localStorage.getItem(LS_PLAYER);
+    if(!raw) return null;
+    const o = JSON.parse(raw);
+    if(o && o.name && o.no) return o;
+  }catch(e){}
+  return null;
+}
+function savePlayer(p){ try{ localStorage.setItem(LS_PLAYER, JSON.stringify(p)); }catch(e){} }
+
+function buildNameGrid(){
+  const g = document.getElementById("nameGrid");
+  if(!g) return;
+  g.innerHTML = "";
+  const prev = loadPlayer();
+  CLASS_ROSTER.forEach(stu => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "name-chip" + (prev && prev.no===stu.no ? " sel" : "");
+    b.innerHTML = '<span class="no">No. ' + stu.no + '</span>' + stu.name + ' (' + stu.no + ')';
+    b.onclick = () => selectPlayer(stu);
+    g.appendChild(b);
+  });
+}
+function selectPlayer(stu){
+  currentPlayer = {name: stu.name, no: stu.no};
+  savePlayer(currentPlayer);
+  updatePlayerUI();
+  showOverlay("overlayStart");
+}
+function updatePlayerUI(){
+  const label = playerLabel(currentPlayer);
+  const startLine = document.getElementById("startPlayerLine");
+  if(startLine) startLine.textContent = "Playing as: " + label;
+  const txt = document.getElementById("playingAsText");
+  if(txt) txt.textContent = "Playing as: " + label;
+}
+function goNameSelect(){
+  running=false; paused=false; stopTimer();
+  document.getElementById("hud").style.display="none";
+  document.getElementById("playWrap").classList.remove("show");
+  document.getElementById("playingAs").classList.remove("show");
+  document.getElementById("btnPause").style.display="none";
+  buildNameGrid();
+  showOverlay("overlayName");
+}
+function showOverlay(id){
+  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBoard"].forEach(x=>{
+    document.getElementById(x).classList.toggle("hidden", x!==id);
+  });
+}
+function hideOverlays(){
+  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBoard"].forEach(x=>{
+    document.getElementById(x).classList.add("hidden");
+  });
+}
+
+function cloudKey(no){ return CLOUD_PREFIX + no; }
+function encodeScore(sumScore, games, totalCorrect, when){
+  return [sumScore|0, games|0, totalCorrect|0, when|0].join("-");
+}
+function parseScoreVal(raw){
+  if(raw == null) return null;
+  let s = raw;
+  if(typeof s !== "string"){ try{ s = JSON.stringify(s); }catch(e){ return null; } }
+  s = s.trim();
+  if((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))){
+    try{ s = JSON.parse(s); }catch(e){ s = s.slice(1,-1); }
+  }
+  if(typeof s !== "string") s = String(s);
+  s = s.trim();
+  if(!s || s === "0" || s === '""' || s === "null") return null;
+  const parts = s.split("-");
+  if(parts.length < 4) return null;
+  const scoreV = parseInt(parts[0], 10);
+  const games = parseInt(parts[1], 10);
+  const correct = parseInt(parts[2], 10);
+  const when = parseInt(parts[3], 10);
+  if(!isFinite(scoreV) || scoreV <= 0) return null;
+  return { score:scoreV||0, games:isFinite(games)?games:0, correct:isFinite(correct)?correct:0, when:isFinite(when)?when:0 };
+}
+async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+async function cloudGet(no){
+  const url = CLOUD_BASE + "/GetValue/" + CLOUD_APP + "/" + cloudKey(no);
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"GET", cache:"no-store"});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("GET " + res.status);
+        await sleep(200 + attempt * 250 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("GET " + res.status);
+      const txt = await res.text();
+      let parsed = txt;
+      try{ parsed = JSON.parse(txt); }catch(e){ parsed = txt; }
+      return parseScoreVal(parsed);
+    }catch(e){
+      lastErr = e;
+      await sleep(200 + attempt * 250);
+    }
+  }
+  throw lastErr || new Error("GET failed");
+}
+async function cloudWrite(no, value){
+  const url = CLOUD_BASE + "/UpdateValue/" + CLOUD_APP + "/" + cloudKey(no) + "/" + encodeURIComponent(value);
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"POST", body:""});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("POST " + res.status);
+        await sleep(250 + attempt * 300 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("POST " + res.status);
+      return true;
+    }catch(e){
+      lastErr = e;
+      await sleep(250 + attempt * 300);
+    }
+  }
+  throw lastErr || new Error("POST failed");
+}
+async function mapPool(items, limit, fn){
+  const out = new Array(items.length);
+  let i = 0;
+  async function worker(){
+    while(i < items.length){
+      const idx = i++;
+      out[idx] = await fn(items[idx], idx);
+    }
+  }
+  const n = Math.max(1, Math.min(limit, items.length));
+  await Promise.all(Array.from({length:n}, () => worker()));
+  return out;
+}
+async function cloudUpsertPlayer(player, addScore, addCorrect){
+  if(!player || !player.no) return {ok:false, status:"失敗"};
+  const when = Math.floor(Date.now()/1000);
+  try{
+    const existing = await cloudGet(player.no);
+    const sum = (existing ? existing.score : 0) + (addScore|0);
+    const games = (existing ? (existing.games||0) : 0) + 1;
+    const totalCorrect = (existing ? existing.correct : 0) + (addCorrect|0);
+    if((addScore|0) <= 0 && !existing){
+      return {ok:true, status:"無分數可累積", kept:true};
+    }
+    await cloudWrite(player.no, encodeScore(sum, games, totalCorrect, when));
+    return {ok:true, status:"已累積更新 · 雲端總分 "+sum+"（"+games+" 局）", updated:true, sum, games};
+  }catch(e){
+    console.warn("cloud upsert failed", e);
+    return {ok:false, status:"雲端更新失敗"};
+  }
+}
+async function cloudFetchAll(){
+  const rows = await mapPool(CLASS_ROSTER, 3, async stu => {
+    try{
+      const ent = await cloudGet(stu.no);
+      if(!ent) return null;
+      return {name:stu.name, no:stu.no, ...ent};
+    }catch(e){
+      return {_err:true, name:stu.name, no:stu.no};
+    }
+  });
+  const errs = rows.filter(r => r && r._err).length;
+  const list = rows.filter(r => r && !r._err);
+  list.sort((a,b)=>{
+    if(b.score !== a.score) return b.score - a.score;
+    if((b.games||0) !== (a.games||0)) return (b.games||0) - (a.games||0);
+    return b.when - a.when;
+  });
+  return {list, errs};
+}
+function loadBoardMap(){
+  try{
+    const raw = localStorage.getItem(LS_BOARD);
+    const o = raw ? JSON.parse(raw) : {};
+    return (o && typeof o === "object") ? o : {};
+  }catch(e){ return {}; }
+}
+function saveBoardMap(map){
+  try{ localStorage.setItem(LS_BOARD, JSON.stringify(map)); }catch(e){}
+}
+function upsertLocalScore(player, addScore, addCorrect){
+  if(!player) return {status:"略過（未選姓名）"};
+  const map = loadBoardMap();
+  const key = String(player.no);
+  const prev = map[key] || {score:0, games:0, correct:0, name: player.name, no: player.no};
+  prev.score = (prev.score|0) + (addScore|0);
+  prev.games = (prev.games|0) + 1;
+  prev.correct = (prev.correct|0) + (addCorrect|0);
+  prev.name = player.name;
+  prev.no = player.no;
+  prev.when = Date.now();
+  map[key] = prev;
+  saveBoardMap(map);
+  return {status: "本機備份 · " + prev.score + "（" + prev.games + " 局）"};
+}
+function renderBoardList(list, errs){
+  const el = document.getElementById("boardList");
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML = '<div class="board-empty">尚無紀錄 · No scores yet'+(errs?'<br><span class="muted">部分讀取失敗 ('+errs+')</span>':'')+'</div>';
+    return;
+  }
+  el.innerHTML = list.map((r,i)=>{
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
+    return '<div class="board-row"><span class="rank">'+medal+'</span>' +
+      '<span class="who">'+esc(r.name)+' <span class="muted">('+r.no+')</span></span>' +
+      '<span class="meta">⭐ '+r.score+' · '+((r.games||0))+'局 · ✓ '+r.correct+'</span></div>';
+  }).join("") + (errs ? '<div class="board-status muted">部分讀取失敗 ('+errs+')</div>' : '');
+}
+async function refreshBoard(){
+  const el = document.getElementById("boardList");
+  if(el) el.innerHTML = '<div class="board-status">Loading…</div>';
+  try{
+    const {list, errs} = await cloudFetchAll();
+    renderBoardList(list, errs);
+  }catch(e){
+    if(el) el.innerHTML = '<div class="board-status">讀取失敗 · Failed to load</div>';
+  }
+}
+function openBoard(from){
+  boardReturnOverlay = from || "overlayStart";
+  showOverlay("overlayBoard");
+  refreshBoard();
+}
+function closeBoard(){ showOverlay(boardReturnOverlay); }
+async function teacherClearBoard(){
+  const pw = prompt("老師清除密碼 / Teacher password:");
+  if(pw == null) return;
+  if(pw !== TEACHER_CLEAR_PW){ alert("密碼不正確"); return; }
+  if(!confirm("確定清除雲端累積排行榜？")) return;
+  const el = document.getElementById("boardList");
+  if(el) el.innerHTML = '<div class="board-status">Clearing…</div>';
+  try{
+    await mapPool(CLASS_ROSTER, 2, stu => cloudWrite(stu.no, "0"));
+    saveBoardMap({});
+    await refreshBoard();
+  }catch(e){
+    if(el) el.innerHTML = '<div class="board-status">清除失敗 · Clear failed</div>';
+  }
+}
+
+function beep(freq, dur, type){
+  if(muted) return;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    g.gain.value = 0.04;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.stop(audioCtx.currentTime + dur);
+  }catch(e){}
+}
+function flash(ok){
+  const el = document.getElementById("flash");
+  el.className = "flash " + (ok ? "ok" : "bad");
+  setTimeout(()=>{ el.className = "flash"; }, 180);
+}
+
+function makeTypeA(){
+  const month = buildMonthMeta();
+  // Pick adverb first-ish: build pool, then weekday with 4 dates for mid-freq
+  let adv = pick(ADVERBS);
+  const preferFour = (adv !== "always" && adv !== "never");
+  const wd = pickWeekdayForMonth(month, preferFour);
+  const candidates = month.byWeekday[wd.i].slice();
+  const total = candidates.length;
+  if(total < 4 && adv === "often") adv = pick(["always","sometimes","seldom","never"]);
+  const [lo, hi] = rangeForAdverb(adv, total);
+  let count = randInt(lo, hi);
+  // Safety: never mark 5+ for mid-frequency words
+  if(adv !== "always" && adv !== "never") count = Math.min(count, 3);
+  const marked = pickMarkedDates(candidates, count);
+  const denom = teachDenom(adv, total);
+  const act = pick(ACTIVITIES);
+  const who = Math.random() < 0.45 ? "I" : pick(NAMES3);
+  let q;
+  const style = Math.random();
+  if(style < 0.5){
+    if(who === "I") q = "How often do you " + act.do + " " + wd.on + "?";
+    else q = "How often does " + who + " " + act.do + " " + wd.on + "?";
+  } else if(style < 0.8){
+    if(who === "I") q = "I _____ " + act.do + " " + wd.on + ".";
+    else q = who + " _____ " + act.does + " " + wd.on + ".";
+  } else {
+    if(who === "I") q = "Look at " + month.name + ". How often do you " + act.do + " " + wd.on + "?";
+    else q = "Look at " + month.name + ". How often does " + who + " " + act.do + " " + wd.on + "?";
+  }
+  return {
+    type:"A",
+    adverb:adv,
+    count:count,
+    total:total,
+    denom:denom,
+    weekday:wd,
+    month:month,
+    marked:marked,
+    activity:act,
+    who:who,
+    prompt:q,
+    hint:"Look at all the " + wd.plural + " in " + month.name + ". Choose the adverb."
+  };
+}
+function makeTypeB(){
+  const month = buildMonthMeta();
+  let adv = pick(ADVERBS);
+  const preferFour = (adv !== "always" && adv !== "never");
+  const wd = pickWeekdayForMonth(month, preferFour);
+  const candidates = month.byWeekday[wd.i].slice();
+  const total = candidates.length;
+  if(total < 4 && adv === "often") adv = pick(["always","sometimes","seldom","never"]);
+  let [lo, hi] = rangeForAdverb(adv, total);
+  if(adv !== "always" && adv !== "never"){
+    lo = Math.min(lo, 3); hi = Math.min(hi, 3);
+  }
+  const denom = teachDenom(adv, total);
+  const act = pick(ACTIVITIES);
+  const who = Math.random() < 0.5 ? "I" : pick(NAMES3);
+  let sentence;
+  if(who === "I"){
+    sentence = "I " + adv + " " + act.do + " " + wd.on + ".";
+  } else {
+    sentence = who + " " + adv + " " + act.does + " " + wd.on + ".";
+  }
+  const rangeLabel = lo === hi ? String(lo) : (lo + "–" + hi);
+  return {
+    type:"B",
+    adverb:adv,
+    countMin:lo,
+    countMax:hi,
+    total:total,
+    denom:denom,
+    weekday:wd,
+    month:month,
+    candidates:candidates,
+    activity:act,
+    who:who,
+    prompt:sentence,
+    hint:"Tap " + rangeLabel + " " + wd.plural + " in " + month.name + ", then press GO."
+  };
+}
+function buildQueue(){
+  const out = [];
+  for(let i=0;i<Q_TOTAL;i++){
+    out.push(i % 2 === 0 ? makeTypeA() : makeTypeB());
+  }
+  return shuffle(out);
+}
+
+function resize(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.floor(window.innerWidth * dpr);
+  canvas.height = Math.floor(window.innerHeight * dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function roadGeom(w,h){
+  // True side-view: wide horizontal road band across mid-lower screen
+  // Lanes stacked vertically; travel direction is +X (left → right)
+  const top = Math.max(h * 0.48, Math.min(h * 0.55, h - 280));
+  const bot = Math.min(h * 0.92, top + Math.max(160, h * 0.36));
+  return {top, bot, mid:(top+bot)/2, height: bot-top};
+}
+function drawCarSprite(cx, cy, scale, color, plateNo, facingRight, flashInvuln){
+  ctx.save();
+  ctx.translate(cx, cy);
+  if(!facingRight) ctx.scale(-1,1);
+  ctx.scale(scale, scale);
+  if(flashInvuln){
+    ctx.globalAlpha = (Math.floor(performance.now()/80)%2) ? 0.35 : 0.95;
+  }
+  // rear boost glow
+  ctx.fillStyle = "rgba(251,191,36,.35)";
+  ctx.beginPath(); ctx.ellipse(-70, 6, 28, 12, 0, 0, Math.PI*2); ctx.fill();
+  // body (side profile, facing right)
+  ctx.fillStyle = color;
+  roundRect(-62,-20,124,38,14);
+  // cabin
+  ctx.fillStyle = "#1e293b";
+  roundRect(-6,-36,60,22,8);
+  ctx.fillStyle = "#7dd3fc";
+  roundRect(4,-34,44,16,5);
+  // wheels
+  ctx.fillStyle = "#0f172a";
+  circle(-36,20,14); circle(40,20,14);
+  ctx.fillStyle = "#94a3b8";
+  circle(-36,20,5); circle(40,20,5);
+  // headlight
+  ctx.fillStyle = "#fef9c3";
+  roundRect(54,-8,10,12,3);
+  // plate
+  ctx.fillStyle = "#fff";
+  roundRect(28,-6,22,14,3);
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 11px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(String(plateNo||1), 39, 5);
+  ctx.restore();
+}
+function drawScenery(w, h, rg, now){
+  // Sky
+  const sky = ctx.createLinearGradient(0,0,0,rg.top);
+  sky.addColorStop(0,"#38bdf8"); sky.addColorStop(0.55,"#7dd3fc"); sky.addColorStop(1,"#bae6fd");
+  ctx.fillStyle = sky; ctx.fillRect(0,0,w,rg.top);
+  // Clouds scrolling left (we're moving right)
+  ctx.fillStyle = "rgba(255,255,255,.85)";
+  for(let i=0;i<5;i++){
+    const cx = ((i*220 - roadOffset*0.35) % (w+200) + w+200) % (w+200) - 100;
+    const cy = 28 + (i%3)*22;
+    ctx.beginPath(); ctx.arc(cx,cy,18,0,Math.PI*2); ctx.arc(cx+22,cy+4,14,0,Math.PI*2); ctx.arc(cx-20,cy+6,12,0,Math.PI*2); ctx.fill();
+  }
+  // Distant hills
+  ctx.fillStyle = "#4ade80";
+  ctx.beginPath();
+  ctx.moveTo(0, rg.top);
+  for(let x=0;x<=w;x+=28){
+    const y = rg.top - 36 - Math.sin((x + roadOffset*0.12)/90)*10 - Math.cos(x/140)*8;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(w, rg.top); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#22c55e";
+  ctx.beginPath();
+  ctx.moveTo(0, rg.top);
+  for(let x=0;x<=w;x+=24){
+    const y = rg.top - 18 - Math.sin((x + roadOffset*0.2)/70)*7;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(w, rg.top); ctx.closePath(); ctx.fill();
+
+  // Grass shoulder above road
+  ctx.fillStyle = "#16a34a";
+  ctx.fillRect(0, rg.top - 18, w, 18);
+  // Grass below road
+  ctx.fillStyle = "#15803d";
+  ctx.fillRect(0, rg.bot, w, h - rg.bot);
+
+  // Roadside trees scrolling (above road)
+  for(let i=0;i<8;i++){
+    const tx = ((i*160 - roadOffset*1.1) % (w+160) + w+160) % (w+160) - 80;
+    const ty = rg.top - 10;
+    ctx.fillStyle = "#854d0e";
+    ctx.fillRect(tx-4, ty-28, 8, 28);
+    ctx.fillStyle = i%2 ? "#166534" : "#14532d";
+    ctx.beginPath(); ctx.arc(tx, ty-36, 16, 0, Math.PI*2); ctx.fill();
+  }
+  // Bushes below road
+  for(let i=0;i<10;i++){
+    const bx = ((i*130 - roadOffset*1.3) % (w+130) + w+130) % (w+130) - 60;
+    ctx.fillStyle = "#166534";
+    ctx.beginPath(); ctx.ellipse(bx, rg.bot+18, 22, 10, 0, 0, Math.PI*2); ctx.fill();
+  }
+}
+function drawHorizontalRoad(w, h, rg){
+  // Asphalt band
+  const asphalt = ctx.createLinearGradient(0, rg.top, 0, rg.bot);
+  asphalt.addColorStop(0, "#475569");
+  asphalt.addColorStop(0.5, "#334155");
+  asphalt.addColorStop(1, "#1e293b");
+  ctx.fillStyle = asphalt;
+  ctx.fillRect(0, rg.top, w, rg.height);
+
+  // Outer white edge lines
+  ctx.strokeStyle = "#f8fafc";
+  ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(0, rg.top + 5); ctx.lineTo(w, rg.top + 5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, rg.bot - 5); ctx.lineTo(w, rg.bot - 5); ctx.stroke();
+
+  // Three lanes → two dashed separators (horizontal travel)
+  ctx.strokeStyle = "#fde68a";
+  ctx.lineWidth = 5;
+  ctx.setLineDash([40, 30]);
+  ctx.lineDashOffset = -roadOffset; // dashes stream backward = driving right
+  const y1 = rg.top + rg.height / 3;
+  const y2 = rg.top + rg.height * 2 / 3;
+  ctx.beginPath(); ctx.moveTo(0, y1); ctx.lineTo(w, y1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, y2); ctx.lineTo(w, y2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Guardrail posts along top edge (scroll left)
+  for(let x = -((roadOffset*1.4) % 56); x < w + 20; x += 56){
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillRect(x, rg.top - 14, 6, 14);
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillRect(x - 8, rg.top - 16, 22, 4);
+  }
+
+  // Direction chevrons on road (▶▶▶) reinforcing left→right
+  ctx.fillStyle = "rgba(248,250,252,.18)";
+  ctx.font = "bold 22px sans-serif";
+  ctx.textAlign = "center";
+  for(let i=0;i<6;i++){
+    const cx = ((i*180 - roadOffset*0.9) % (w+180) + w+180) % (w+180) - 90;
+    ctx.fillText("❯❯", cx, rg.mid + 8);
+  }
+}
+function drawScene(now){
+  const w = window.innerWidth, h = window.innerHeight;
+  const rg = roadGeom(w,h);
+  drawScenery(w, h, rg, now);
+  drawHorizontalRoad(w, h, rg);
+
+  // Finish gate on the right (race / menu)
+  if(mode === 'race' || mode === 'menu'){
+    const fx = w * 0.93;
+    ctx.fillStyle = "rgba(15,23,42,.45)";
+    ctx.fillRect(fx - 8, rg.top, 16, rg.height);
+    // checkered flag hanging right
+    for(let r=0;r<5;r++){
+      for(let c=0;c<3;c++){
+        ctx.fillStyle = ((r+c)%2===0) ? "#fff" : "#0f172a";
+        ctx.fillRect(fx + 12 + c*12, rg.top + 10 + r*12, 12, 12);
+      }
+    }
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = "bold 16px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("FINISH →", fx - 4, rg.top - 22);
+  }
+
+  // Lane Y helpers: 0 / 1 / 2 → stacked lanes
+  function laneY(lane){
+    return rg.top + (0.5 + lane) * (rg.height / 3);
+  }
+
+  if(mode === 'bonus'){
+    let shakeX = 0, shakeY = 0;
+    if(bonusFx && now < bonusFx.until){
+      const k = (bonusFx.until - now) / 900;
+      shakeX = (Math.random()-0.5) * bonusFx.shake * k;
+      shakeY = (Math.random()-0.5) * bonusFx.shake * k;
+    }
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
+    // Finish line (appears near end of timer)
+    if(bonusFinishX >= 0){
+      const fx = bonusFinishX;
+      ctx.fillStyle = "rgba(15,23,42,.5)";
+      ctx.fillRect(fx - 8, rg.top, 16, rg.height);
+      for(let r=0;r<6;r++){
+        for(let c=0;c<3;c++){
+          ctx.fillStyle = ((r+c)%2===0) ? "#fff" : "#0f172a";
+          ctx.fillRect(fx + 10 + c*11, rg.top + 8 + r*12, 11, 12);
+        }
+      }
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 18px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(bonusCrossedAt ? "FINISH!" : "FINISH →", fx + 8, rg.top - 14);
+    }
+
+    bonusCars.forEach(c => {
+      const ey = laneY(c.lane);
+      const scale = Math.min(w,h) * 0.0009 + 0.8;
+      drawCarSprite(c.x, ey, scale, c.color, c.no, false, false);
+    });
+    const playerY = rg.top + (0.17 + carY * 0.66) * rg.height;
+    const inv = (typeof bonusIsInvuln === 'function') ? bonusIsInvuln(now) : (now < bonusInvulnUntil);
+    const scale = Math.min(w,h) * 0.00105 + 0.95;
+    const pxx = w * (bonusPlayerX || 0.16);
+    if(bonusRushing || now < boostUntil){
+      ctx.fillStyle = "rgba(251,191,36,.55)";
+      ctx.beginPath(); ctx.ellipse(pxx-58, playerY, 44, 16, 0,0,Math.PI*2); ctx.fill();
+    }
+    drawCarSprite(pxx, playerY, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, inv);
+
+    if(bonusCrossedAt > 0){
+      ctx.fillStyle = "rgba(15,23,42,.55)";
+      roundRect(w/2-160, h*0.36, 320, 64, 18);
+      ctx.fillStyle = "#34d399";
+      ctx.font = "900 36px Impact, Haettenschweiler, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("🏁 FINISH!", w/2, h*0.36+34);
+      ctx.textBaseline = "alphabetic";
+    } else if(bonusFinishX >= 0 && !bonusRushing){
+      ctx.fillStyle = "rgba(15,23,42,.55)";
+      roundRect(w/2-140, 56, 280, 32, 12);
+      ctx.fillStyle = "#fde68a";
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("終點出現！繼續躲避 → Finish ahead!", w/2, 78);
+    }
+
+    // Comic hit burst
+    if(bonusFx && now < bonusFx.until){
+      const life = 1 - (bonusFx.until - now) / 900;
+      const bx = bonusFx.x, by = bonusFx.y;
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.rotate((-18 + life*10) * Math.PI/180);
+      // starburst
+      ctx.fillStyle = "rgba(251,191,36,"+(0.95-life*0.5)+")";
+      for(let i=0;i<8;i++){
+        const ang = i * Math.PI/4;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(ang)*12, Math.sin(ang)*12);
+        ctx.lineTo(Math.cos(ang+0.2)*55, Math.sin(ang+0.2)*55);
+        ctx.lineTo(Math.cos(ang-0.2)*55, Math.sin(ang-0.2)*55);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle = "#fff";
+      roundRect(-70, -28, 140, 56, 16);
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 5;
+      ctx.stroke();
+      ctx.fillStyle = "#ef4444";
+      ctx.font = "900 34px Impact, Haettenschweiler, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(bonusFx.word, 0, 2);
+      // little stars
+      ctx.fillStyle = "#fde68a";
+      ctx.font = "bold 22px sans-serif";
+      ctx.fillText("✦ ✦ ✦", 0, -46);
+      ctx.restore();
+    }
+
+    ctx.restore(); // end shake
+
+    ctx.fillStyle = "rgba(15,23,42,.65)";
+    roundRect(w/2-170, 12, 340, 40, 14);
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = "bold 20px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("🎁 BONUS DODGE · UP / DOWN", w/2, 40);
+
+    // 3-2-1 / GO overlay
+    if(bonusPhase === 'countdown' || bonusPhase === 'go'){
+      ctx.fillStyle = "rgba(8,20,40,.45)";
+      ctx.fillRect(0, 0, w, h);
+      const label = bonusCountdownN > 0 ? String(bonusCountdownN) : "GO!";
+      ctx.fillStyle = bonusCountdownN > 0 ? "#fbbf24" : "#34d399";
+      ctx.font = "900 "+Math.floor(Math.min(w,h)*0.22)+"px Impact, Haettenschweiler, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.strokeStyle = "rgba(0,0,0,.45)";
+      ctx.lineWidth = 10;
+      ctx.strokeText(label, w/2, h*0.48);
+      ctx.fillText(label, w/2, h*0.48);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "bold 22px sans-serif";
+      ctx.fillText(bonusCountdownN > 0 ? "Get ready…" : "Dodge!", w/2, h*0.48 + Math.min(w,h)*0.14);
+    }
+  } else {
+    // Main race: car travels left → right along mid lane
+    const prog = mode === 'race' ? raceProgress : 0.06;
+    const cx = w * (0.08 + prog * 0.78);
+    const bob = Math.sin(now/450) * 3;
+    const py = rg.mid + bob;
+    const scale = Math.min(w,h) * 0.00105 + 0.95;
+    if(now < boostUntil){
+      ctx.fillStyle = "rgba(251,191,36,.55)";
+      ctx.beginPath(); ctx.ellipse(cx-72, py+2, 42, 14, 0,0,Math.PI*2); ctx.fill();
+    }
+    drawCarSprite(cx, py, scale, "#ef4444", (currentPlayer&&currentPlayer.no)||1, true, false);
+    // Label so landscape intent is obvious
+    if(!running || mode === 'menu'){
+      ctx.fillStyle = "rgba(15,23,42,.5)";
+      roundRect(w/2-150, rg.bot + 10, 300, 28, 10);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "bold 13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("橫版賽道 · Landscape track →", w/2, rg.bot + 29);
+    }
+    if(running && mode === 'race'){
+      ctx.fillStyle = "rgba(15,23,42,.55)";
+      roundRect(14, h-48, 150, 34, 12);
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("SPEED " + carSpeed.toFixed(1) + "x", 28, h-25);
+    }
+  }
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath(); ctx.fill();
+}
+function circle(x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+
+const BONUS_COLORS = ["#3b82f6","#a855f7","#22c55e","#f97316","#06b6d4","#eab308"];
+function spawnBonusCar(w){
+  const lane = randInt(0,2);
+  bonusCars.push({
+    x: w + randInt(40, 220),
+    lane: lane,
+    speed: 3.2 + Math.random()*2.8 + (correctCount*0.05),
+    color: pick(BONUS_COLORS),
+    no: randInt(10,99),
+    passed: false
+  });
+}
+function bonusSpeedFactor(now){
+  // Ramp 0.35 → 1.15 over the full bonus duration
+  if(!bonusPlayStartedAt || bonusDuration <= 0) return 0.35;
+  const t = Math.max(0, Math.min(1, (now - bonusPlayStartedAt) / (bonusDuration * 1000)));
+  return 0.35 + t * 0.80;
+}
+function triggerHitFx(x, y, now){
+  const words = ["BAM!", "POW!", "OUCH!", "CRASH!", "WHOA!"];
+  bonusFx = {until: now + 900, x:x, y:y, word: pick(words), shake: 14};
+  bonusHitstunUntil = now + 900;
+  bonusInvulnUntil = now + 2200;
+  flash(false);
+  beep(160, 0.22, "sawtooth");
+  setTimeout(()=>beep(120, 0.15, "square"), 90);
+}
+function bonusIsInvuln(now){
+  // True i-frames: hitstun freeze OR flash/虛化 window — no collisions
+  return now < bonusHitstunUntil || now < bonusInvulnUntil;
+}
+function beginBonusPlay(now){
+  bonusPhase = 'play';
+  bonusPlayStartedAt = now;
+  bonusEndsAt = now + bonusDuration * 1000;
+  bonusLeft = bonusDuration;
+  bonusSpawnAt = now + 500;
+  bonusInvulnUntil = now + 1000;
+  beep(980, 0.18, "triangle");
+}
+function updateBonus(dt, now){
+  const w = window.innerWidth, h = window.innerHeight;
+  const rg = roadGeom(w,h);
+
+  // Countdown 3-2-1 then GO — no cars / no timer drain yet
+  if(bonusPhase === 'countdown' || bonusPhase === 'go'){
+    roadOffset += 1.6 * (dt/16);
+    if(now >= bonusCountdownUntil){
+      if(bonusCountdownN > 1){
+        bonusCountdownN -= 1;
+        bonusCountdownUntil = now + 1000;
+        beep(520 + (3-bonusCountdownN)*80, 0.12, "square");
+      } else if(bonusCountdownN === 1){
+        bonusCountdownN = 0; // GO
+        bonusPhase = 'go';
+        bonusCountdownUntil = now + 700;
+        beep(780, 0.16, "triangle");
+      } else {
+        beginBonusPlay(now);
+      }
+    }
+    updateHud();
+    return;
+  }
+
+  const inHitstun = now < bonusHitstunUntil;
+
+  // Player can still aim during hitstun (small ease) but world mostly freezes
+  if(!inHitstun){
+    carY += (pointerTargetY - carY) * Math.min(1, dt/80);
+  } else {
+    carY += (pointerTargetY - carY) * Math.min(1, dt/200);
+  }
+  carY = Math.max(0, Math.min(1, carY));
+
+  const spd = bonusSpeedFactor(now);
+  const finishing = bonusPhase === 'finish' || bonusRushing || bonusCrossedAt > 0;
+
+  if(!inHitstun){
+    roadOffset += (3.2 + spd * 5.5) * (dt/16) * (bonusRushing ? 1.35 : 1);
+  }
+
+  // Keep spawning dodge cars until player has crossed the line
+  if(!inHitstun && !bonusCrossedAt && now >= bonusSpawnAt){
+    spawnBonusCar(w);
+    const gap = Math.max(380, (1100 - correctCount*25) * (1.15 - spd*0.45));
+    bonusSpawnAt = now + gap + Math.random()*280;
+  }
+
+  // Timer + finish-line reveal (last BONUS_FINISH_WARN seconds)
+  if(bonusLives > 0 && bonusEndsAt && !bonusCrossedAt){
+    if(inHitstun){
+      bonusEndsAt += dt;
+    }
+    bonusLeft = Math.max(0, (bonusEndsAt - now)/1000);
+    if(bonusLeft <= BONUS_FINISH_WARN && bonusFinishX < 0){
+      bonusPhase = 'finish';
+      bonusFinishX = w + 40;
+      beep(640, 0.1, "triangle");
+    }
+    // Move finish line left toward the player
+    if(bonusFinishX >= 0 && !bonusRushing){
+      bonusFinishX -= (4.2 + spd * 6) * (dt/16) * 3.4;
+    }
+    // Start rush when line is close OR time almost gone
+    if(bonusFinishX >= 0 && !bonusRushing && (bonusFinishX < w * 0.58 || bonusLeft <= 1.1)){
+      bonusRushing = true;
+      bonusInvulnUntil = now + 4000; // safe while rushing
+      beep(900, 0.12, "triangle");
+      setTimeout(()=>beep(1100,0.14,"triangle"), 100);
+    }
+    // If timer hits 0 before rush somehow, still force rush
+    if(bonusLeft <= 0 && !bonusRushing){
+      if(bonusFinishX < 0) bonusFinishX = w * 0.72;
+      bonusPhase = 'finish';
+      bonusRushing = true;
+      bonusInvulnUntil = now + 4000;
+    }
+  }
+
+  // Player X: stay left, then rush right across finish
+  if(bonusRushing && !bonusCrossedAt){
+    bonusPlayerX += 0.018 * (dt/16) * (1.2 + spd);
+  } else if(!bonusRushing){
+    bonusPlayerX = 0.16;
+  }
+
+  const px = w * bonusPlayerX;
+  const py = rg.top + (0.17 + carY * 0.66) * rg.height;
+  const hitR = Math.min(w,h) * 0.05;
+
+  // Crossed finish?
+  if(bonusRushing && bonusFinishX >= 0 && !bonusCrossedAt && px >= bonusFinishX - 8){
+    bonusCrossedAt = now;
+    bonusLeft = 0;
+    flash(true);
+    beep(1200, 0.2, "triangle");
+    setTimeout(()=>beep(1400,0.18,"sine"), 120);
+  }
+  if(bonusCrossedAt > 0){
+    // keep drifting a little past the line
+    bonusPlayerX = Math.min(1.05, bonusPlayerX + 0.01 * (dt/16));
+    if(now - bonusCrossedAt > 900){
+      endBonus(true);
+      return;
+    }
+    updateHud();
+    // still move traffic for drama
+    for(let i=bonusCars.length-1;i>=0;i--){
+      const c = bonusCars[i];
+      c.x -= c.speed * spd * (dt/16) * 6.2;
+      if(c.x < -120) bonusCars.splice(i,1);
+    }
+    return;
+  }
+
+  for(let i=bonusCars.length-1;i>=0;i--){
+    const c = bonusCars[i];
+    if(!inHitstun){
+      c.x -= c.speed * spd * (dt/16) * 6.2;
+    }
+    const ey = rg.top + (0.5 + c.lane) * (rg.height / 3);
+    if(!c.passed && c.x < px - 40){
+      c.passed = true;
+      bonusDodged += 1;
+      beep(660, 0.05, "sine");
+    }
+    // collision — true i-frames during hitstun + 虛化 + finish rush
+    if(!bonusIsInvuln(now) && !bonusRushing){
+      const dx = c.x - px, dy = ey - py;
+      if(dx*dx + dy*dy < hitR*hitR){
+        bonusLives -= 1;
+        lives = bonusLives;
+        triggerHitFx(px, py, now);
+        for(let j=0;j<bonusCars.length;j++){
+          const o = bonusCars[j];
+          const oy = rg.top + (0.5 + o.lane) * (rg.height / 3);
+          const odx = o.x - px, ody = oy - py;
+          if(odx*odx + ody*ody < (hitR*2.2)*(hitR*2.2)){
+            o.x = px + hitR*2.8 + 40 + j*30;
+            o.passed = false;
+          }
+        }
+        updateHud();
+        if(bonusLives <= 0){
+          bonusActive = true;
+          setTimeout(() => { if(mode === 'bonus') endBonus(false); }, 900);
+          return;
+        }
+        break;
+      }
+    }
+    if(c.x < -120) bonusCars.splice(i,1);
+  }
+
+  if(bonusFx && now >= bonusFx.until) bonusFx = null;
+  updateHud();
+}
+
+let lastTs = 0;
+function loop(ts){
+  if(!lastTs) lastTs = ts;
+  const dt = Math.min(40, ts - lastTs);
+  lastTs = ts;
+  if(running && !paused){
+    if(mode === 'race'){
+      roadOffset += (2.6 + carSpeed * 2.8) * (dt/16);
+      // ease raceProgress toward answered fraction
+      const target = Math.min(1, qIndex / Q_TOTAL);
+      raceProgress += (target - raceProgress) * Math.min(1, dt/280);
+    } else if(mode === 'bonus' && bonusActive){
+      updateBonus(dt, ts);
+    }
+  } else if(mode === 'menu'){
+    roadOffset += 1.2 * (dt/16);
+  }
+  drawScene(ts);
+  requestAnimationFrame(loop);
+}
+
+function updateHud(){
+  document.getElementById("hudScore").textContent = String(score);
+  document.getElementById("hudQ").textContent = String(Math.min(qIndex+1, Q_TOTAL));
+  document.getElementById("hudTotal").textContent = String(Q_TOTAL);
+  document.getElementById("hudSpeed").textContent = carSpeed.toFixed(1);
+  const showBonus = mode === 'bonus';
+  document.getElementById("hudMainQ").style.display = showBonus ? "none" : "";
+  document.getElementById("hudMainSpeed").style.display = showBonus ? "none" : "";
+  document.getElementById("hudBonusTime").style.display = showBonus ? "" : "none";
+  document.getElementById("hudBonusDodge").style.display = showBonus ? "" : "none";
+  if(showBonus){
+    const showT = (bonusPhase === 'play') ? bonusLeft : bonusDuration;
+    document.getElementById("hudTime").textContent = String(Math.ceil(showT));
+    document.getElementById("hudDodged").textContent = String(bonusDodged);
+    document.getElementById("hudLives").textContent = "❤️".repeat(Math.max(0,bonusLives)) + "🖤".repeat(Math.max(0, MAX_LIVES-bonusLives));
+  } else {
+    document.getElementById("hudLives").textContent = "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0, MAX_LIVES-lives));
+  }
+  const rail = document.getElementById("progressRail");
+  const fill = document.getElementById("progressFill");
+  if(rail && fill){
+    if(mode === 'race' && running){
+      rail.classList.add("show");
+      fill.style.width = Math.round(Math.min(1, qIndex/Q_TOTAL)*100) + "%";
+    } else {
+      rail.classList.remove("show");
+    }
+  }
+}
+
+function renderCalHead(focusWeekday){
+  const head = document.getElementById("calHead");
+  if(!head) return;
+  head.innerHTML = DAYS.map((d,i) =>
+    '<span class="'+(i===focusWeekday?'focus':'')+'">'+d+'</span>'
+  ).join("");
+}
+function renderCalendar(q, interactive){
+  const grid = document.getElementById("calGrid");
+  grid.innerHTML = "";
+  if(!q || !q.month) return;
+  const focus = q.weekday.i;
+  const markedSet = {};
+  (q.marked || []).forEach(d => { markedSet[d] = true; });
+  const pickedSet = {};
+  pickedDays.forEach(d => { pickedSet[d] = true; });
+  renderCalHead(focus);
+  const lab = document.getElementById("calLabel");
+  if(lab) lab.textContent = "📅 Month calendar · " + q.month.weeks + " weeks";
+  document.getElementById("calMonth").textContent = q.month.name + " " + q.month.year;
+  q.month.cells.forEach(cell => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    if(!cell){
+      btn.className = "day-cell blank";
+      btn.tabIndex = -1;
+      btn.innerHTML = "&nbsp;";
+      grid.appendChild(btn);
+      return;
+    }
+    const isFocus = cell.weekday === focus;
+    if(interactive){
+      btn.className = "day-cell tap" + (isFocus ? " focus-col" : " mute");
+      if(!isFocus){
+        btn.disabled = true;
+        btn.innerHTML = "<div class='dnum'>"+cell.date+"</div><div class='mark'>·</div>";
+      } else {
+        const on = !!pickedSet[cell.date];
+        if(on) btn.classList.add("picked");
+        btn.innerHTML = "<div class='dnum'>"+cell.date+"</div><div class='mark'>"+(on?"✓":"·")+"</div>";
+        btn.onclick = () => {
+          if(!answering || paused) return;
+          const idx = pickedDays.indexOf(cell.date);
+          if(idx >= 0) pickedDays.splice(idx,1);
+          else pickedDays.push(cell.date);
+          pickedDays.sort((a,b)=>a-b);
+          renderCalendar(q, true);
+          document.getElementById("calLegend").textContent =
+            "Selected: " + pickedDays.length + " " + q.weekday.plural +
+            " (need " + q.countMin + (q.countMin===q.countMax?"":"–"+q.countMax) + ")";
+        };
+      }
+    } else {
+      if(!isFocus){
+        btn.className = "day-cell mute";
+        btn.innerHTML = "<div class='dnum'>"+cell.date+"</div><div class='mark'>·</div>";
+      } else if(markedSet[cell.date]){
+        btn.className = "day-cell on focus-col";
+        btn.innerHTML = "<div class='dnum'>"+cell.date+"</div><div class='mark'>✓</div>";
+      } else {
+        btn.className = "day-cell off focus-col";
+        btn.innerHTML = "<div class='dnum'>"+cell.date+"</div><div class='mark'>✗</div>";
+      }
+    }
+    grid.appendChild(btn);
+  });
+}
+
+function renderAnswers(q){
+  const area = document.getElementById("answerArea");
+  area.innerHTML = "";
+  if(q.type === "A"){
+    ADVERBS.forEach((adv,i)=>{
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "adv-btn a"+i;
+      b.textContent = adv;
+      b.onclick = () => submitTypeA(adv);
+      area.appendChild(b);
+    });
+  } else {
+    const go = document.createElement("button");
+    go.type = "button";
+    go.className = "go-btn";
+    go.id = "btnGo";
+    go.textContent = "GO ▶";
+    go.onclick = () => submitTypeB();
+    area.appendChild(go);
+  }
+}
+
+function showQuestion(){
+  if(qIndex >= queue.length || lives <= 0){
+    endRace(lives > 0);
+    return;
+  }
+  currentQ = queue[qIndex];
+  answering = true;
+  pickedDays = [];
+  updateHud();
+  document.getElementById("playWrap").classList.add("show");
+  document.getElementById("qTag").textContent = currentQ.type === "A"
+    ? "TYPE A · MONTH → ADVERB · " + currentQ.weekday.on
+    : "TYPE B · SENTENCE → TAP " + currentQ.weekday.plural.toUpperCase();
+  document.getElementById("qText").textContent = currentQ.prompt;
+  document.getElementById("qHint").textContent = currentQ.hint;
+  document.getElementById("calAct").textContent = (currentQ.activity.emoji||"") + " " + currentQ.activity.base + " · " + currentQ.weekday.on;
+  const denom = currentQ.denom || teachDenom(currentQ.adverb, currentQ.total);
+  if(currentQ.type === "A"){
+    renderCalendar(currentQ, false);
+    document.getElementById("calLegend").textContent =
+      "Focus " + currentQ.weekday.plural + ": ✓ = did it · ✗ = did not · " +
+      currentQ.count + "/" + denom + " " + currentQ.weekday.plural;
+  } else {
+    renderCalendar(currentQ, true);
+    document.getElementById("calLegend").textContent =
+      "Tap " + currentQ.weekday.plural + " only · " + currentQ.adverb + " = " +
+      currentQ.countMin + (currentQ.countMin===currentQ.countMax?"":"–"+currentQ.countMax) +
+      "/" + denom;
+  }
+  renderAnswers(currentQ);
+  const t = Math.max(TIMER_FLOOR, TIMER_START - Math.floor(qIndex * 0.5));
+  startTimer(t);
+}
+
+function startTimer(sec){
+  stopTimer();
+  timerTotal = sec;
+  timerLeft = sec;
+  timerEndsAt = performance.now() + sec * 1000;
+  document.getElementById("timerFill").style.width = "100%";
+  const tick = () => {
+    if(!running || paused || !answering) return;
+    const leftMs = Math.max(0, timerEndsAt - performance.now());
+    timerLeft = leftMs / 1000;
+    document.getElementById("timerFill").style.width = Math.max(0, (timerLeft/timerTotal)*100) + "%";
+    if(leftMs <= 0){
+      onWrong("Time's up");
+      return;
+    }
+    timerRaf = requestAnimationFrame(tick);
+  };
+  timerRaf = requestAnimationFrame(tick);
+}
+function stopTimer(){
+  if(timerRaf) cancelAnimationFrame(timerRaf);
+  timerRaf = 0;
+}
+
+function awardPoints(){
+  const remain = Math.max(0, Math.floor(timerLeft));
+  return 100 + remain * 10;
+}
+
+function onCorrect(detail){
+  if(!answering) return;
+  answering = false;
+  stopTimer();
+  const gained = awardPoints();
+  score += gained;
+  correctCount += 1;
+  carSpeed = Math.min(5, +(carSpeed + 0.35).toFixed(2));
+  boostUntil = performance.now() + 900;
+  flash(true); beep(880, 0.12, "triangle");
+  report.push({ok:true, text: currentQ.prompt, detail: detail + " · +" + gained});
+  qIndex += 1;
+  updateHud();
+  setTimeout(() => { if(running && !paused) showQuestion(); }, 450);
+}
+function onWrong(reason){
+  if(!answering) return;
+  answering = false;
+  stopTimer();
+  lives -= 1;
+  carSpeed = Math.max(1, +(carSpeed - 0.25).toFixed(2));
+  flash(false); beep(180, 0.18, "sawtooth");
+  const dnm = currentQ.denom || teachDenom(currentQ.adverb, currentQ.total);
+  const expect = currentQ.type === "A"
+    ? ("Answer: " + currentQ.adverb + " (" + currentQ.count + "/" + dnm + " " + currentQ.weekday.plural + ")")
+    : ("Need " + currentQ.countMin + (currentQ.countMin===currentQ.countMax?"":"–"+currentQ.countMax) + "/" + dnm + " " + currentQ.weekday.plural + " for " + currentQ.adverb);
+  report.push({ok:false, text: currentQ.prompt, detail: reason + " · " + expect});
+  updateHud();
+  if(lives <= 0){
+    setTimeout(() => endRace(false), 500);
+    return;
+  }
+  qIndex += 1;
+  setTimeout(() => { if(running && !paused) showQuestion(); }, 550);
+}
+
+function submitTypeA(adv){
+  if(!answering || paused || !currentQ || currentQ.type !== "A") return;
+  if(adv === currentQ.adverb) onCorrect("✓ " + adv);
+  else onWrong("Chose " + adv);
+}
+function submitTypeB(){
+  if(!answering || paused || !currentQ || currentQ.type !== "B") return;
+  const allowed = {};
+  (currentQ.candidates || []).forEach(d => { allowed[d] = true; });
+  const valid = pickedDays.every(d => allowed[d]);
+  const n = pickedDays.length;
+  if(valid && n >= currentQ.countMin && n <= currentQ.countMax){
+    onCorrect("✓ " + n + "/" + (currentQ.denom || teachDenom(currentQ.adverb, currentQ.total)) + " " + currentQ.weekday.plural);
+  } else {
+    onWrong("Selected " + n + "/" + (currentQ.denom || teachDenom(currentQ.adverb, currentQ.total)) + " " + currentQ.weekday.plural);
+  }
+}
+
+async function saveMainScoreOnce(){
+  if(mainScoreSaved) return;
+  mainScoreSaved = true;
+  const local = upsertLocalScore(currentPlayer, score, correctCount);
+  const statusEl = document.getElementById("lbStatus");
+  if(statusEl) statusEl.textContent = "Saving to cloud… · " + local.status;
+  const cloud = await cloudUpsertPlayer(currentPlayer, score, correctCount);
+  if(statusEl) statusEl.textContent = cloud.status + " · " + local.status;
+}
+
+function showFinalOverlay(title, extraHtml){
+  document.getElementById("hud").style.display = "none";
+  document.getElementById("playWrap").classList.remove("show");
+  document.getElementById("btnPause").style.display = "none";
+  document.getElementById("progressRail").classList.remove("show");
+  document.getElementById("bonusHint").classList.remove("show");
+  document.getElementById("playingAs").classList.remove("show");
+  document.getElementById("endTitle").textContent = title;
+  document.getElementById("endStats").innerHTML =
+    "Score <b>"+score+"</b> · Correct <b>"+correctCount+"</b>/"+Q_TOTAL+" · Speed <b>"+carSpeed.toFixed(1)+"x</b>" +
+    "<br>Playing as: <b>"+esc(playerLabel(currentPlayer))+"</b>" +
+    (extraHtml || "");
+  document.getElementById("endReport").innerHTML = report.map(r =>
+    '<div class="row">'+(r.ok?'<span class="okb">✓</span>':'<span class="badb">✗</span>')+' '+esc(r.text)+
+    '<br><span class="muted">'+esc(r.detail)+'</span></div>'
+  ).join("");
+  showOverlay("overlayEnd");
+}
+
+async function endRace(finished){
+  answering = false; stopTimer();
+  raceFinishedClear = !!finished;
+  document.getElementById("playWrap").classList.remove("show");
+  document.getElementById("progressRail").classList.remove("show");
+  // Persist main race score in background — do NOT block bonus on cloud
+  Promise.resolve().then(() => saveMainScoreOnce()).catch(err => console.warn("score save", err));
+  if(finished){
+    // Auto-enter bonus: 3-2-1 countdown then dodge (no START button gate)
+    startBonus();
+    return;
+  }
+  running = false; paused = false; mode = 'menu'; bonusActive = false;
+  showFinalOverlay("💥 Out of lives", "");
+}
+
+function startBonus(){
+  mode = 'bonus';
+  bonusActive = true;
+  running = true;
+  paused = false;
+  bonusDuration = 30; // fixed for everyone
+  bonusLeft = bonusDuration;
+  bonusEndsAt = 0; // set when play phase starts (after 3-2-1-GO)
+  bonusPlayStartedAt = 0;
+  bonusLives = MAX_LIVES;
+  lives = bonusLives;
+  bonusDodged = 0;
+  bonusCars = [];
+  bonusInvulnUntil = 0;
+  bonusSpawnAt = 0;
+  bonusHitstunUntil = 0;
+  bonusFx = null;
+  bonusFinishX = -1;
+  bonusPlayerX = 0.16;
+  bonusRushing = false;
+  bonusCrossedAt = 0;
+  bonusPhase = 'countdown';
+  bonusCountdownN = 3;
+  bonusCountdownUntil = performance.now() + 1000;
+  carY = 0.5;
+  pointerTargetY = 0.5;
+  raceProgress = 1;
+  hideOverlays();
+  document.getElementById("hud").style.display = "flex";
+  document.getElementById("btnPause").style.display = "inline-flex";
+  document.getElementById("playingAs").classList.add("show");
+  document.getElementById("bonusHint").classList.add("show");
+  document.getElementById("playWrap").classList.remove("show");
+  updatePlayerUI();
+  updateHud();
+  beep(520, 0.12, "square");
+}
+
+function endBonus(survived){
+  bonusActive = false;
+  running = false;
+  paused = false;
+  mode = 'menu';
+  const left = Math.max(0, Math.ceil(bonusLeft));
+  const title = survived ? "🏆 Bonus clear · FINISH!" : (bonusLives<=0 ? "💥 Bonus: out of lives" : "⏱️ Bonus time up");
+  const extra =
+    "<br><br><b>🎁 Bonus dodge</b>: Dodged <b>"+bonusDodged+"</b> cars · Time left <b>"+left+"</b>s · Lives left <b>"+Math.max(0,bonusLives)+"</b>" +
+    "<br><span class='muted'>Bonus time: "+bonusDuration+"s (fixed)</span>";
+  showFinalOverlay(title, extra);
+}
+
+function setPointerYFromEvent(e){
+  const h = window.innerHeight;
+  const rg = roadGeom(window.innerWidth, h);
+  let clientY;
+  if(e.touches && e.touches[0]) clientY = e.touches[0].clientY;
+  else clientY = e.clientY;
+  const t = (clientY - rg.top) / Math.max(1, rg.height);
+  pointerTargetY = Math.max(0, Math.min(1, (t - 0.17) / 0.66));
+}
+
+function startRace(){
+  if(!currentPlayer){ goNameSelect(); return; }
+  score = 0; lives = MAX_LIVES; qIndex = 0; correctCount = 0;
+  carSpeed = 1; boostUntil = 0; report = [];
+  queue = buildQueue();
+  running = true; paused = false;
+  mode = 'race';
+  bonusActive = false;
+  raceProgress = 0;
+  carX = 0.12; carY = 0.5;
+  mainScoreSaved = false;
+  raceFinishedClear = false;
+  document.getElementById("bonusHint").classList.remove("show");
+  hideOverlays();
+  document.getElementById("hud").style.display = "flex";
+  document.getElementById("btnPause").style.display = "inline-flex";
+  document.getElementById("playingAs").classList.add("show");
+  updatePlayerUI();
+  updateHud();
+  showQuestion();
+}
+
+function pauseGame(){
+  if(!running || paused) return;
+  paused = true;
+  if(mode === 'bonus' && bonusActive){
+    if(bonusEndsAt){
+      bonusLeft = Math.max(0, (bonusEndsAt - performance.now())/1000);
+    }
+    // freeze countdown clock too
+    if(bonusPhase === 'countdown' || bonusPhase === 'go'){
+      bonusCountdownUntil = Math.max(0, bonusCountdownUntil - performance.now()); // store remaining
+    }
+  }
+  showOverlay("overlayPause");
+}
+function resumeGame(){
+  if(!running || !paused) return;
+  paused = false;
+  hideOverlays();
+  if(mode === 'bonus' && bonusActive){
+    if(bonusPhase === 'play' && bonusEndsAt){
+      bonusEndsAt = performance.now() + bonusLeft * 1000;
+    }
+    if(bonusPhase === 'countdown' || bonusPhase === 'go'){
+      bonusCountdownUntil = performance.now() + bonusCountdownUntil; // remaining ms restored
+    }
+  }
+  if(answering && mode === 'race'){
+    // rebuild remaining time from timerLeft
+    timerEndsAt = performance.now() + timerLeft * 1000;
+    const tick = () => {
+      if(!running || paused || !answering) return;
+      const leftMs = Math.max(0, timerEndsAt - performance.now());
+      timerLeft = leftMs / 1000;
+      document.getElementById("timerFill").style.width = Math.max(0, (timerLeft/timerTotal)*100) + "%";
+      if(leftMs <= 0){ onWrong("Time's up"); return; }
+      timerRaf = requestAnimationFrame(tick);
+    };
+    timerRaf = requestAnimationFrame(tick);
+  }
+}
+function quitToMenu(){
+  running=false; paused=false; answering=false; stopTimer();
+  mode='menu'; bonusActive=false; bonusCars=[];
+  document.getElementById("hud").style.display="none";
+  document.getElementById("playWrap").classList.remove("show");
+  document.getElementById("btnPause").style.display="none";
+  document.getElementById("progressRail").classList.remove("show");
+  document.getElementById("bonusHint").classList.remove("show");
+  document.getElementById("playingAs").classList.add("show");
+  updatePlayerUI();
+  showOverlay("overlayStart");
+}
+
+// wire UI
+document.getElementById("btnStart").onclick = startRace;
+document.getElementById("btnAgain").onclick = startRace;
+document.getElementById("btnMenu").onclick = quitToMenu;
+document.getElementById("btnChangeName").onclick = goNameSelect;
+document.getElementById("btnNotMe").onclick = goNameSelect;
+document.getElementById("btnPause").onclick = pauseGame;
+document.getElementById("btnResume").onclick = resumeGame;
+document.getElementById("btnQuit").onclick = quitToMenu;
+document.getElementById("btnBoardStart").onclick = () => openBoard("overlayStart");
+document.getElementById("btnBoardEnd").onclick = () => openBoard("overlayEnd");
+document.getElementById("btnBoardClose").onclick = closeBoard;
+document.getElementById("btnBoardRefresh").onclick = refreshBoard;
+document.getElementById("btnBoardClear").onclick = teacherClearBoard;
+document.getElementById("btnMute").onclick = () => {
+  muted = !muted;
+  document.getElementById("btnMute").textContent = muted ? "🔇" : "🔊";
+  if(!muted) beep(520, 0.08, "sine");
+};
+
+window.addEventListener("keydown", (e) => {
+  if(!running || paused || !answering || !currentQ) return;
+  if(currentQ.type === "A"){
+    const map = {Digit1:0,Digit2:1,Digit3:2,Digit4:3,Digit5:4,
+      Numpad1:0,Numpad2:1,Numpad3:2,Numpad4:3,Numpad5:4,
+      KeyA:0,KeyS:1,KeyD:2,KeyF:3,KeyG:4};
+    if(map[e.code] != null){ e.preventDefault(); submitTypeA(ADVERBS[map[e.code]]); }
+  } else if(e.code === "Enter" || e.code === "Space"){
+    e.preventDefault(); submitTypeB();
+  }
+});
+
+function onPointerDown(e){
+  if(mode !== 'bonus' || !bonusActive || paused) return;
+  const t = e.target;
+  if(t && t.closest && t.closest('.overlay, .controls-bar, .playing-as, button, a')) return;
+  pointerDragging = true;
+  setPointerYFromEvent(e);
+  if(e.cancelable) e.preventDefault();
+}
+function onPointerMove(e){
+  if(mode !== 'bonus' || !bonusActive || paused) return;
+  if(!pointerDragging && !(e.touches && e.touches.length)) return;
+  if(e.touches && e.touches.length) pointerDragging = true;
+  setPointerYFromEvent(e);
+  if(e.cancelable) e.preventDefault();
+}
+function onPointerUp(){ pointerDragging = false; }
+
+window.addEventListener("mousedown", onPointerDown);
+window.addEventListener("mousemove", onPointerMove);
+window.addEventListener("mouseup", onPointerUp);
+window.addEventListener("touchstart", onPointerDown, {passive:false});
+window.addEventListener("touchmove", onPointerMove, {passive:false});
+window.addEventListener("touchend", onPointerUp);
+
+window.addEventListener("keydown", (e) => {
+  if(mode === 'bonus' && bonusActive && !paused){
+    if(e.code === 'ArrowUp' || e.code === 'KeyW'){ e.preventDefault(); pointerTargetY = Math.max(0, pointerTargetY - 0.22); }
+    if(e.code === 'ArrowDown' || e.code === 'KeyS'){ e.preventDefault(); pointerTargetY = Math.min(1, pointerTargetY + 0.22); }
+  }
+});
+
+window.addEventListener("resize", resize);
+resize();
+requestAnimationFrame(loop);
+
+currentPlayer = loadPlayer();
+updatePlayerUI();
+if(currentPlayer){
+  document.getElementById("playingAs").classList.add("show");
+  showOverlay("overlayStart");
+} else {
+  buildNameGrid();
+  showOverlay("overlayName");
+}
+})();
+</script>
 </body>
 </html>

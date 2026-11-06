@@ -1,11 +1,9 @@
-# Offline game backups
+# Offline backups (optional archive)
 
-These HTML games are temporarily taken offline from GitHub Pages.
-Root paths serve a “暫時下架 / Temporarily offline” placeholder instead.
+Live games were restored to the repo root on 2026-11-06.
+These copies are kept as a safety archive; the live pages are:
 
-- `frequency-race-4a.html` — restore by copying back to repo root
-- `comparative-jump-parkour.html` — restore by copying back to repo root
-- `index.html` — Supermarket Race (site root) — restore by copying back to repo root
-
-Do not delete; restore when teacher asks to re-enable.
-- `leaderboards.html` — restore by copying back to repo root
+- `../index.html` — Supermarket Race
+- `../frequency-race-4a.html` — Frequency Race
+- `../comparative-jump-parkour.html` — Comparative Jump
+- `../leaderboards.html` — Class leaderboards viewer

@@ -2,30 +2,1338 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Comparative Jump — 暫時下架</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Comparative Jump — P4 Comparatives &amp; Superlatives</title>
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-font-family:"Segoe UI","PingFang HK","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
-background:radial-gradient(ellipse at center,#ecfeff,#fff7ed);color:#134e4a;padding:24px}
-.card{max-width:480px;width:100%;background:#fff;border:3px solid #fed7aa;border-radius:24px;
-padding:32px 28px;text-align:center;box-shadow:0 12px 32px rgba(154,52,18,.1)}
-h1{margin:0 0 10px;font-size:clamp(1.4rem,4vw,1.9rem)}
-p{margin:8px 0;line-height:1.55;font-weight:600;color:#9a3412}
-.en{color:#64748b;font-weight:700}
-.badge{display:inline-block;margin-bottom:14px;padding:6px 14px;border-radius:999px;
-background:#fff7ed;border:2px solid #fdba74;color:#9a3412;font-weight:900;font-size:.9rem}
-a{color:#c2410c;font-weight:800}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0c1a2e;
+  font-family:"Segoe UI","PingFang HK","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:#e8fffa;
+  touch-action:none;-webkit-user-select:none;user-select:none}
+#game{display:block;width:100%;height:100%;background:#0c1a2e}
+.overlay{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,rgba(30,80,120,.92),rgba(8,20,40,.96));
+  z-index:10;padding:20px
+}
+.overlay.hidden{display:none}
+.panel{
+  max-width:520px;width:100%;background:linear-gradient(160deg,#1a3a5c,#0f2740);
+  border:3px solid #38bdf8;border-radius:24px;padding:28px 24px;text-align:center;
+  box-shadow:0 0 40px rgba(56,189,248,.25), inset 0 0 30px rgba(0,0,0,.3)
+}
+.panel h1{
+  font-size:clamp(1.5rem,5vw,2.2rem);font-weight:900;letter-spacing:-.5px;
+  background:linear-gradient(90deg,#7dd3fc,#fbbf24,#fb7185);
+  -webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px
+}
+.panel p{color:#a5c4d8;font-size:.95rem;margin:8px 0 16px;line-height:1.5}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 32px;margin:6px;border:none;border-radius:999px;font-weight:800;
+  font-size:1.05rem;cursor:pointer;font-family:inherit;
+  background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;
+  box-shadow:0 4px 20px rgba(14,165,233,.4);transition:transform .15s
+}
+.btn:hover{transform:translateY(-2px)}
+.btn-alt{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff}
+.btn-ghost{background:transparent;border:2px solid #38bdf8;color:#7dd3fc;box-shadow:none}
+.hud{
+  position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;
+  padding:10px 14px;display:flex;justify-content:space-between;align-items:flex-start;
+  background:linear-gradient(180deg,rgba(0,0,0,.55),transparent);gap:8px;flex-wrap:wrap
+}
+.hud .stat{background:rgba(8,30,50,.75);border:1px solid #38bdf855;border-radius:12px;
+  padding:8px 12px;font-weight:700;font-size:.9rem;backdrop-filter:blur(4px)}
+.hud .lives{letter-spacing:1px;font-size:1.05rem}
+.q-banner{
+  position:fixed;left:50%;transform:translateX(-50%);top:70px;z-index:6;
+  max-width:min(920px,94vw);width:100%;pointer-events:none;
+  background:rgba(8,30,50,.9);border:2px solid #7dd3fc;border-radius:16px;
+  padding:12px 18px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4);
+  display:none
+}
+.q-banner.show{display:block}
+.q-banner .tag{font-size:.75rem;font-weight:700;color:#fbbf24;margin-bottom:4px;letter-spacing:.04em}
+.q-banner .q{font-size:clamp(1rem,2.8vw,1.3rem);font-weight:800;color:#ecfeff;line-height:1.4}
+.q-banner .timer-bar{height:6px;background:#1e3a5f;border-radius:99px;margin-top:10px;overflow:hidden}
+.q-banner .timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#34d399,#fbbf24,#f87171);
+  transition:width .05s linear;border-radius:99px}
+.lane-hint{
+  position:fixed;bottom:14px;left:0;right:0;z-index:6;display:none;
+  justify-content:center;pointer-events:none;padding:0 4%;gap:8px;flex-wrap:wrap
+}
+.lane-hint.show{display:flex}
+.lane-chip{
+  pointer-events:auto;flex:1 1 20%;max-width:22%;min-width:70px;padding:14px 10px;border-radius:16px;
+  font-weight:800;font-size:clamp(.85rem,2.4vw,1.15rem);cursor:pointer;border:3px solid;
+  text-align:center;backdrop-filter:blur(6px);transition:transform .1s,opacity .15s;line-height:1.25
+}
+.lane-chip.c0{background:rgba(14,165,233,.9);border-color:#7dd3fc;color:#082f49}
+.lane-chip.c1{background:rgba(251,191,36,.92);border-color:#fde68a;color:#78350f}
+.lane-chip.c2{background:rgba(244,114,182,.9);border-color:#f9a8d4;color:#500724}
+.lane-chip.c3{background:rgba(52,211,153,.9);border-color:#6ee7b7;color:#064e3b}
+.lane-chip:active{transform:scale(.96)}
+.lane-chip .key{display:block;font-size:.65rem;opacity:.85;font-weight:600;margin-bottom:3px}
+@media (max-width:520px){
+  .lane-chip{flex:1 1 40%;max-width:46%;min-width:110px}
+}
+.controls-bar{position:fixed;bottom:14px;right:14px;z-index:8;display:flex;gap:8px}
+.icon-btn{
+  width:44px;height:44px;border-radius:12px;border:2px solid #38bdf855;
+  background:rgba(8,30,50,.75);color:#7dd3fc;font-size:1.2rem;cursor:pointer
+}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:7;opacity:0;transition:opacity .15s}
+.flash.ok{background:rgba(52,211,153,.25);opacity:1}
+.flash.bad{background:rgba(248,113,113,.3);opacity:1}
+.report{text-align:left;max-height:40vh;overflow:auto;margin:12px 0;font-size:.88rem}
+.report .row{padding:8px;border-bottom:1px solid #1e4a5f;color:#b6d4d4}
+.report .row b{color:#fca5a5}
+.report .okb{color:#6ee7b7}
+.muted{color:#7a9ab0;font-size:.85rem}
+#overlayName{
+  background:radial-gradient(ellipse at 30% 20%,rgba(253,121,168,.18),transparent 45%),
+    radial-gradient(ellipse at 80% 10%,rgba(52,152,219,.14),transparent 40%),
+    #fffaf0 !important;
+  overflow:auto;align-items:flex-start;padding:28px 16px 40px
+}
+#overlayName .panel{
+  max-width:820px;background:#fff;border:2px solid rgba(0,0,0,.06);
+  box-shadow:0 8px 28px rgba(45,52,54,.1);color:#2d3436
+}
+#overlayName .panel h1{
+  background:none;-webkit-background-clip:unset;background-clip:unset;
+  color:#2d3436;font-size:clamp(1.4rem,4vw,2rem)
+}
+#overlayName .panel h1 span.c1{color:#ff6b6b}
+#overlayName .panel h1 span.c2{color:#f39c12}
+#overlayName .panel h1 span.c3{color:#1abc9c}
+#overlayName .panel p{color:#636e72}
+.name-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:10px;margin:16px 0;text-align:left
+}
+.name-chip{
+  padding:12px 10px;border-radius:14px;border:2px solid #eee;background:linear-gradient(145deg,#fff,#f8f9fa);
+  font-weight:700;font-size:.92rem;color:#2d3436;cursor:pointer;font-family:inherit;
+  transition:transform .12s,border-color .12s,background .12s
+}
+.name-chip:hover,.name-chip.sel{border-color:#0ea5e9;background:#e0f2fe;transform:translateY(-2px)}
+.name-chip .no{display:block;font-size:.72rem;color:#636e72;font-weight:600}
+.playing-as{
+  position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:9;
+  background:rgba(255,250,240,.92);color:#2d3436;border:2px solid #0ea5e955;
+  border-radius:999px;padding:6px 14px;font-weight:700;font-size:.85rem;
+  display:none;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.12)
+}
+.playing-as.show{display:flex;align-items:center;gap:10px}
+.playing-as button{
+  border:none;background:#fff;border:1px solid #ddd;border-radius:999px;
+  padding:4px 10px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;color:#636e72
+}
+#overlayBoard .panel{max-width:560px;text-align:left}
+#overlayBoard .panel h1{text-align:center}
+.board-list{max-height:50vh;overflow:auto;margin:12px 0;font-size:.9rem}
+.board-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid #1e4a5f;color:#b6d4d4}
+.board-row .rank{font-weight:900;width:2.2em;color:#7dd3fc;flex-shrink:0}
+.board-row .who{flex:1;font-weight:700;color:#ecfeff;min-width:0}
+.board-row .meta{font-size:.82rem;color:#99b8b8;white-space:nowrap;text-align:right}
+.board-empty,.board-status{text-align:center;color:#7a9ab0;padding:18px 8px}
+.board-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px}
+#lbStatus{margin-top:8px;font-size:.85rem;color:#7dd3fc;min-height:1.2em}
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="badge">⏸️ Offline</div>
-  <h1>🏃 Comparative Jump</h1>
-  <p>暫時下架 · 請稍後再試</p>
-  <p class="en">Temporarily offline. Please check back later.</p>
-  <p style="margin-top:16px">趁住休息，溫習返課堂學過嘅文法啦！💪</p>
-  <p class="en">Great time to revise what we learnt in class!</p>
+<canvas id="game"></canvas>
+<div class="flash" id="flash"></div>
+<div class="playing-as" id="playingAs"><span id="playingAsText"></span><button type="button" id="btnNotMe">Not me?</button></div>
+<div class="hud" id="hud" style="display:none">
+  <div class="stat">⭐ <span id="hudScore">0</span></div>
+  <div class="stat">🏃 Jump <span id="hudJump">0</span>/<span id="hudJumpNeed">10</span></div>
+  <div class="stat lives" id="hudLives">❤️❤️❤️❤️❤️</div>
 </div>
+<div class="q-banner" id="qBanner">
+  <div class="tag" id="qTag">COMPARATIVE / SUPERLATIVE</div>
+  <div class="q" id="qText"></div>
+  <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+</div>
+<div class="lane-hint" id="laneHint">
+  <button class="lane-chip c0" id="btn0" type="button"><span class="key">1 / A · jump</span><span id="opt0"></span></button>
+  <button class="lane-chip c1" id="btn1" type="button"><span class="key">2 / S · jump</span><span id="opt1"></span></button>
+  <button class="lane-chip c2" id="btn2" type="button"><span class="key">3 / D · jump</span><span id="opt2"></span></button>
+  <button class="lane-chip c3" id="btn3" type="button"><span class="key">4 / F · jump</span><span id="opt3"></span></button>
+</div>
+<div class="controls-bar">
+  <button class="icon-btn" id="btnMute" title="Sound on/off" aria-label="Sound">🔇</button>
+  <button class="icon-btn" id="btnPause" title="Pause" style="display:none">⏸</button>
+</div>
+
+<div class="overlay" id="overlayName">
+  <div class="panel">
+    <h1><span class="c1">Who</span> <span class="c2">are</span> <span class="c3">you?</span></h1>
+    <p>點選你的姓名（班號）· Tap your name (class no.) · 26 classmates</p>
+    <div class="name-grid" id="nameGrid"></div>
+    <p class="muted" style="margin-top:8px">選好後會進入 START 畫面</p>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayStart">
+  <div class="panel">
+    <h1>🏃 COMPARATIVE JUMP</h1>
+    <p style="font-weight:800;letter-spacing:.02em;margin:0 0 6px;color:#fbbf24">Low-poly Runner · P4 Comparatives &amp; Superlatives</p>
+    <p id="startPlayerLine" style="font-weight:800;color:#7dd3fc;margin-bottom:4px">Playing as: —</p>
+    <p>人物置中 · 車／雪糕筒從右側逼近<br>
+    選正確文法形式先可跳過障礙 · 答錯會撞傷<br>
+    cheaper / the cheapest · more expensive / the most expensive<br>
+    <b>成功跳過 10 次到終點</b> · <b>5 lives</b> · 限時約 14s→7s<br>
+    <span class="muted">點選答案或按 1–4 / A S D F · Primary 4 · 4A Ch.3</span></p>
+    <button class="btn" id="btnStart">START RUN ▶</button>
+    <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
+    <button class="btn btn-ghost" id="btnChangeName" type="button">Not me? Change name</button>
+    <p class="muted" style="margin-top:14px">老師說明：選正確文法形式。商品名寫全（如 Super Raisin、Yummy Hot Dog）。人物置中低多邊形造型；障礙物（車／雪糕筒）橫向逼近；答對跳過、答錯／逾時受傷扣命，進度保留（命盡才結束）。本遊戲屬<strong>Jacky 英文班</strong>雲端榜（鍵 j）。排行榜雲端累積；清除密碼 teacher。</p>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayPause">
+  <div class="panel">
+    <h1>⏸ Paused</h1>
+    <button class="btn" id="btnResume">Resume</button>
+    <button class="btn btn-ghost" id="btnQuit">Quit to menu</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayEnd">
+  <div class="panel">
+    <h1 id="endTitle">🏁 Run Over</h1>
+    <p id="endStats"></p>
+    <div class="report" id="endReport"></div>
+    <p id="lbStatus" class="muted"></p>
+    <button class="btn btn-alt" id="btnAgain">Run again 🔄</button>
+    <button class="btn btn-ghost" id="btnBoardEnd" type="button">🏆 Leaderboard</button>
+    <button class="btn btn-ghost" id="btnMenu">Main menu</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayBoard">
+  <div class="panel">
+    <h1>🏆 Leaderboard</h1>
+    <p class="muted" style="text-align:center;margin:0 0 4px">Class Top · cloud shared · Comparative Jump</p>
+    <div class="board-list" id="boardList"><div class="board-status">Loading…</div></div>
+    <div class="board-actions">
+      <button class="btn" id="btnBoardRefresh" type="button">Refresh</button>
+      <button class="btn btn-alt" id="btnBoardClear" type="button">Clear (teacher)</button>
+      <button class="btn btn-ghost" id="btnBoardClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const CLASS_ROSTER = [
+  {name:"Jacky", no:1},{name:"Louis", no:2},{name:"Sara", no:3},{name:"Edward", no:4},
+  {name:"Patric", no:5},{name:"Iris", no:6},{name:"Mercy", no:7},{name:"Aiden", no:8},
+  {name:"Helios", no:9},{name:"Emma", no:10},{name:"Hugo", no:11},{name:"Hannah", no:12},
+  {name:"Luna", no:13},{name:"Emily", no:14},{name:"Brian", no:15},{name:"Felix", no:16},
+  {name:"Vincent", no:17},{name:"Issac", no:18},{name:"Howard", no:19},{name:"Fung", no:20},
+  {name:"Damon", no:21},{name:"Coly", no:22},{name:"Isa", no:23},{name:"Natalie", no:24},
+  {name:"Eva", no:25},{name:"Sam", no:26}
+];
+const LS_PLAYER = "cj_jump_player_v1";
+const LS_BOARD = "cj_jump_board_cum_v1";
+const TEACHER_CLEAR_PW = "teacher";
+const JUMPS_TO_WIN = 10;
+const MAX_LIVES = 5;
+const TIMER_START = 14;
+const TIMER_FLOOR = 7;
+let currentPlayer = null;
+let boardReturnOverlay = "overlayStart";
+
+function playerLabel(p){ return p ? (p.name + " (" + p.no + ")") : "—"; }
+function loadPlayer(){
+  try{
+    const raw = localStorage.getItem(LS_PLAYER);
+    if(!raw) return null;
+    const o = JSON.parse(raw);
+    if(o && o.name && o.no) return o;
+  }catch(e){}
+  return null;
+}
+function savePlayer(p){ try{ localStorage.setItem(LS_PLAYER, JSON.stringify(p)); }catch(e){} }
+function buildNameGrid(){
+  const g = document.getElementById("nameGrid");
+  if(!g) return;
+  g.innerHTML = "";
+  const prev = loadPlayer();
+  CLASS_ROSTER.forEach(stu => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "name-chip" + (prev && prev.no===stu.no ? " sel" : "");
+    b.innerHTML = '<span class="no">No. ' + stu.no + '</span>' + stu.name + ' (' + stu.no + ')';
+    b.onclick = () => selectPlayer(stu);
+    g.appendChild(b);
+  });
+}
+function selectPlayer(stu){
+  currentPlayer = {name: stu.name, no: stu.no};
+  savePlayer(currentPlayer);
+  updatePlayerUI();
+  showOverlay("overlayStart");
+}
+function updatePlayerUI(){
+  const label = playerLabel(currentPlayer);
+  const startLine = document.getElementById("startPlayerLine");
+  if(startLine) startLine.textContent = "Playing as: " + label;
+  const txt = document.getElementById("playingAsText");
+  if(txt) txt.textContent = "Playing as: " + label;
+}
+function goNameSelect(){
+  running=false; paused=false; stopBgm();
+  document.getElementById("hud").style.display="none";
+  document.getElementById("qBanner").classList.remove("show");
+  document.getElementById("laneHint").classList.remove("show");
+  document.getElementById("playingAs").classList.remove("show");
+  document.getElementById("btnPause").style.display="none";
+  buildNameGrid();
+  showOverlay("overlayName");
+}
+
+
+const CLOUD_PREFIX = "j";
+
+// ---------- Cloud leaderboard (keyvalue.immanuel.co) ----------
+const CLOUD_BASE = "https://keyvalue.immanuel.co/api/KeyVal";
+const CLOUD_APP = "9qeew60c";
+function cloudKey(no){ return CLOUD_PREFIX + no; }
+function encodeScore(sumScore, games, totalCorrect, when){
+  return [sumScore|0, games|0, totalCorrect|0, when|0].join("-");
+}
+function parseScoreVal(raw){
+  if(raw == null) return null;
+  let s = raw;
+  if(typeof s !== "string"){
+    try{ s = JSON.stringify(s); }catch(e){ return null; }
+  }
+  s = s.trim();
+  if((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))){
+    try{ s = JSON.parse(s); }catch(e){ s = s.slice(1,-1); }
+  }
+  if(typeof s !== "string") s = String(s);
+  s = s.trim();
+  if(!s || s === "0" || s === '""' || s === "null") return null;
+  const parts = s.split("-");
+  if(parts.length < 4) return null;
+  const score = parseInt(parts[0], 10);
+  const games = parseInt(parts[1], 10);
+  const correct = parseInt(parts[2], 10);
+  const when = parseInt(parts[3], 10);
+  if(!isFinite(score) || score <= 0) return null;
+  return {
+    score: score||0,
+    games: isFinite(games)?games:0,
+    correct: isFinite(correct)?correct:0,
+    when: isFinite(when)?when:0
+  };
+}
+async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+async function cloudGet(no){
+  const url = CLOUD_BASE + "/GetValue/" + CLOUD_APP + "/" + cloudKey(no);
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"GET", cache:"no-store"});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("GET " + res.status);
+        await sleep(200 + attempt * 250 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("GET " + res.status);
+      const txt = await res.text();
+      let parsed = txt;
+      try{ parsed = JSON.parse(txt); }catch(e){ parsed = txt; }
+      return parseScoreVal(parsed);
+    }catch(e){
+      lastErr = e;
+      await sleep(200 + attempt * 250);
+    }
+  }
+  throw lastErr || new Error("GET failed");
+}
+async function cloudWrite(no, value){
+  const url = CLOUD_BASE + "/UpdateValue/" + CLOUD_APP + "/" + cloudKey(no) + "/" + encodeURIComponent(value);
+  let lastErr = null;
+  for(let attempt = 0; attempt < 4; attempt++){
+    try{
+      const res = await fetch(url, {method:"POST", body:""});
+      if(res.status === 503 || res.status === 429){
+        lastErr = new Error("POST " + res.status);
+        await sleep(250 + attempt * 300 + Math.floor(Math.random()*120));
+        continue;
+      }
+      if(!res.ok) throw new Error("POST " + res.status);
+      return true;
+    }catch(e){
+      lastErr = e;
+      await sleep(250 + attempt * 300);
+    }
+  }
+  throw lastErr || new Error("POST failed");
+}
+async function mapPool(items, limit, fn){
+  const out = new Array(items.length);
+  let i = 0;
+  async function worker(){
+    while(i < items.length){
+      const idx = i++;
+      out[idx] = await fn(items[idx], idx);
+    }
+  }
+  const n = Math.max(1, Math.min(limit, items.length));
+  await Promise.all(Array.from({length:n}, () => worker()));
+  return out;
+}
+async function cloudUpsertPlayer(player, score, correct){
+  if(!player || !player.no) return {ok:false, status:"失敗"};
+  const when = Math.floor(Date.now()/1000);
+  const addScore = score|0;
+  const addCorrect = correct|0;
+  try{
+    const existing = await cloudGet(player.no);
+    const sum = (existing ? existing.score : 0) + addScore;
+    const games = (existing ? (existing.games||0) : 0) + 1;
+    const totalCorrect = (existing ? existing.correct : 0) + addCorrect;
+    if(addScore <= 0 && !existing){
+      return {ok:true, status:"無分數可累積", kept:true};
+    }
+    await cloudWrite(player.no, encodeScore(sum, games, totalCorrect, when));
+    return {ok:true, status:"已累積更新 · 雲端總分 "+sum+"（"+games+" 局）", updated:true, sum, games};
+  }catch(e){
+    console.warn("cloud upsert failed", e);
+    return {ok:false, status:"雲端更新失敗"};
+  }
+}
+async function cloudFetchAll(){
+  const rows = await mapPool(CLASS_ROSTER, 3, async stu => {
+    try{
+      const ent = await cloudGet(stu.no);
+      if(!ent) return null;
+      return {name:stu.name, no:stu.no, ...ent};
+    }catch(e){
+      return {_err:true, name:stu.name, no:stu.no};
+    }
+  });
+  const errs = rows.filter(r => r && r._err).length;
+  const list = rows.filter(r => r && !r._err);
+  list.sort((a,b)=>{
+    if(b.score !== a.score) return b.score - a.score;
+    if((b.games||0) !== (a.games||0)) return (b.games||0) - (a.games||0);
+    return b.when - a.when;
+  });
+  return {list, errs};
+}
+
+function loadBoardMap(){
+  try{
+    const raw = localStorage.getItem(LS_BOARD);
+    const o = raw ? JSON.parse(raw) : {};
+    return (o && typeof o === "object") ? o : {};
+  }catch(e){ return {}; }
+}
+function saveBoardMap(map){
+  try{ localStorage.setItem(LS_BOARD, JSON.stringify(map)); }catch(e){}
+}
+function upsertLocalScore(player, score, correct){
+  if(!player) return {status:"略過（未選姓名）"};
+  const map = loadBoardMap();
+  const key = String(player.no);
+  const prev = map[key] || {score:0, games:0, correct:0, name: player.name, no: player.no};
+  prev.score = (prev.score|0) + (score|0);
+  prev.games = (prev.games|0) + 1;
+  prev.correct = (prev.correct|0) + (correct|0);
+  prev.name = player.name;
+  prev.no = player.no;
+  prev.when = Date.now();
+  map[key] = prev;
+  saveBoardMap(map);
+  return {status: "本機備份 · " + prev.score + "（" + prev.games + " 局）"};
+}
+function renderBoardList(list, errs){
+  const el = document.getElementById("boardList");
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML = '<div class="board-empty">尚無紀錄 · No scores yet'+(errs?'<br><span class="muted">部分讀取失敗 ('+errs+')</span>':'')+'</div>';
+    return;
+  }
+  el.innerHTML = list.map((r,i)=>{
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
+    return '<div class="board-row"><span class="rank">'+medal+'</span>' +
+      '<span class="who">'+esc(r.name)+' <span class="muted">('+r.no+')</span></span>' +
+      '<span class="meta">⭐ '+r.score+' · '+((r.games||0))+'局 · ✓ '+r.correct+'</span></div>';
+  }).join("") + (errs ? '<div class="board-status muted">部分讀取失敗 ('+errs+')</div>' : '');
+}
+async function refreshBoard(){
+  const el = document.getElementById("boardList");
+  if(el) el.innerHTML = '<div class="board-status">Loading…</div>';
+  try{
+    const {list, errs} = await cloudFetchAll();
+    renderBoardList(list, errs);
+  }catch(e){
+    if(el) el.innerHTML = '<div class="board-status">讀取失敗 · Failed to load</div>';
+  }
+}
+function openBoard(from){
+  boardReturnOverlay = from || "overlayStart";
+  showOverlay("overlayBoard");
+  refreshBoard();
+}
+function closeBoard(){ showOverlay(boardReturnOverlay); }
+async function teacherClearBoard(){
+  const pw = prompt("老師清除密碼 / Teacher password:");
+  if(pw == null) return;
+  if(pw !== TEACHER_CLEAR_PW){ alert("密碼不正確"); return; }
+  if(!confirm("確定清除雲端累積排行榜？")) return;
+  const el = document.getElementById("boardList");
+  if(el) el.innerHTML = '<div class="board-status">Clearing…</div>';
+  try{
+    await mapPool(CLASS_ROSTER, 2, stu => cloudWrite(stu.no, "0"));
+    saveBoardMap({});
+    await refreshBoard();
+  }catch(e){
+    if(el) el.innerHTML = '<div class="board-status">清除失敗 · Clear failed</div>';
+  }
+}
+
+
+const RAW = [{"id": 1, "kind": "comp", "q": "Mr Jolly is _____ than Mrs Bell. (tall)", "choices": ["taller", "more tall", "the tallest", "tallest"], "answer": "taller", "note": "comparative · -er"}, {"id": 2, "kind": "comp", "q": "Tom is _____ than Ben. (old)", "choices": ["older", "more old", "the oldest", "oldest"], "answer": "older", "note": "comparative · -er"}, {"id": 3, "kind": "comp", "q": "A cheetah is _____ than a tiger. (light)", "choices": ["lighter", "more light", "the lightest", "lightest"], "answer": "lighter", "note": "comparative · -er"}, {"id": 4, "kind": "comp", "q": "A tiger is _____ than a cheetah. (heavy)", "choices": ["heavier", "more heavy", "the heaviest", "heavyer"], "answer": "heavier", "note": "comparative · -er / y→i"}, {"id": 5, "kind": "comp", "q": "Today is _____ than yesterday. (hot)", "choices": ["hotter", "more hot", "the hottest", "hoter"], "answer": "hotter", "note": "comparative · double consonant"}, {"id": 6, "kind": "comp", "q": "This bag is _____ than that bag. (big)", "choices": ["bigger", "more big", "the biggest", "biger"], "answer": "bigger", "note": "comparative · double consonant"}, {"id": 7, "kind": "comp", "q": "Harry is _____ than John. (thin)", "choices": ["thinner", "more thin", "more thinner", "the thinnest"], "answer": "thinner", "note": "comparative · double consonant"}, {"id": 8, "kind": "comp", "q": "May is _____ than Henry today. (happy)", "choices": ["happier", "more happy", "more happier", "the happiest"], "answer": "happier", "note": "comparative · y→i"}, {"id": 9, "kind": "comp", "q": "The pumpkin is _____ than the tomato. (large)", "choices": ["larger", "more large", "the largest", "largerer"], "answer": "larger", "note": "comparative · -e + r"}, {"id": 10, "kind": "comp", "q": "Amy can run _____ than Sam. (fast)", "choices": ["faster", "more fast", "the fastest", "fastest"], "answer": "faster", "note": "comparative · -er"}, {"id": 11, "kind": "comp", "q": "This pencil is _____ than that one. (short)", "choices": ["shorter", "more short", "the shortest", "shortter"], "answer": "shorter", "note": "comparative · -er"}, {"id": 12, "kind": "comp", "q": "Jill is _____ than Timmy. (young)", "choices": ["younger", "more young", "the youngest", "youngger"], "answer": "younger", "note": "comparative · -er"}, {"id": 13, "kind": "comp", "q": "This story is _____ than that story. (long)", "choices": ["longer", "more long", "the longest", "longger"], "answer": "longer", "note": "comparative · -er"}, {"id": 14, "kind": "comp", "q": "Yummy Hot Dog ($12) is _____ than Merry Hot Dog ($18). (cheap)", "choices": ["cheaper", "more cheap", "the cheaper", "cheapest"], "answer": "cheaper", "note": "comparative · -er · price"}, {"id": 15, "kind": "comp", "q": "Sunny Bread ($14) is _____ than Merry Bread ($20). (cheap)", "choices": ["cheaper", "more cheap", "the cheapest", "cheap"], "answer": "cheaper", "note": "comparative · -er · price"}, {"id": 16, "kind": "comp", "q": "A watermelon (5 kg) is _____ than pears (300 g). (heavy)", "choices": ["heavier", "more heavy", "the heaviest", "heavyer"], "answer": "heavier", "note": "comparative · weight"}, {"id": 17, "kind": "comp", "q": "Grapes (250 g) are _____ than a watermelon (5 kg). (light)", "choices": ["lighter", "more light", "the lightest", "lighterer"], "answer": "lighter", "note": "comparative · weight"}, {"id": 18, "kind": "comp", "q": "This room is _____ than that room. (nice)", "choices": ["nicer", "more nice", "the nicest", "niceer"], "answer": "nicer", "note": "comparative · -e + r"}, {"id": 19, "kind": "comp", "q": "Sam is _____ than Ken in the race. (slow)", "choices": ["slower", "more slow", "the slowest", "slowwer"], "answer": "slower", "note": "comparative · -er"}, {"id": 20, "kind": "comp", "q": "This book is _____ than that book. (easy)", "choices": ["easier", "more easy", "more easier", "the easiest"], "answer": "easier", "note": "comparative · y→i"}, {"id": 21, "kind": "comp", "q": "Candy is _____ than Maggie. (polite)", "choices": ["more polite", "politer", "the most polite", "more politer"], "answer": "more polite", "note": "comparative · more"}, {"id": 22, "kind": "comp", "q": "Badminton is _____ than Chinese checkers. (popular)", "choices": ["more popular", "popularer", "the most popular", "more popularer"], "answer": "more popular", "note": "comparative · more"}, {"id": 23, "kind": "comp", "q": "Coconut juice is _____ than lemon juice. (delicious)", "choices": ["more delicious", "deliciouser", "the most delicious", "more deliciouser"], "answer": "more delicious", "note": "comparative · more"}, {"id": 24, "kind": "comp", "q": "Super Raisin ($32) is _____ than Yummy Raisin ($25). (expensive)", "choices": ["more expensive", "expensiver", "the most expensive", "more expensiver"], "answer": "more expensive", "note": "comparative · more · price"}, {"id": 25, "kind": "comp", "q": "This story is _____ than that story. (interesting)", "choices": ["more interesting", "interestinger", "the most interesting", "more interestinger"], "answer": "more interesting", "note": "comparative · more"}, {"id": 26, "kind": "comp", "q": "Miss Chan is _____ than Mr Lee. (helpful)", "choices": ["more helpful", "helpfuler", "the most helpful", "more helpfuler"], "answer": "more helpful", "note": "comparative · more"}, {"id": 27, "kind": "comp", "q": "Oranges are _____ than apples. (delicious)", "choices": ["more delicious", "deliciouser", "the most delicious", "more deliciouser"], "answer": "more delicious", "note": "comparative · more"}, {"id": 28, "kind": "comp", "q": "Merry Bread ($20) is _____ than Sunny Bread ($14). (expensive)", "choices": ["more expensive", "expensiver", "most expensive", "the more expensive"], "answer": "more expensive", "note": "comparative · more · price"}, {"id": 29, "kind": "comp", "q": "This puzzle is _____ than that puzzle. (difficult)", "choices": ["more difficult", "difficulter", "the most difficult", "more difficulter"], "answer": "more difficult", "note": "comparative · more"}, {"id": 30, "kind": "comp", "q": "Pure Juice ($11.80) is _____ than Jolly Juice ($9.20). (expensive)", "choices": ["more expensive", "expensiver", "more dear", "the most expensive"], "answer": "more expensive", "note": "comparative · more · price"}, {"id": 31, "kind": "sup", "q": "Jill is 9, Sam is 7 and Timmy is 5. Timmy is _____. (young)", "choices": ["the youngest", "younger", "more young", "the most young"], "answer": "the youngest", "note": "superlative · -est"}, {"id": 32, "kind": "sup", "q": "Ben, Amy and Tom are in a race. Ben is _____. (fast)", "choices": ["the fastest", "faster", "more fast", "the most fast"], "answer": "the fastest", "note": "superlative · -est"}, {"id": 33, "kind": "sup", "q": "Among Mr Jolly, Mrs Bell and Miss Chan, Mr Jolly is _____. (tall)", "choices": ["the tallest", "taller", "more tall", "the most tall"], "answer": "the tallest", "note": "superlative · -est"}, {"id": 34, "kind": "sup", "q": "Monday was hot, Tuesday was hotter, and today is _____. (hot)", "choices": ["the hottest", "hotter", "more hot", "the most hot"], "answer": "the hottest", "note": "superlative · double consonant"}, {"id": 35, "kind": "sup", "q": "Among a watermelon (5 kg), pears (300 g) and grapes (250 g), the watermelon is _____.", "choices": ["the heaviest", "the heavier", "heaviest", "most heavy"], "answer": "the heaviest", "note": "superlative · weight"}, {"id": 36, "kind": "sup", "q": "Among a watermelon (5 kg), pears (300 g) and grapes (250 g), grapes are _____.", "choices": ["the lightest", "the lighter", "lightest", "most light"], "answer": "the lightest", "note": "superlative · weight"}, {"id": 37, "kind": "sup", "q": "Among Yummy Hot Dog ($12), Merry Hot Dog ($18) and Super Hot Dog ($22), Yummy Hot Dog is _____.", "choices": ["the cheapest", "the cheaper", "cheapest", "more cheap"], "answer": "the cheapest", "note": "superlative · -est · price"}, {"id": 38, "kind": "sup", "q": "Among Sunny Bread ($14), Lucky Bread ($18) and Merry Bread ($20), Sunny Bread is _____.", "choices": ["the cheapest", "the cheaper", "cheapest", "most cheap"], "answer": "the cheapest", "note": "superlative · -est · price"}, {"id": 39, "kind": "sup", "q": "This is _____ day of the year! (happy)", "choices": ["the happiest", "happier", "more happy", "the most happiest"], "answer": "the happiest", "note": "superlative · y→i"}, {"id": 40, "kind": "sup", "q": "Look at the three bags. The red bag is _____. (big)", "choices": ["the biggest", "bigger", "more big", "the most big"], "answer": "the biggest", "note": "superlative · double consonant"}, {"id": 41, "kind": "sup", "q": "Swimming is _____ sport in our class. (popular)", "choices": ["the most popular", "more popular", "popularer", "the popularer"], "answer": "the most popular", "note": "superlative · the most"}, {"id": 42, "kind": "sup", "q": "The cookies ($50) are _____ snack. (expensive)", "choices": ["the most expensive", "more expensive", "expensiver", "the expensivest"], "answer": "the most expensive", "note": "superlative · the most"}, {"id": 43, "kind": "sup", "q": "Among Super Raisin ($32), Yummy Raisin ($25) and Natural Raisin ($28), Super Raisin is _____.", "choices": ["the most expensive", "the more expensive", "most expensive", "the expensivest"], "answer": "the most expensive", "note": "superlative · the most · price"}, {"id": 44, "kind": "sup", "q": "This is _____ story in the book. (interesting)", "choices": ["the most interesting", "more interesting", "interestinger", "the interestingest"], "answer": "the most interesting", "note": "superlative · the most"}, {"id": 45, "kind": "sup", "q": "Among Candy, Maggie and May, Candy is _____. (polite)", "choices": ["the most polite", "more polite", "politer", "the politer"], "answer": "the most polite", "note": "superlative · the most"}, {"id": 46, "kind": "sup", "q": "Among Jolly Juice ($9.20), Fruity Juice ($10.50) and Pure Juice ($11.80), Pure Juice is _____.", "choices": ["the most expensive", "the more expensive", "most expensive", "the expensive"], "answer": "the most expensive", "note": "superlative · the most · price"}, {"id": 47, "kind": "form", "q": "Choose the correct comparative form of tall.", "choices": ["taller", "more tall", "more taller", "the tallest"], "answer": "taller", "note": "form · -er"}, {"id": 48, "kind": "form", "q": "Choose the correct superlative form of tall.", "choices": ["the tallest", "the taller", "tallest", "the most tall"], "answer": "the tallest", "note": "form · -est"}, {"id": 49, "kind": "form", "q": "Choose the correct comparative form of expensive.", "choices": ["more expensive", "expensiver", "expensivest", "more expensiver"], "answer": "more expensive", "note": "form · more"}, {"id": 50, "kind": "form", "q": "Choose the correct superlative form of popular.", "choices": ["the most popular", "the more popular", "most popular", "the popularer"], "answer": "the most popular", "note": "form · the most"}, {"id": 51, "kind": "form", "q": "Choose the correct comparative form of happy.", "choices": ["happier", "more happy", "more happier", "happyier"], "answer": "happier", "note": "form · y→i"}, {"id": 52, "kind": "form", "q": "Choose the correct superlative form of big.", "choices": ["the biggest", "the bigger", "biggest", "the most big"], "answer": "the biggest", "note": "form · double consonant"}, {"id": 53, "kind": "form", "q": "Pick the WRONG form (the mistake).", "choices": ["more bigger", "bigger", "the biggest", "more expensive"], "answer": "more bigger", "note": "form · common mistake"}, {"id": 54, "kind": "form", "q": "Choose the correct comparative form of thin.", "choices": ["thinner", "more thin", "more thinner", "thiner"], "answer": "thinner", "note": "form · double consonant"}, {"id": 55, "kind": "form", "q": "Choose the correct comparative form of delicious.", "choices": ["more delicious", "deliciouser", "the most delicious", "more deliciouser"], "answer": "more delicious", "note": "form · more"}, {"id": 56, "kind": "form", "q": "Choose the correct superlative form of cheap.", "choices": ["the cheapest", "the cheaper", "cheapest", "the most cheap"], "answer": "the cheapest", "note": "form · -est"}];
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function makeQ(item){
+  const shuffled = shuffle(item.choices.slice());
+  const correct = shuffled.indexOf(item.answer);
+  return {
+    id: item.id,
+    kind: item.kind,
+    q: item.q,
+    choices: shuffled,
+    correct: correct < 0 ? 0 : correct,
+    note: item.note || "",
+    explain: item.answer
+  };
+}
+function nextFromPool(){
+  if(qPool.length === 0) qPool = shuffle(RAW).map(makeQ);
+  return qPool.pop();
+}
+
+let W=0, H=0, dpr=1;
+let running=false, paused=false;
+let score=0, lives=MAX_LIVES, successJumps=0, qPool=[], currentQ=null;
+let wrongLog=[];
+let phase="idle";
+let timer=0, timerMax=TIMER_START;
+let jumpY=0, jumpVel=0;
+let speed=0, distance=0;
+let roadOffset=0;
+let feedbackTimer=0;
+let crashShake=0;
+let particles=[];
+let trail=[];
+let heroPose="run"; // idle | run | jump | land | hurt
+let poseTimer=0;
+let pathProgress=0;
+let pathProgressTarget=0;
+let obstacle = null; // {kind:'car'|'cone', x, cleared, hit}
+let hitFlash=0;
+
+function resize(){
+  dpr = Math.min(devicePixelRatio||1, 2);
+  W = innerWidth; H = innerHeight;
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  canvas.style.width = W+"px"; canvas.style.height = H+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+addEventListener("resize", resize);
+resize();
+
+let muted = true;
+let audioCtx = null;
+let masterGain = null;
+let bgmGain = null;
+let bgmTimer = null;
+let bgmStep = 0;
+
+function ensureAudio(){
+  if(audioCtx) return audioCtx;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) return null;
+  audioCtx = new AC();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = muted ? 0 : 0.85;
+  masterGain.connect(audioCtx.destination);
+  bgmGain = audioCtx.createGain();
+  bgmGain.gain.value = 0.2;
+  bgmGain.connect(masterGain);
+  return audioCtx;
+}
+function resumeAudio(){
+  const ctx = ensureAudio();
+  if(ctx && ctx.state === "suspended") ctx.resume();
+  return ctx;
+}
+function setMuted(on){
+  muted = on;
+  const btn = document.getElementById("btnMute");
+  if(btn) btn.textContent = muted ? "🔇" : "🔊";
+  if(masterGain && audioCtx){
+    const t = audioCtx.currentTime;
+    masterGain.gain.cancelScheduledValues(t);
+    masterGain.gain.setTargetAtTime(muted ? 0 : 0.85, t, 0.03);
+  }
+  if(!muted){ resumeAudio(); startBgm(); }
+  else stopBgm();
+}
+function tone(freq, dur, type, vol, when){
+  const ctx = ensureAudio();
+  if(!ctx || muted) return;
+  const t0 = (when != null ? when : ctx.currentTime);
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = type || "square";
+  osc.frequency.setValueAtTime(freq, t0);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol || 0.2, t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(t0); osc.stop(t0 + dur + 0.02);
+}
+function sfxCorrect(){
+  if(muted) return;
+  resumeAudio();
+  const ctx = audioCtx; if(!ctx) return;
+  const t = ctx.currentTime;
+  tone(523.25, 0.07, "square", 0.14, t);
+  tone(659.25, 0.07, "square", 0.14, t + 0.06);
+  tone(880, 0.12, "triangle", 0.16, t + 0.12);
+}
+function sfxWrong(){
+  if(muted) return;
+  resumeAudio();
+  const ctx = audioCtx; if(!ctx) return;
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(200, t);
+  osc.frequency.exponentialRampToValueAtTime(60, t + 0.3);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.2, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.34);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(t); osc.stop(t + 0.36);
+}
+const BGM_MELODY = [392,494,587,784,587,494,440,523,659,523,440,392,494,587,698,587,494,392,440,523,659,784,659,523];
+const BGM_BASS = [196,0,0,196,0,0,220,0,0,220,0,0,247,0,0,247,0,0,262,0,0,196,0,0];
+function startBgm(){
+  if(muted) return;
+  const ctx = resumeAudio();
+  if(!ctx || !bgmGain) return;
+  if(bgmTimer) return;
+  bgmStep = 0;
+  bgmTimer = setInterval(function(){
+    if(muted || !audioCtx || paused || !running) return;
+    const t = audioCtx.currentTime;
+    const m = BGM_MELODY[bgmStep % BGM_MELODY.length];
+    const b = BGM_BASS[bgmStep % BGM_BASS.length];
+    const o1 = audioCtx.createOscillator();
+    const g1 = audioCtx.createGain();
+    o1.type = "triangle";
+    o1.frequency.setValueAtTime(m, t);
+    g1.gain.setValueAtTime(0.0001, t);
+    g1.gain.exponentialRampToValueAtTime(0.11, t + 0.01);
+    g1.gain.exponentialRampToValueAtTime(0.0001, t + 0.11);
+    o1.connect(g1); g1.connect(bgmGain);
+    o1.start(t); o1.stop(t + 0.12);
+    if(b > 0){
+      const o2 = audioCtx.createOscillator();
+      const g2 = audioCtx.createGain();
+      o2.type = "square";
+      o2.frequency.setValueAtTime(b, t);
+      g2.gain.setValueAtTime(0.0001, t);
+      g2.gain.exponentialRampToValueAtTime(0.05, t + 0.01);
+      g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+      o2.connect(g2); g2.connect(bgmGain);
+      o2.start(t); o2.stop(t + 0.11);
+    }
+    bgmStep++;
+  }, 125);
+}
+function stopBgm(){ if(bgmTimer){ clearInterval(bgmTimer); bgmTimer = null; } }
+function pauseBgmSoft(isPaused){
+  if(!bgmGain || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  bgmGain.gain.cancelScheduledValues(t);
+  bgmGain.gain.setTargetAtTime(isPaused ? 0.04 : 0.2, t, 0.05);
+}
+
+function showOverlay(id){
+  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBoard"].forEach(x=>{
+    document.getElementById(x).classList.toggle("hidden", x!==id);
+  });
+}
+function hideOverlays(){
+  ["overlayName","overlayStart","overlayPause","overlayEnd","overlayBoard"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+}
+
+function heroX(){ return W * 0.38; }
+function groundY(){ return H * 0.72; }
+
+function spawnObstacle(){
+  const kind = Math.random() < 0.55 ? "car" : "cone";
+  obstacle = {
+    kind: kind,
+    x: W + 40 + Math.random()*40,
+    cleared: false,
+    hit: false,
+    bob: Math.random()*Math.PI*2,
+    color: kind==="car" ? (Math.random()<0.5 ? 0 : 1) : 0
+  };
+}
+
+function startRace(){
+  if(!currentPlayer){ goNameSelect(); return; }
+  qPool = shuffle(RAW).map(makeQ);
+  score=0; lives=MAX_LIVES; successJumps=0; wrongLog=[]; currentQ=null;
+  phase="question"; running=true; paused=false;
+  speed=7.2; distance=0; roadOffset=0;
+  jumpY=0; jumpVel=0; heroPose="run"; poseTimer=0;
+  pathProgress=0; pathProgressTarget=0;
+  particles=[]; trail=[]; obstacle=null; hitFlash=0;
+  hideOverlays();
+  document.getElementById("hud").style.display="flex";
+  document.getElementById("btnPause").style.display="inline-block";
+  document.getElementById("playingAs").classList.add("show");
+  document.getElementById("playingAsText").textContent = "Playing as: " + playerLabel(currentPlayer);
+  setMuted(false);
+  resumeAudio();
+  startBgm();
+  updateHUD();
+  presentQuestion();
+}
+
+function timerForJump(j){
+  const t = JUMPS_TO_WIN-1 || 1;
+  return TIMER_START - (j/t)*(TIMER_START - TIMER_FLOOR);
+}
+
+function kindTag(kind){
+  if(kind==="sup") return "SUPERLATIVE · 最高級";
+  if(kind==="form") return "FORM FOCUS · 正確形式";
+  return "COMPARATIVE · 比較級";
+}
+
+function presentQuestion(){
+  if(successJumps >= JUMPS_TO_WIN || lives<=0){ endRace(); return; }
+  currentQ = nextFromPool();
+  phase="question";
+  heroPose="run";
+  jumpY=0; jumpVel=0;
+  timerMax = timerForJump(successJumps);
+  timer = timerMax;
+  spawnObstacle();
+  document.getElementById("qTag").textContent = kindTag(currentQ.kind);
+  document.getElementById("qText").textContent = currentQ.q;
+  for(let i=0;i<4;i++){
+    const el = document.getElementById("opt"+i);
+    if(el) el.textContent = (currentQ.choices && currentQ.choices[i] != null) ? currentQ.choices[i] : "";
+  }
+  document.getElementById("qBanner").classList.add("show");
+  document.getElementById("laneHint").classList.add("show");
+  document.getElementById("timerFill").style.width="100%";
+  updateHUD();
+}
+
+function updateHUD(){
+  document.getElementById("hudScore").textContent = score;
+  document.getElementById("hudJump").textContent = successJumps;
+  document.getElementById("hudJumpNeed").textContent = JUMPS_TO_WIN;
+  document.getElementById("hudLives").textContent = "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0,MAX_LIVES-lives));
+}
+
+function choose(idx){
+  if(phase!=="question" || paused || !currentQ) return;
+  idx = idx|0;
+  const qq = currentQ;
+  const ok = idx === qq.correct;
+  document.getElementById("laneHint").classList.remove("show");
+  const yourAns = (qq.choices && qq.choices[idx] != null) ? qq.choices[idx] : "?";
+  const rightAns = qq.explain || ((qq.choices && qq.choices[qq.correct] != null) ? qq.choices[qq.correct] : "?");
+  if(ok){
+    successJumps++;
+    score += 100;
+    pathProgressTarget = successJumps;
+    phase="feedback"; feedbackTimer=0.95;
+    jumpVel = -560;
+    heroPose="jump"; poseTimer=0.7;
+    if(obstacle) obstacle.cleared = true;
+    speed = Math.min(12, speed+0.45);
+    flash("ok");
+    spawnParticles(true);
+    sfxCorrect();
+  } else {
+    lives--;
+    phase="crash"; feedbackTimer=1.15;
+    crashShake=16; hitFlash=1;
+    heroPose="hurt"; poseTimer=1.0;
+    if(obstacle) obstacle.hit = true;
+    speed = Math.max(4.5, speed-1.2);
+    wrongLog.push({q:qq.q, your: yourAns, right: rightAns + (qq.note ? " · "+qq.note : "")});
+    flash("bad");
+    spawnParticles(false);
+    sfxWrong();
+  }
+  updateHUD();
+}
+
+function flash(type){
+  const el=document.getElementById("flash");
+  el.className="flash "+type;
+  setTimeout(()=>{el.className="flash";},180);
+}
+function spawnParticles(ok){
+  const hx = heroX();
+  const gy = groundY();
+  for(let i=0;i<24;i++){
+    particles.push({
+      x:hx, y:gy-20+jumpY, vx:(Math.random()-0.5)*12, vy:-Math.random()*14-2,
+      life:1, c: ok? (Math.random()<0.5?"#34d399":"#fbbf24") : "#f87171", r:3+Math.random()*4
+    });
+  }
+}
+function onTimeout(){
+  if(phase!=="question" || !currentQ) return;
+  lives--;
+  phase="crash"; feedbackTimer=1.15; crashShake=16; hitFlash=1;
+  heroPose="hurt"; poseTimer=1.0;
+  if(obstacle) obstacle.hit = true;
+  const qq=currentQ;
+  const rightAns = qq.explain || ((qq.choices && qq.choices[qq.correct] != null) ? qq.choices[qq.correct] : "?");
+  wrongLog.push({q:qq.q, your:"(time out)", right: rightAns + (qq.note ? " · "+qq.note : "")});
+  document.getElementById("laneHint").classList.remove("show");
+  flash("bad"); updateHUD();
+  sfxWrong();
+}
+function advanceAfterFeedback(){
+  if(lives<=0 || successJumps>=JUMPS_TO_WIN) endRace();
+  else presentQuestion();
+}
+function endRace(){
+  running=false; phase="done";
+  document.getElementById("qBanner").classList.remove("show");
+  document.getElementById("laneHint").classList.remove("show");
+  document.getElementById("btnPause").style.display="none";
+  const won = successJumps >= JUMPS_TO_WIN && lives>0;
+  document.getElementById("playingAs").classList.remove("show");
+  document.getElementById("endTitle").textContent = won ? "🏆 Finish Line!" : "💥 Run Over";
+  document.getElementById("endStats").innerHTML =
+    `${currentPlayer ? ("Player: <b>"+playerLabel(currentPlayer)+"</b><br>") : ""}Score <b>${score}</b> · Successful jumps <b>${successJumps}</b>/${JUMPS_TO_WIN} · Lives left <b>${lives}</b>`;
+  const rep = document.getElementById("endReport");
+  if(!wrongLog.length){
+    rep.innerHTML = "<div class='row okb'>Perfect run — no wrong answers!</div>";
+  } else {
+    rep.innerHTML = "<div class='muted'>Wrong / timeout review:</div>" +
+      wrongLog.map(w => `<div class="row"><b>Q:</b> ${esc(w.q)}<br>Your: ${esc(w.your)} · <span class="okb">Answer: ${esc(w.right)}</span></div>`).join("");
+  }
+  stopBgm();
+  const lbEl = document.getElementById("lbStatus");
+  let status = "";
+  if(currentPlayer){
+    const r = upsertLocalScore(currentPlayer, score, successJumps);
+    status = r.status || "";
+    if(lbEl) lbEl.textContent = status + " · 雲端同步中…";
+    cloudUpsertPlayer(currentPlayer, score, successJumps).then(cr=>{
+      const msg = (status ? status + " · " : "") + ((cr && cr.status) || "");
+      if(lbEl) lbEl.textContent = msg;
+    });
+  } else if(lbEl) lbEl.textContent = status;
+  showOverlay("overlayEnd");
+}
+function esc(s){ return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+document.getElementById("btnStart").onclick = startRace;
+document.getElementById("btnAgain").onclick = startRace;
+document.getElementById("btnChangeName").onclick = goNameSelect;
+document.getElementById("btnNotMe").onclick = goNameSelect;
+document.getElementById("btnMenu").onclick = ()=>{
+  running=false; paused=false; stopBgm();
+  document.getElementById("playingAs").classList.remove("show");
+  document.getElementById("hud").style.display="none";
+  document.getElementById("qBanner").classList.remove("show");
+  document.getElementById("laneHint").classList.remove("show");
+  updatePlayerUI();
+  showOverlay("overlayStart");
+};
+document.getElementById("btnQuit").onclick = ()=>{
+  paused=false; running=false; stopBgm();
+  document.getElementById("playingAs").classList.remove("show");
+  document.getElementById("hud").style.display="none";
+  document.getElementById("qBanner").classList.remove("show");
+  document.getElementById("laneHint").classList.remove("show");
+  updatePlayerUI();
+  showOverlay("overlayStart");
+};
+document.getElementById("btnResume").onclick = ()=>{
+  paused=false; hideOverlays(); pauseBgmSoft(false); startBgm();
+};
+document.getElementById("btnPause").onclick = ()=>{
+  if(!running) return;
+  paused=!paused;
+  if(paused){ pauseBgmSoft(true); showOverlay("overlayPause"); }
+  else { hideOverlays(); pauseBgmSoft(false); startBgm(); }
+};
+document.getElementById("btnMute").onclick = function(){ setMuted(!muted); };
+document.getElementById("btnBoardStart").onclick = ()=>openBoard("overlayStart");
+document.getElementById("btnBoardEnd").onclick = ()=>openBoard("overlayEnd");
+document.getElementById("btnBoardClose").onclick = closeBoard;
+document.getElementById("btnBoardRefresh").onclick = ()=>refreshBoard();
+document.getElementById("btnBoardClear").onclick = ()=>teacherClearBoard();
+document.getElementById("btn0").onclick = ()=>choose(0);
+document.getElementById("btn1").onclick = ()=>choose(1);
+document.getElementById("btn2").onclick = ()=>choose(2);
+document.getElementById("btn3").onclick = ()=>choose(3);
+
+addEventListener("keydown", e=>{
+  if(e.key==="Escape" && running){ document.getElementById("btnPause").click(); return; }
+  if(paused || phase!=="question") return;
+  if(e.key==="1"||e.key==="a"||e.key==="A") choose(0);
+  if(e.key==="2"||e.key==="s"||e.key==="S") choose(1);
+  if(e.key==="3"||e.key==="d"||e.key==="D") choose(2);
+  if(e.key==="4"||e.key==="f"||e.key==="F") choose(3);
+});
+canvas.addEventListener("pointerdown", e=>{
+  if(!running||paused||phase!=="question") return;
+  const i = Math.min(3, Math.max(0, Math.floor(e.clientX / (W/4))));
+  choose(i);
+});
+
+function poly(pts, fill, stroke, lw){
+  if(!pts.length) return;
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.closePath();
+  if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+  if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=lw||1.5; ctx.stroke(); }
+}
+
+function drawLowPolyHero(x, y, scale, pose, t, anxious){
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  const run = Math.sin(t*0.7);
+  const run2 = Math.sin(t*0.7 + Math.PI);
+  let rot=0, legL=0, legR=0, armL=0, armR=0, crouch=0, hurt=0;
+  if(pose==="jump"){
+    rot=-0.18; legL=-10; legR=16; armL=-26; armR=24; crouch=-3;
+  } else if(pose==="hurt"){
+    rot=0.35; legL=10; legR=-14; armL=22; armR=-20; hurt=1;
+  } else if(pose==="land"){
+    crouch=7; legL=3; legR=-3; armL=6; armR=-8;
+  } else {
+    legL = run*12; legR = run2*12;
+    armL = run2*14; armR = run*14;
+    if(pose==="idle"){ legL*=0.15; legR*=0.15; armL*=0.15; armR*=0.15; }
+  }
+
+  // anxious micro-shake (timer almost out) — not during jump/hurt
+  const showAnxious = !!anxious && pose!=="jump" && pose!=="hurt";
+  if(showAnxious){
+    ctx.translate((Math.sin(t*2.8)*1.6), Math.cos(t*3.1)*0.8);
+  }
+
+  ctx.rotate(rot);
+
+  // ground shadow (flat ellipse approx with polygon)
+  ctx.fillStyle="rgba(0,0,0,.35)";
+  ctx.beginPath();
+  ctx.ellipse(2, 36+crouch*0.2, 22, 7, 0,0,Math.PI*2);
+  ctx.fill();
+
+  // cape — angular
+  poly([
+    [-4,-8+crouch],
+    [-20 - Math.sin(t*0.5)*4, 2],
+    [-16, 18+Math.cos(t*0.4)*3],
+    [-2, 6+crouch]
+  ], "#e11d48", "#9f1239", 1.2);
+  poly([
+    [-4,-8+crouch],
+    [-14, 0],
+    [-10, 10],
+    [-2, 4]
+  ], "#fb7185", null);
+
+  // legs (tapered polygons)
+  const footLY = 30+crouch+Math.abs(legL)*0.12;
+  const footRY = 30+crouch+Math.abs(legR)*0.12;
+  const lx = -8 + legL*0.12;
+  const rx = 8 + legR*0.12;
+  poly([[-10,6+crouch],[-4,6+crouch],[lx-3,footLY],[lx+4,footLY]], "#1e3a8a", "#0f172a", 1);
+  poly([[4,6+crouch],[10,6+crouch],[rx+3,footRY],[rx-4,footRY]], "#1d4ed8", "#0f172a", 1);
+  // shoes angular
+  poly([[lx-6,footLY-2],[lx+7,footLY-2],[lx+8,footLY+4],[lx-5,footLY+4]], "#f97316", "#9a3412", 1);
+  poly([[rx-7,footRY-2],[rx+6,footRY-2],[rx+5,footRY+4],[rx-8,footRY+4]], "#fb923c", "#9a3412", 1);
+
+  // torso — low-poly prism (front + side shade)
+  const ty = crouch;
+  poly([[-14,-28+ty],[14,-28+ty],[16,10+ty],[-16,10+ty]], "#0ea5e9", "#0369a1", 1.5);
+  poly([[14,-28+ty],[20,-24+ty],[22,6+ty],[16,10+ty]], "#0284c7", "#0369a1", 1); // side face
+  poly([[-10,-24+ty],[10,-24+ty],[8,-14+ty],[-8,-14+ty]], "rgba(255,255,255,.22)", null); // stripe
+  // star badge (flat)
+  poly([[0,-8+ty],[-4,-2+ty],[0,2+ty],[4,-2+ty]], "#fde68a", "#b45309", 1);
+
+  // arms
+  const aLY = -8+crouch+armL*0.4;
+  const aRY = -8+crouch+armR*0.4;
+  poly([[-14,-18+ty],[-10,-14+ty],[-24,aLY],[-28,aLY-4]], "#38bdf8", "#0369a1", 1);
+  poly([[10,-14+ty],[14,-18+ty],[28,aRY-4],[24,aRY]], "#7dd3fc", "#0369a1", 1);
+  // gloves
+  poly([[-30,aLY-6],[-22,aLY-6],[-22,aLY+2],[-30,aLY+2]], "#fef08a", "#a16207", 1);
+  poly([[22,aRY-6],[30,aRY-6],[30,aRY+2],[22,aRY+2]], "#fef08a", "#a16207", 1);
+
+  // head — faceted
+  const hy = -42+ty;
+  poly([[0,hy-16],[-14,hy-4],[-10,hy+12],[10,hy+12],[14,hy-4]], "#fde68a", "#b45309", 1.2);
+  poly([[0,hy-16],[14,hy-4],[8,hy-10]], "#fcd34d", null); // top highlight face
+  // hair facets
+  poly([[-14,hy-4],[0,hy-16],[14,hy-4],[10,hy-20],[-10,hy-20]], "#0f172a", "#020617", 1);
+  poly([[-10,hy-8],[-2,hy-2],[2,hy-10]], "#1e293b", null);
+  // eyebrows + eyes
+  if(showAnxious){
+    // worried brows (inner up / outer down)
+    ctx.strokeStyle="#0f172a"; ctx.lineWidth=2.2; ctx.lineCap="round";
+    ctx.beginPath(); ctx.moveTo(-9,hy-6); ctx.lineTo(-3,hy-9); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(9,hy-6); ctx.lineTo(3,hy-9); ctx.stroke();
+    // wider worried eyes
+    poly([[-8,hy-3],[-2,hy-3],[-2,hy+5],[-8,hy+5]], "#0f172a", null);
+    poly([[2,hy-3],[8,hy-3],[8,hy+5],[2,hy+5]], "#0f172a", null);
+    poly([[-7,hy-1],[-4,hy-1],[-4,hy+2],[-7,hy+2]], "#fff", null);
+    poly([[4,hy-1],[7,hy-1],[7,hy+2],[4,hy+2]], "#fff", null);
+  } else {
+    poly([[-7,hy-2],[-3,hy-2],[-3,hy+4],[-7,hy+4]], "#0f172a", null);
+    poly([[3,hy-2],[7,hy-2],[7,hy+4],[3,hy+4]], "#0f172a", null);
+    poly([[-6,hy-1],[-4,hy-1],[-4,hy+1],[-6,hy+1]], "#fff", null);
+    poly([[4,hy-1],[6,hy-1],[6,hy+1],[4,hy+1]], "#fff", null);
+  }
+  // mouth
+  if(hurt){
+    poly([[-4,hy+7],[4,hy+7],[2,hy+10],[-2,hy+10]], "#b45309", null);
+  } else if(showAnxious){
+    // wavy worried mouth
+    ctx.strokeStyle="#b45309"; ctx.lineWidth=1.8; ctx.lineCap="round";
+    ctx.beginPath();
+    ctx.moveTo(-6,hy+9);
+    ctx.quadraticCurveTo(-3,hy+6, 0,hy+9);
+    ctx.quadraticCurveTo(3,hy+12, 6,hy+8);
+    ctx.stroke();
+    // sweat drop
+    const sy = hy-4 + Math.sin(t*0.9)*1.5;
+    poly([[12,sy], [16,sy+8], [10,sy+7]], "#7dd3fc", "#0369a1", 1);
+    poly([[12.5,sy+2],[14,sy+5],[11.5,sy+4.5]], "rgba(255,255,255,.55)", null);
+  } else if(pose==="jump"){
+    // open excited mouth
+    poly([[-3,hy+6],[3,hy+6],[2,hy+11],[-2,hy+11]], "#9f1239", "#7f1d1d", 1);
+  } else {
+    ctx.strokeStyle="#b45309"; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(-5,hy+7); ctx.lineTo(0,hy+10); ctx.lineTo(5,hy+7); ctx.stroke();
+  }
+
+  // YOU label
+  ctx.fillStyle="#fef08a";
+  ctx.font="bold 10px sans-serif"; ctx.textAlign="center";
+  ctx.fillText("YOU", 0, hy-22);
+
+  ctx.restore();
+}
+
+function drawCar(x, gy, scale, palette){
+  ctx.save();
+  ctx.translate(x, gy);
+  ctx.scale(scale, scale);
+  const body = palette===0 ? ["#ef4444","#b91c1c","#7f1d1d"] : ["#3b82f6","#1d4ed8","#1e3a8a"];
+  // shadow
+  ctx.fillStyle="rgba(0,0,0,.3)";
+  ctx.beginPath(); ctx.ellipse(0, 6, 46, 8, 0,0,Math.PI*2); ctx.fill();
+  // wheels
+  poly([[-28,0],[-16,0],[-16,10],[-28,10]], "#111827", "#000", 1);
+  poly([[16,0],[28,0],[28,10],[16,10]], "#111827", "#000", 1);
+  // body
+  poly([[-40,-8],[40,-8],[36,4],[-36,4]], body[1], body[2], 1.5);
+  poly([[-40,-8],[-28,-28],[20,-28],[36,-8]], body[0], body[2], 1.5);
+  // cabin side shade
+  poly([[20,-28],[36,-8],[28,-8],[12,-24]], body[1], null);
+  // windows
+  poly([[-22,-24],[-6,-24],[-4,-12],[-24,-12]], "#bae6fd", "#0369a1", 1);
+  poly([[0,-24],[16,-24],[20,-12],[2,-12]], "#7dd3fc", "#0369a1", 1);
+  // lights
+  poly([[36,-4],[42,-2],[42,2],[36,4]], "#fde68a", "#b45309", 1);
+  poly([[-40,-4],[-44,-2],[-44,2],[-40,4]], "#fca5a5", "#7f1d1d", 1);
+  ctx.restore();
+}
+
+function drawCone(x, gy, scale){
+  ctx.save();
+  ctx.translate(x, gy);
+  ctx.scale(scale, scale);
+  ctx.fillStyle="rgba(0,0,0,.28)";
+  ctx.beginPath(); ctx.ellipse(0, 4, 16, 5, 0,0,Math.PI*2); ctx.fill();
+  // base
+  poly([[-18,0],[18,0],[16,6],[-16,6]], "#1f2937", "#000", 1);
+  // cone body
+  poly([[0,-38],[-14,0],[14,0]], "#f97316", "#9a3412", 1.5);
+  poly([[0,-38],[14,0],[6,-2]], "#fb923c", null); // lit face
+  // stripes
+  poly([[-9,-12],[9,-12],[10,-6],[-10,-6]], "#fff7ed", null);
+  poly([[-5,-26],[5,-26],[7,-20],[-7,-20]], "#fff7ed", null);
+  ctx.restore();
+}
+
+function drawFinishFlag(x, gy, s){
+  ctx.save();
+  ctx.translate(x, gy);
+  ctx.scale(s,s);
+  ctx.fillStyle="#e2e8f0";
+  ctx.fillRect(-2, -70, 4, 70);
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      ctx.fillStyle = ((r+c)%2===0) ? "#0f172a" : "#f8fafc";
+      ctx.fillRect(2+c*10, -70+r*10, 10, 10);
+    }
+  }
+  ctx.restore();
+}
+
+function drawFrame(dt){
+  ctx.clearRect(0,0,W,H);
+  let shakeX=0, shakeY=0;
+  if(crashShake>0){ shakeX=(Math.random()-0.5)*crashShake; shakeY=(Math.random()-0.5)*crashShake; }
+  ctx.save(); ctx.translate(shakeX,shakeY);
+
+  // sky
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,"#0c4a6e"); g.addColorStop(0.4,"#0284c7"); g.addColorStop(0.7,"#38bdf8"); g.addColorStop(1,"#0f2740");
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+  // sun low-poly
+  const sx=W*0.82, sy=H*0.14;
+  poly([[sx,sy-40],[sx+36,sy-12],[sx+22,sy+34],[sx-22,sy+34],[sx-36,sy-12]], "rgba(254,240,138,.95)", null);
+  poly([[sx,sy-40],[sx+36,sy-12],[sx+10,sy-8]], "rgba(255,255,255,.35)", null);
+
+  const scrollSpeed = (running && !paused) ? speed : 0.9;
+  if(running && !paused) roadOffset = (roadOffset + scrollSpeed*dt*55) % 200;
+  else roadOffset = (roadOffset + 18*dt) % 200;
+
+  // distant hills (angular)
+  ctx.fillStyle="#14532d";
+  ctx.beginPath();
+  ctx.moveTo(0, groundY()+10);
+  for(let i=0;i<=10;i++){
+    const x = (i/10)*W;
+    const y = groundY() - 40 - Math.abs(Math.sin(i*0.9 + roadOffset*0.01))*28;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fill();
+  ctx.fillStyle="#166534";
+  ctx.beginPath();
+  ctx.moveTo(0, groundY()+30);
+  for(let i=0;i<=12;i++){
+    const x = (i/12)*W;
+    const y = groundY() - 18 - Math.abs(Math.cos(i*0.7 + roadOffset*0.015))*16;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fill();
+
+  const gy = groundY();
+
+  // road
+  ctx.fillStyle="#1e293b";
+  ctx.fillRect(0, gy, W, H-gy);
+  // curb
+  ctx.fillStyle="#38bdf8";
+  ctx.fillRect(0, gy, W, 6);
+  ctx.fillStyle="#0ea5e9";
+  ctx.fillRect(0, gy+6, W, 4);
+
+  // dashed center line scrolling
+  ctx.fillStyle="#fbbf24";
+  const dashW=28, gap=22, period=dashW+gap;
+  let start = -((roadOffset) % period);
+  for(let x=start; x<W+period; x+=period){
+    ctx.fillRect(x, gy+28, dashW, 5);
+  }
+
+  // roadside cones decorations scrolling
+  for(let i=0;i<6;i++){
+    const bx = ((i*180 - roadOffset*0.6) % (W+200)) - 40;
+    if(bx > -50 && bx < W+50){
+      drawCone(bx, gy+52, 0.45);
+    }
+  }
+
+  // progress ribbon
+  pathProgress += (pathProgressTarget - pathProgress) * Math.min(1, dt*4);
+  if(running){
+    const bw = Math.min(360, W*0.5);
+    const bx = (W-bw)/2, by = H*0.055;
+    ctx.fillStyle="rgba(8,30,50,.55)";
+    ctx.fillRect(bx, by, bw, 10);
+    const pct = Math.min(1, pathProgress / JUMPS_TO_WIN);
+    ctx.fillStyle="#34d399";
+    ctx.fillRect(bx, by, bw*pct, 10);
+    ctx.fillStyle="#fef08a";
+    ctx.font="bold 11px sans-serif"; ctx.textAlign="center";
+    ctx.fillText("FINISH", bx+bw+28, by+9);
+    if(successJumps >= JUMPS_TO_WIN-1){
+      drawFinishFlag(W*0.88, gy, 0.85);
+    }
+  }
+
+  // obstacle approach
+  if(obstacle && running){
+    const hx = heroX();
+    // approach speed during question; faster after answer
+    let approach = 0;
+    if(!paused){
+      if(phase==="question"){
+        // ease toward hero, stop just before (~80px away) until answer
+        const target = hx + 95;
+        const dx = obstacle.x - target;
+        approach = Math.max(40, Math.min(220, dx * 1.1)) * dt;
+        if(obstacle.x > target) obstacle.x -= approach;
+      } else if(phase==="feedback"){
+        // fly past under jumping hero
+        obstacle.x -= (speed*55 + 180) * dt;
+      } else if(phase==="crash"){
+        // slam into hero
+        obstacle.x += (hx + 10 - obstacle.x) * Math.min(1, dt*8);
+      }
+    }
+    const sc = obstacle.kind==="car" ? 1.15 : 1.35;
+    if(obstacle.kind==="car") drawCar(obstacle.x, gy+2, sc, obstacle.color);
+    else drawCone(obstacle.x, gy+2, sc);
+
+    // warning label when close
+    if(phase==="question" && obstacle.x < hx + 220){
+      ctx.fillStyle="rgba(248,113,113,.9)";
+      ctx.font="bold 13px sans-serif"; ctx.textAlign="center";
+      ctx.fillText(obstacle.kind==="car" ? "⚠ CAR" : "⚠ CONE", obstacle.x, gy - (obstacle.kind==="car"?48:52));
+    }
+  }
+
+  // motion trail
+  const hx = heroX();
+  if(running && !paused && (heroPose==="jump" || heroPose==="run")){
+    trail.push({x:hx, y:gy-18+jumpY, life:0.3});
+  }
+  trail.forEach(tr=>{
+    ctx.globalAlpha = Math.max(0, tr.life)*0.3;
+    ctx.fillStyle="#7dd3fc";
+    poly([[tr.x-8,tr.y-24],[tr.x+8,tr.y-24],[tr.x+6,tr.y-8],[tr.x-6,tr.y-8]], "#7dd3fc", null);
+  });
+  ctx.globalAlpha=1;
+  trail.forEach(tr=> tr.life -= dt);
+  trail = trail.filter(tr=>tr.life>0);
+
+  const pose = (phase==="crash") ? "hurt" : heroPose;
+  const py = gy - 6 + jumpY;
+  const anxious = (phase==="question" && timerMax>0 && (timer/timerMax <= 0.30 || timer <= 4));
+  drawLowPolyHero(hx, py, 1.55, pose, distance, anxious);
+
+  // hit flash ring
+  if(hitFlash>0){
+    ctx.globalAlpha = hitFlash*0.55;
+    ctx.strokeStyle="#f87171";
+    ctx.lineWidth=4;
+    ctx.beginPath(); ctx.arc(hx, py-20, 40+(1-hitFlash)*30, 0, Math.PI*2); ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+
+  particles.forEach(p=>{
+    ctx.globalAlpha=Math.max(0,p.life);
+    ctx.fillStyle=p.c;
+    poly([[p.x,p.y-p.r],[p.x+p.r,p.y],[p.x,p.y+p.r],[p.x-p.r,p.y]], p.c, null);
+  });
+  ctx.globalAlpha=1;
+
+  ctx.restore();
+
+  if(!running){
+    ctx.fillStyle="rgba(255,255,255,.08)";
+    ctx.font="bold 42px sans-serif"; ctx.textAlign="center";
+    ctx.fillText("COMPARATIVE JUMP", W/2, H*0.52);
+  }
+}
+
+let last=performance.now();
+function loop(now){
+  const dt = Math.min(0.05, (now-last)/1000);
+  last=now;
+  if(running && !paused){
+    distance += speed*dt*10;
+    if(poseTimer>0){
+      poseTimer -= dt;
+      if(poseTimer<=0 && heroPose==="land") heroPose="run";
+      if(poseTimer<=0 && heroPose==="jump" && jumpY>=0) heroPose="run";
+      if(poseTimer<=0 && heroPose==="hurt") heroPose="run";
+    }
+    // jump: jumpVel in px/s, gravity 1800
+    if(jumpY !== 0 || jumpVel !== 0 || heroPose==="jump"){
+      jumpY += jumpVel * dt;
+      jumpVel += 1800 * dt;
+      if(phase !== "crash" && jumpY > 0){
+        jumpY = 0; jumpVel = 0;
+        if(heroPose==="jump"){ heroPose="land"; poseTimer=0.22; }
+      }
+    }
+    if(phase==="crash"){
+      jumpY = Math.min(14, jumpY + 90*dt);
+    }
+    particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=22*dt; p.life-=dt*1.5; });
+    particles = particles.filter(p=>p.life>0);
+    if(crashShake>0) crashShake = Math.max(0, crashShake-dt*22);
+    if(hitFlash>0) hitFlash = Math.max(0, hitFlash-dt*1.8);
+    if(phase==="question"){
+      timer -= dt;
+      const pct = Math.max(0, timer/timerMax)*100;
+      document.getElementById("timerFill").style.width = pct+"%";
+      if(timer<=0) onTimeout();
+    } else if(phase==="feedback" || phase==="crash"){
+      feedbackTimer -= dt;
+      if(feedbackTimer<=0) advanceAfterFeedback();
+    }
+  }
+  drawFrame(dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+currentPlayer = loadPlayer();
+buildNameGrid();
+if(currentPlayer){
+  updatePlayerUI();
+  showOverlay("overlayStart");
+} else {
+  showOverlay("overlayName");
+}
+
+})();
+</script>
 </body>
 </html>
