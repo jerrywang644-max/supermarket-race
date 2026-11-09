@@ -32,7 +32,7 @@
   .room-bg {
     position: absolute; inset: -1.5%;
     background: #000 center/cover no-repeat;
-    background-image: url("room-scene.jpg?v=13");
+    background-image: url("room-scene.jpg?v=14");
     animation: roomBreathe 6.5s ease-in-out infinite;
     will-change: transform;
   }
@@ -483,7 +483,7 @@
     <div class="lamp-glow" aria-hidden="true"></div>
     <div class="letter-float" aria-hidden="true" title="letter">
       <div class="spark"></div>
-      <img src="letter-float.png?v=13" alt="" />
+      <img src="letter-float.png?v=14" alt="" />
     </div>
 
     <div class="hud-top">
@@ -503,8 +503,8 @@
       <div class="dock">
         <div class="avatar-col">
           <div class="avatar-frame" id="avatarFrame">
-            <img id="avWait" src="avatar-waiting.jpg?v=13" alt="Aunt Mary waiting" />
-            <img id="avTalk" src="avatar-answering.jpg?v=13" alt="Aunt Mary answering" />
+            <img id="avWait" src="avatar-waiting.jpg?v=14" alt="Aunt Mary waiting" />
+            <img id="avTalk" src="avatar-answering.jpg?v=14" alt="Aunt Mary answering" />
           </div>
           <div class="avatar-name">Aunt Mary</div>
           <div class="mood" id="mood">Listening…</div>
@@ -541,13 +541,13 @@
 
 <script>
 const ILLUST = {
-  question: { src: "illust-question.jpg?v=13", cap: "?", mark: "", markText: "" },
-  email: { src: "illust-email.jpg?v=13", cap: "e-mail", mark: "cross", markText: "✗" },
-  mobile: { src: "illust-mobile.jpg?v=13", cap: "mobile phones", mark: "cross", markText: "✗" },
-  mp3: { src: "illust-mp3.jpg?v=13", cap: "MP3 players", mark: "cross", markText: "✗" },
-  letter: { src: "illust-letter.jpg?v=13", cap: "letter", mark: "tick", markText: "✓" },
-  telephone: { src: "illust-telephone.jpg?v=13", cap: "telephones", mark: "tick", markText: "✓" },
-  radio: { src: "illust-radio.jpg?v=13", cap: "radio", mark: "tick", markText: "✓" }
+  question: { src: "illust-question.jpg?v=14", cap: "?", mark: "", markText: "" },
+  email: { src: "illust-email.jpg?v=14", cap: "e-mail", mark: "cross", markText: "✗" },
+  mobile: { src: "illust-mobile.jpg?v=14", cap: "mobile phones", mark: "cross", markText: "✗" },
+  mp3: { src: "illust-mp3.jpg?v=14", cap: "MP3 players", mark: "cross", markText: "✗" },
+  letter: { src: "illust-letter.jpg?v=14", cap: "letter", mark: "tick", markText: "✓" },
+  telephone: { src: "illust-telephone.jpg?v=14", cap: "telephones", mark: "tick", markText: "✓" },
+  radio: { src: "illust-radio.jpg?v=14", cap: "radio", mark: "tick", markText: "✓" }
 };
 
 const MOBILE = {
@@ -668,26 +668,46 @@ function addBubble(who, text) {
 }
 
 function formatBotHtml(full, typedLen) {
-  // Bold the opening "No, there weren’t." / "No, there wasn't." while typing
-  const m = full.match(/^(No, there (?:weren’t|weren't|wasn’t|wasn't)\.)(\n|[\s\S]*)?$/);
-  if (!m) {
-    const span = document.createElement("span");
-    span.textContent = full.slice(0, typedLen);
-    return span;
-  }
-  const head = m[1];
-  const rest = m[2] || "";
+  const typed = full.slice(0, typedLen);
+  const boldPhrases = [
+    "No, there weren’t.",
+    "No, there weren't.",
+    "No, there wasn’t.",
+    "No, there wasn't.",
+    "There weren’t any e-mails, mobile phones or MP3 players 50 years ago.",
+    "There weren't any e-mails, mobile phones or MP3 players 50 years ago."
+  ];
+  // Build ranges to bold within the typed portion
+  const ranges = [];
+  boldPhrases.forEach((phrase) => {
+    let from = 0;
+    while (from < typed.length) {
+      const idx = typed.indexOf(phrase.slice(0, Math.min(phrase.length, typed.length - from)), from);
+      // Only bold if this is a real occurrence of the phrase start at a known full-text position
+      const fullIdx = full.indexOf(phrase, from);
+      if (fullIdx < 0 || fullIdx >= typedLen) break;
+      const end = Math.min(fullIdx + phrase.length, typedLen);
+      if (end > fullIdx) ranges.push([fullIdx, end]);
+      from = fullIdx + 1;
+    }
+  });
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  ranges.forEach(([s, e]) => {
+    if (!merged.length || s > merged[merged.length - 1][1]) merged.push([s, e]);
+    else merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], e);
+  });
+
   const wrap = document.createElement("span");
-  if (typedLen <= 0) return wrap;
-  const strong = document.createElement("strong");
-  if (typedLen <= head.length) {
-    strong.textContent = head.slice(0, typedLen);
+  let cursor = 0;
+  merged.forEach(([s, e]) => {
+    if (cursor < s) wrap.appendChild(document.createTextNode(typed.slice(cursor, s)));
+    const strong = document.createElement("strong");
+    strong.textContent = typed.slice(s, e);
     wrap.appendChild(strong);
-  } else {
-    strong.textContent = head;
-    wrap.appendChild(strong);
-    wrap.appendChild(document.createTextNode(rest.slice(0, typedLen - head.length)));
-  }
+    cursor = e;
+  });
+  if (cursor < typed.length) wrap.appendChild(document.createTextNode(typed.slice(cursor)));
   return wrap;
 }
 
