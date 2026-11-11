@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Uncle David · Old Hong Kong</title>
+<style>
+  :root {
+    --ink: #2a2218;
+    --muted: #6a5a48;
+    --panel: rgba(255,250,242,.94);
+    --accent: #b07a28;
+    --bot-bg: #fff7e6;
+    --you-bg: #eaf4ec;
+    --line: rgba(176,122,40,.22);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Segoe UI", "PingFang HK", "Noto Sans TC", sans-serif;
+    color: var(--ink);
+    background: #1a1410;
+    overflow: hidden;
+  }
+
+  #stage {
+    position: relative;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+  .room-bg {
+    position: absolute; inset: -1.5%;
+    background: #000 center/cover no-repeat;
+    background-image: url("room-scene.jpg?v=1");
+    animation: roomBreathe 6.5s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes roomBreathe {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.018); }
+  }
+  .lamp-glow {
+    position: absolute;
+    left: 16%; top: 40%;
+    width: min(28vw, 280px); height: min(28vw, 280px);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,200,90,.38) 0%, rgba(255,170,60,.14) 42%, transparent 70%);
+    pointer-events: none;
+    animation: lampPulse 2.8s ease-in-out infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+  }
+  @keyframes lampPulse {
+    0%,100% { opacity: .55; transform: scale(1); }
+    50% { opacity: .95; transform: scale(1.08); }
+  }
+  .wheel-float {
+    position: absolute;
+    left: 78%;
+    top: 34%;
+    width: min(15vw, 140px);
+    z-index: 3;
+    pointer-events: none;
+    filter: drop-shadow(0 8px 14px rgba(80,40,10,.35));
+    animation: wheelBob 2.8s ease-in-out infinite;
+    will-change: transform;
+  }
+  .wheel-float img {
+    width: 100%; height: auto; display: block;
+    user-select: none;
+  }
+  .wheel-float .spark {
+    position: absolute; inset: -18% -12%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,210,100,.35) 0%, transparent 65%);
+    animation: wheelSpark 2.8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+  }
+  @keyframes wheelBob {
+    0%,100% { transform: translate(-50%, 0) rotate(-4deg); }
+    50% { transform: translate(-50%, -14px) rotate(3deg); }
+  }
+  @keyframes wheelSpark {
+    0%,100% { opacity: .45; transform: scale(0.92); }
+    50% { opacity: .9; transform: scale(1.08); }
+  }
+  #stage.chat-open .wheel-float { opacity: .18; }
+
+  #stage::after {
+    content: "";
+    position: absolute; inset: 0; z-index: 3;
+    background: linear-gradient(to top, rgba(20,12,6,.48) 0%, transparent 42%);
+    pointer-events: none;
+  }
+
+  .hud-top {
+    position: absolute; top: 14px; left: 14px; right: 14px; z-index: 5;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none;
+  }
+  .pill {
+    pointer-events: none;
+    background: rgba(0,0,0,.45); color: #fff;
+    backdrop-filter: blur(6px);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 700;
+  }
+  .pill .stars { color: #ffc56b; margin-right: 6px; }
+
+  #landingUI {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
+    padding: 0 16px 28px; text-align: center;
+  }
+  .caption {
+    display: inline-block;
+    background: rgba(0,0,0,.62); color: #fff;
+    padding: 12px 22px; border-radius: 12px;
+    font-size: clamp(15px, 2.4vw, 18px); font-weight: 600;
+    margin-bottom: 14px; max-width: 92vw;
+  }
+  .tap-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 0; cursor: pointer;
+    background: linear-gradient(180deg, #f3c57a, #d9923a);
+    color: #3a250c; font-weight: 800; font-size: 1.05rem;
+    padding: 14px 28px; border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  .tap-btn:hover { filter: brightness(1.05); }
+  @keyframes pulse {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  #charHotspot {
+    position: absolute; z-index: 4; cursor: pointer;
+    left: 28%; right: 28%; top: 12%; bottom: 28%;
+    border-radius: 24px;
+  }
+  #charHotspot::before {
+    content: "";
+    position: absolute; left: 50%; top: 58%;
+    width: 70%; height: 55%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(255,200,120,.35);
+    animation: hotspotRing 2.4s ease-out infinite;
+    pointer-events: none;
+  }
+  @keyframes hotspotRing {
+    0% { box-shadow: 0 0 0 0 rgba(255,200,120,.4); opacity: 1; }
+    70% { box-shadow: 0 0 0 28px rgba(255,200,120,0); opacity: 0; }
+    100% { opacity: 0; }
+  }
+
+  #dialogue {
+    display: none;
+    position: absolute; inset: 0; z-index: 10;
+  }
+  .dim {
+    position: absolute; inset: 0;
+    background: rgba(12,8,4,.55);
+    backdrop-filter: blur(2px);
+  }
+  .dock {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(96vw, 1180px);
+    height: min(92vh, 860px);
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) 1fr;
+    gap: 18px;
+    align-items: stretch;
+    padding: 18px;
+    box-sizing: border-box;
+  }
+
+  .avatar-col {
+    width: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 10px;
+    min-height: 0;
+  }
+  .avatar-frame {
+    width: min(100%, 280px); aspect-ratio: 1;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 4px solid #fff;
+    box-shadow: 0 10px 28px rgba(0,0,0,.35);
+    background: #f5ebe0;
+    position: relative;
+    flex: 0 0 auto;
+    animation: avatarIdle 3.2s ease-in-out infinite;
+    will-change: transform;
+  }
+  .avatar-frame.talking {
+    animation: avatarTalk 0.55s ease-in-out infinite;
+  }
+  @keyframes avatarIdle {
+    0%,100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-4px) scale(1.015); }
+  }
+  @keyframes avatarTalk {
+    0%,100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-2px) scale(1.03); }
+  }
+  .avatar-frame img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center top;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .avatar-frame img#avWait { opacity: 1; }
+  .avatar-frame img#avTalk { opacity: 0; transform: scale(1.02); }
+  .avatar-frame.talking img#avWait { opacity: 0; }
+  .avatar-frame.talking img#avTalk { opacity: 1; transform: scale(1); }
+
+  .avatar-name {
+    background: rgba(0,0,0,.55); color: #fff;
+    padding: 4px 12px; border-radius: 999px;
+    font-size: 14px; font-weight: 700;
+  }
+  .mood {
+    font-size: 12px; color: #fff; background: rgba(176,122,40,.9);
+    padding: 3px 10px; border-radius: 8px; min-height: 18px;
+  }
+
+  .illust-wrap {
+    width: 100%;
+    max-width: 280px;
+    flex: 1 1 auto;
+    min-height: 120px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .illust-frame {
+    width: 100%;
+    aspect-ratio: 1;
+    max-height: min(34vh, 260px);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 3px solid rgba(255,255,255,.9);
+    box-shadow: 0 8px 20px rgba(0,0,0,.28);
+    background: #fff8ee;
+    position: relative;
+  }
+  .illust-frame img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity .35s ease;
+  }
+  .illust-frame img.show { opacity: 1; }
+
+  .illust-frame.vintage img {
+    filter: sepia(.55) contrast(1.05) brightness(.92) saturate(.85);
+  }
+  .illust-frame.vintage::after {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at center, transparent 40%, rgba(60,35,10,.22) 100%),
+      repeating-linear-gradient(0deg, rgba(80,50,20,.03) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    z-index: 2;
+  }
+  .bubble .body strong { font-weight: 800; }
+
+  #confirmLeave {
+    display: none;
+    position: absolute; inset: 0; z-index: 30;
+    background: rgba(10,6,2,.55);
+    align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  #confirmLeave.show { display: flex; }
+  .confirm-card {
+    width: min(92vw, 420px);
+    background: var(--panel);
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.65);
+    box-shadow: 0 16px 40px rgba(0,0,0,.4);
+    padding: 20px 18px 16px;
+    text-align: center;
+  }
+  .confirm-card h3 {
+    margin: 0 0 8px; font-size: clamp(17px, 2.4vw, 20px); color: var(--ink);
+  }
+  .confirm-card p {
+    margin: 0 0 16px; color: var(--muted); font-size: clamp(14px, 2vw, 16px); line-height: 1.45;
+  }
+  .confirm-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .confirm-actions button {
+    border: 0; cursor: pointer; border-radius: 999px;
+    padding: 10px 18px; font-weight: 800; font-size: 15px;
+  }
+  .confirm-yes { background: #efe2cf; color: var(--accent); }
+  .confirm-no {
+    background: linear-gradient(180deg, #f3c57a, #d9923a);
+    color: #3a250c;
+  }
+
+  .illust-frame.floating {
+    animation: illustFloat 2.6s ease-in-out infinite;
+  }
+  @keyframes illustFloat {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .illust-mark {
+    position: absolute;
+    right: 8px; bottom: 8px;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 900; line-height: 1;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,.35);
+    z-index: 4;
+    opacity: 0;
+    transform: scale(.85);
+    transition: opacity .25s ease, transform .25s ease;
+    pointer-events: none;
+  }
+  .illust-mark.show { opacity: 1; transform: scale(1); }
+  .illust-mark.cross { background: #e53935; }
+  .illust-mark.tick { background: #2e7d32; }
+  .illust-caption {
+    font-size: 12px; font-weight: 700; color: #fff;
+    background: rgba(0,0,0,.5);
+    padding: 3px 10px; border-radius: 999px;
+    min-height: 18px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border-radius: 22px;
+    box-shadow: 0 18px 48px rgba(0,0,0,.4);
+    border: 1px solid rgba(255,255,255,.65);
+    min-height: 0;
+    height: 100%;
+    max-height: none;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 16px; border-bottom: 1px solid var(--line);
+    font-size: clamp(14px, 1.8vw, 17px); color: var(--muted); font-weight: 700;
+  }
+  .panel-bar button {
+    margin-left: auto; border: 0; cursor: pointer;
+    background: #efe2cf; color: var(--accent);
+    padding: 8px 14px; border-radius: 999px; font-weight: 700;
+    font-size: 14px;
+  }
+  .thread {
+    flex: 1 1 auto; overflow-y: auto; padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    min-height: 0;
+  }
+  .bubble {
+    max-width: 95%; padding: 12px 14px; border-radius: 14px;
+    line-height: 1.5; font-size: clamp(16px, 2.4vw, 20px);
+    white-space: pre-wrap;
+  }
+  .bubble.bot { align-self: flex-start; background: var(--bot-bg); border: 1px solid #edd9b8; }
+  .bubble.you { align-self: flex-end; background: var(--you-bg); border: 1px solid #c9dfd0; }
+  .who { font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: 3px; }
+  .bubble .caret {
+    display: inline-block; width: .55em;
+    border-right: 2px solid var(--accent);
+    animation: caretBlink .8s step-end infinite;
+    margin-left: 1px;
+  }
+  @keyframes caretBlink { 50% { border-color: transparent; } }
+
+  .choices {
+    border-top: 1px solid var(--line);
+    padding: 12px 14px; max-height: 46%; overflow-y: auto;
+    background: rgba(255,255,255,.62);
+    flex: 0 1 auto;
+  }
+  .choices-label {
+    font-size: 12px; font-weight: 800; color: var(--muted);
+    letter-spacing: .04em; text-transform: uppercase; margin: 0 0 8px;
+  }
+  .qbtn {
+    display: block; width: 100%; text-align: left;
+    margin-bottom: 8px; cursor: pointer;
+    border: 1.5px solid var(--line); background: #fff;
+    border-radius: 12px; padding: 12px 14px;
+    font-size: clamp(15px, 2.1vw, 18px); font-weight: 600; color: var(--ink);
+  }
+  .qbtn:hover:not(:disabled) { border-color: var(--accent); background: #fff8ee; }
+
+  .reorder-box {
+    border-top: 1px solid var(--line);
+    padding: 12px 14px;
+    background: rgba(255,255,255,.7);
+  }
+  .reorder-title {
+    font-size: 13px; font-weight: 800; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .04em; margin: 0 0 6px;
+  }
+  .reorder-hint {
+    font-size: clamp(14px, 2vw, 16px); font-weight: 600; margin: 0 0 10px; color: var(--ink);
+  }
+  .reorder-slots {
+    min-height: 52px;
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 10px; margin-bottom: 10px;
+    border: 2px dashed rgba(176,122,40,.35);
+    border-radius: 12px; background: #fffdf8;
+  }
+  .reorder-bank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .wchip {
+    border: 1.5px solid var(--line);
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: clamp(14px, 2vw, 17px);
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .wchip:hover { border-color: var(--accent); background: #fff8ee; }
+  .wchip.in-slot { background: #efe2cf; }
+  .reorder-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .reorder-actions button {
+    border: 0; cursor: pointer; border-radius: 999px;
+    padding: 8px 14px; font-weight: 800; font-size: 14px;
+  }
+  .btn-check { background: linear-gradient(180deg,#f3c57a,#d9923a); color: #3a250c; }
+  .btn-reset { background: #efe2cf; color: var(--accent); }
+  .reorder-feedback {
+    margin-top: 8px; font-weight: 700; font-size: 14px; min-height: 1.2em;
+  }
+  .reorder-feedback.ok { color: #2e7d32; }
+  .reorder-feedback.bad { color: #c62828; }
+  .qbtn:disabled { opacity: .4; cursor: default; }
+
+  @media (max-width: 640px) {
+    .dock {
+      grid-template-columns: 1fr;
+      width: 96vw; height: 94vh;
+      padding: 10px; gap: 10px;
+    }
+    .avatar-col {
+      width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: flex-start;
+      gap: 10px; padding-left: 4px;
+    }
+    .avatar-frame { width: 110px; border-radius: 16px; border-width: 3px; }
+    .illust-wrap { max-width: 140px; min-height: 90px; }
+    .illust-frame { max-height: 120px; }
+    .avatar-name, .mood, .illust-caption { font-size: 11px; }
+    #charHotspot { left: 18%; right: 18%; }
+    .lamp-glow { left: 12%; width: 40vw; height: 40vw; }
+    .wheel-float { left: 82%; top: 30%; width: 22vw; }
+    .choices { max-height: 40%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .room-bg, .lamp-glow, .wheel-float, .wheel-float .spark,
+    .illust-frame.floating,
+    .avatar-frame, .avatar-frame.talking,
+    #charHotspot::before, .tap-btn, .bubble .caret {
+      animation: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div class="room-bg" aria-hidden="true"></div>
+    <div class="lamp-glow" aria-hidden="true"></div>
+    <div class="wheel-float" aria-hidden="true" title="wagon wheel">
+      <div class="spark"></div>
+      <img src="wheel-float.png?v=1" alt="" />
+    </div>
+
+    <div class="hud-top">
+      <div class="pill"><span class="stars">★★</span>Mid · Uncle David · Travel</div>
+      <div class="pill">There was / There were</div>
+    </div>
+
+    <div id="charHotspot" title="Talk to Uncle David"></div>
+
+    <div id="landingUI">
+      <div class="caption">Uncle David: I can tell you how we travelled around.</div>
+      <button class="tap-btn" id="startBtn" type="button">👆 Tap Uncle David to talk</button>
+    </div>
+
+    <div id="dialogue">
+      <div class="dim"></div>
+      <div class="dock">
+        <div class="avatar-col">
+          <div class="avatar-frame" id="avatarFrame">
+            <img id="avWait" src="avatar-waiting.jpg?v=1" alt="Uncle David waiting" />
+            <img id="avTalk" src="avatar-answering.jpg?v=1" alt="Uncle David answering" />
+          </div>
+          <div class="avatar-name">Uncle David</div>
+          <div class="mood" id="mood">Listening…</div>
+          <div class="illust-wrap">
+            <div class="illust-frame" id="illustFrame">
+              <img id="illustImg" alt="" />
+              <div class="illust-mark" id="illustMark" aria-hidden="true"></div>
+            </div>
+            <div class="illust-caption" id="illustCap"> </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-bar">
+            How we travelled around
+            <button type="button" id="backBtn">← Room</button>
+          </div>
+          <div class="thread" id="thread" aria-live="polite"></div>
+          <div class="choices" id="choices"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="confirmLeave" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="confirm-card">
+        <h3 id="confirmTitle">Leave the chat?</h3>
+        <p>If you go back to the room, this talk will be cleared.</p>
+        <div class="confirm-actions">
+          <button type="button" class="confirm-yes" id="confirmYes">Yes, leave</button>
+          <button type="button" class="confirm-no" id="confirmNo">No, stay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const ILLUST = {
+  question: { src: "illust-question.jpg?v=1", cap: "?", mark: "", markText: "" },
+  tram: { src: "illust-tram.jpg?v=1", cap: "tram", mark: "tick", markText: "✓" },
+  ferry: { src: "illust-ferry.jpg?v=1", cap: "ferry", mark: "tick", markText: "✓" },
+  bus: { src: "illust-bus.jpg?v=1", cap: "bus", mark: "tick", markText: "✓" },
+  mtr: { src: "illust-mtr.jpg?v=1", cap: "MTR", mark: "cross", markText: "✗" },
+  aeroplane: { src: "illust-aeroplane.jpg?v=1", cap: "aeroplane", mark: "tick", markText: "✓" }
+};
+
+const OPENING = {
+  id: "mtr",
+  q: "Was there an MTR 50 years ago?",
+  a: "No, there wasn’t.",
+  imgs: ["tram", "ferry", "bus", "mtr"]
+};
+
+const REORDER = [
+  {
+    id: "tram",
+    q: "Was there a tram 50 years ago?",
+    a: "Yes, there was.",
+    imgs: ["tram"],
+    words: ["Was", "there", "a tram", "50 years ago", "?"]
+  },
+  {
+    id: "aeroplanes",
+    q: "Were there any aeroplanes 50 years ago?",
+    a: "Yes, there were.",
+    imgs: ["aeroplane"],
+    words: ["Were", "there", "any", "aeroplanes", "50 years ago", "?"]
+  }
+];
+
+const landingUI = document.getElementById("landingUI");
+const dialogue = document.getElementById("dialogue");
+const thread = document.getElementById("thread");
+const choices = document.getElementById("choices");
+const avatarFrame = document.getElementById("avatarFrame");
+const mood = document.getElementById("mood");
+const illustImg = document.getElementById("illustImg");
+const illustCap = document.getElementById("illustCap");
+
+let typingToken = 0;
+let cycleTimer = null;
+let reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let openingDone = false;
+let reorderIndex = 0;
+let busy = false;
+
+function setWaiting() {
+  avatarFrame.classList.remove("talking");
+  mood.textContent = "Listening…";
+}
+function setTalking() {
+  avatarFrame.classList.add("talking");
+  mood.textContent = "Answering…";
+}
+
+function clearIllustCycle() {
+  if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
+}
+
+function showIllust(key) {
+  const item = ILLUST[key];
+  if (!item) return;
+  const frame = document.getElementById("illustFrame");
+  const markEl = document.getElementById("illustMark");
+  illustImg.classList.remove("show");
+  if (markEl) markEl.classList.remove("show", "cross", "tick");
+  const next = () => {
+    illustImg.src = item.src;
+    illustImg.alt = item.cap;
+    illustCap.textContent = item.cap === "?" ? "ask a question" : item.cap;
+    if (frame) {
+      frame.classList.toggle("floating", key === "question");
+      frame.classList.toggle("vintage", item.mark === "tick");
+    }
+    if (markEl) {
+      markEl.textContent = item.markText || "";
+      markEl.className = "illust-mark " + (item.mark || "");
+    }
+    requestAnimationFrame(() => {
+      illustImg.classList.add("show");
+      if (markEl && item.mark) markEl.classList.add("show");
+    });
+  };
+  setTimeout(next, illustImg.classList.contains("show") ? 180 : 0);
+}
+
+function showIdleQuestion() {
+  clearIllustCycle();
+  showIllust("question");
+}
+
+function startIllustCycle(keys) {
+  clearIllustCycle();
+  if (!keys || !keys.length) {
+    illustImg.classList.remove("show");
+    illustCap.textContent = " ";
+    const markEl = document.getElementById("illustMark");
+    if (markEl) markEl.classList.remove("show", "cross", "tick");
+    return;
+  }
+  let i = 0;
+  showIllust(keys[0]);
+  if (keys.length > 1 && !reduceMotion) {
+    cycleTimer = setInterval(() => {
+      i = (i + 1) % keys.length;
+      showIllust(keys[i]);
+    }, 1600);
+  }
+}
+
+function addBubble(who, text) {
+  const div = document.createElement("div");
+  div.className = "bubble " + (who === "you" ? "you" : "bot");
+  div.innerHTML = `<div class="who">${who === "you" ? "You" : "Uncle David"}</div>`;
+  const body = document.createElement("span");
+  body.className = "body";
+  body.textContent = text;
+  div.appendChild(body);
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+  return { div, body };
+}
+
+function formatBotHtml(full, typedLen) {
+  const typed = full.slice(0, typedLen);
+  const boldPhrases = [
+    "No, there weren’t.",
+    "No, there weren't.",
+    "No, there wasn’t.",
+    "No, there wasn't.",
+    "Yes, there was.",
+    "Yes, there were.",
+    "There wasn’t an MTR 50 years ago. There were trams, ferries and aeroplanes.",
+    "There wasn't an MTR 50 years ago. There were trams, ferries and aeroplanes."
+  ];
+  const ranges = [];
+  boldPhrases.forEach((phrase) => {
+    let from = 0;
+    while (from < typed.length) {
+      const fullIdx = full.indexOf(phrase, from);
+      if (fullIdx < 0 || fullIdx >= typedLen) break;
+      const end = Math.min(fullIdx + phrase.length, typedLen);
+      if (end > fullIdx) ranges.push([fullIdx, end]);
+      from = fullIdx + 1;
+    }
+  });
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  ranges.forEach(([s, e]) => {
+    if (!merged.length || s > merged[merged.length - 1][1]) merged.push([s, e]);
+    else merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], e);
+  });
+
+  const wrap = document.createElement("span");
+  let cursor = 0;
+  merged.forEach(([s, e]) => {
+    if (cursor < s) wrap.appendChild(document.createTextNode(typed.slice(cursor, s)));
+    const strong = document.createElement("strong");
+    strong.textContent = typed.slice(s, e);
+    wrap.appendChild(strong);
+    cursor = e;
+  });
+  if (cursor < typed.length) wrap.appendChild(document.createTextNode(typed.slice(cursor)));
+  return wrap;
+}
+
+function typeBot(text, onDone) {
+  const token = ++typingToken;
+  const { body } = addBubble("bot", "");
+  const caret = document.createElement("span");
+  caret.className = "caret";
+  caret.setAttribute("aria-hidden", "true");
+  body.after(caret);
+
+  const paint = (n) => {
+    body.replaceChildren(formatBotHtml(text, n));
+    thread.scrollTop = thread.scrollHeight;
+  };
+
+  if (reduceMotion) {
+    paint(text.length);
+    caret.remove();
+    if (onDone) onDone();
+    return;
+  }
+
+  let i = 0;
+  const step = () => {
+    if (token !== typingToken) return;
+    i += 1;
+    paint(i);
+    if (i < text.length) {
+      const ch = text[i - 1];
+      const delay = ch === "\n" ? 90 : (ch === "." || ch === "?" || ch === "!") ? 55 : 22;
+      setTimeout(step, delay);
+    } else {
+      caret.remove();
+      if (onDone) onDone();
+    }
+  };
+  step();
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  if (a.join(" ") === arr.join(" ")) return shuffle(arr);
+  return a;
+}
+
+function clearChoices() {
+  choices.innerHTML = "";
+}
+
+function renderOpeningChoice() {
+  clearChoices();
+  const label = document.createElement("div");
+  label.className = "choices-label";
+  label.textContent = "Choose a question";
+  choices.appendChild(label);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "qbtn";
+  btn.textContent = OPENING.q;
+  btn.addEventListener("click", () => {
+    if (busy) return;
+    askItem(OPENING, () => {
+      openingDone = true;
+      reorderIndex = 0;
+      renderReorderTask(REORDER[0]);
+    });
+  });
+  choices.appendChild(btn);
+}
+
+function renderReorderTask(task) {
+  clearChoices();
+  const box = document.createElement("div");
+  box.className = "reorder-box";
+  box.innerHTML = `
+    <div class="reorder-title">Make the question</div>
+    <div class="reorder-hint">Put the words in order to ask Uncle David.</div>
+    <div class="reorder-slots" id="reorderSlots"></div>
+    <div class="reorder-bank" id="reorderBank"></div>
+    <div class="reorder-actions">
+      <button type="button" class="btn-check" id="reorderCheck">Check ✓</button>
+      <button type="button" class="btn-reset" id="reorderReset">Reset</button>
+    </div>
+    <div class="reorder-feedback" id="reorderFeedback"></div>
+  `;
+  choices.appendChild(box);
+
+  const slots = box.querySelector("#reorderSlots");
+  const bank = box.querySelector("#reorderBank");
+  const feedback = box.querySelector("#reorderFeedback");
+  const selected = [];
+  let bankWords = shuffle(task.words);
+
+  function paint() {
+    slots.innerHTML = "";
+    selected.forEach((w, idx) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "wchip in-slot";
+      chip.textContent = w;
+      chip.addEventListener("click", () => {
+        selected.splice(idx, 1);
+        bankWords.push(w);
+        paint();
+      });
+      slots.appendChild(chip);
+    });
+    bank.innerHTML = "";
+    bankWords.forEach((w, idx) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "wchip";
+      chip.textContent = w;
+      chip.addEventListener("click", () => {
+        bankWords.splice(idx, 1);
+        selected.push(w);
+        feedback.textContent = "";
+        feedback.className = "reorder-feedback";
+        paint();
+      });
+      bank.appendChild(chip);
+    });
+  }
+
+  box.querySelector("#reorderReset").addEventListener("click", () => {
+    bankWords = shuffle(task.words);
+    selected.length = 0;
+    feedback.textContent = "";
+    feedback.className = "reorder-feedback";
+    paint();
+  });
+
+  box.querySelector("#reorderCheck").addEventListener("click", () => {
+    if (busy) return;
+    const built = selected.join(" ");
+    const target = task.words.join(" ");
+    if (built === target) {
+      feedback.textContent = "Great! Now ask Uncle David.";
+      feedback.className = "reorder-feedback ok";
+      box.querySelectorAll("button").forEach(b => b.disabled = true);
+      setTimeout(() => askItem(task, () => {
+        reorderIndex += 1;
+        if (reorderIndex < REORDER.length) {
+          renderReorderTask(REORDER[reorderIndex]);
+        } else {
+          finishAll();
+        }
+      }), 450);
+    } else {
+      feedback.textContent = "Not yet — try again!";
+      feedback.className = "reorder-feedback bad";
+    }
+  });
+
+  paint();
+}
+
+function askItem(item, onAfterAnswer) {
+  if (busy) return;
+  busy = true;
+  clearChoices();
+  addBubble("you", item.q);
+  setWaiting();
+  startIllustCycle(item.imgs);
+  setTimeout(() => {
+    setTalking();
+    typeBot(item.a, () => {
+      setWaiting();
+      if (item.imgs && item.imgs.length) startIllustCycle(item.imgs);
+      else clearIllustCycle();
+      busy = false;
+      if (onAfterAnswer) onAfterAnswer();
+    });
+  }, 400);
+}
+
+function finishAll() {
+  clearChoices();
+  setTalking();
+  startIllustCycle(["tram", "ferry", "aeroplane"]);
+  typeBot("Well done! You asked all my questions.\nThere wasn’t an MTR 50 years ago. There were trams, ferries and aeroplanes.", () => {
+    setWaiting();
+    startIllustCycle(["tram", "ferry", "aeroplane"]);
+  });
+}
+
+function openChat() {
+  if (typeof closeLeaveConfirm === "function") closeLeaveConfirm();
+  document.getElementById("stage").classList.add("chat-open");
+  landingUI.style.display = "none";
+  document.getElementById("charHotspot").style.display = "none";
+  dialogue.style.display = "block";
+  thread.innerHTML = "";
+  typingToken++;
+  clearIllustCycle();
+  busy = false;
+  openingDone = false;
+  reorderIndex = 0;
+  setWaiting();
+  showIdleQuestion();
+  setTalking();
+  typeBot("Hello! I’m Uncle David.\nStart with this question about the MTR.", () => {
+    setWaiting();
+    showIdleQuestion();
+    renderOpeningChoice();
+  });
+}
+
+function goBack() {
+  typingToken++;
+  clearIllustCycle();
+  busy = false;
+  document.getElementById("stage").classList.remove("chat-open");
+  dialogue.style.display = "none";
+  landingUI.style.display = "block";
+  document.getElementById("charHotspot").style.display = "block";
+  setWaiting();
+}
+
+const confirmLeave = document.getElementById("confirmLeave");
+function openLeaveConfirm() {
+  confirmLeave.classList.add("show");
+}
+function closeLeaveConfirm() {
+  confirmLeave.classList.remove("show");
+}
+document.getElementById("startBtn").addEventListener("click", openChat);
+document.getElementById("charHotspot").addEventListener("click", openChat);
+document.getElementById("backBtn").addEventListener("click", openLeaveConfirm);
+document.getElementById("confirmYes").addEventListener("click", () => {
+  closeLeaveConfirm();
+  goBack();
+});
+document.getElementById("confirmNo").addEventListener("click", closeLeaveConfirm);
+confirmLeave.addEventListener("click", (e) => {
+  if (e.target === confirmLeave) closeLeaveConfirm();
+});
+</script>
+</body>
+</html>
