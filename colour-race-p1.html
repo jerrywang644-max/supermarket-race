@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#38bdf8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Colour Race — The Rainbow Song · P1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#7dd3fc;
+  font-family:"Segoe UI","PingFang HK","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:#0f172a;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none}
+#game{display:block;width:100%;height:100%;background:#7dd3fc}
+.overlay{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 30% 20%,rgba(253,224,71,.35),transparent 50%),
+    radial-gradient(ellipse at 80% 10%,rgba(167,139,250,.28),transparent 45%),
+    radial-gradient(ellipse at 50% 100%,rgba(56,189,248,.45),rgba(14,165,233,.55));
+  z-index:10;padding:16px;overflow:auto
+}
+.overlay.hidden{display:none}
+.panel{
+  max-width:620px;width:100%;background:linear-gradient(180deg,#fffef8,#fff7ed);
+  border:5px solid #fff;border-radius:28px;padding:26px 22px;text-align:center;
+  box-shadow:0 0 0 6px #f97316, 0 0 0 11px #eab308, 0 0 0 16px #22c55e, 0 0 0 21px #3b82f6, 0 0 0 26px #8b5cf6,
+    0 18px 50px rgba(15,23,42,.28);
+  margin:28px auto
+}
+.panel h1{
+  font-size:clamp(1.85rem,6vw,2.7rem);font-weight:900;letter-spacing:-.5px;line-height:1.1;
+  background:linear-gradient(90deg,#ef4444,#f97316,#eab308,#22c55e,#3b82f6,#8b5cf6);
+  -webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px
+}
+.panel .kicker{font-weight:800;letter-spacing:.04em;margin:0 0 8px;color:#7c3aed;font-size:clamp(1rem,2.6vw,1.2rem)}
+.panel p{color:#334155;font-size:clamp(.95rem,2.3vw,1.12rem);margin:8px 0 14px;line-height:1.55}
+.panel p b{color:#0f172a}
+.howto{text-align:left;background:#fff;border:2px solid #fdba74;border-radius:18px;padding:12px 14px;margin:10px 0 16px}
+.howto li{margin:4px 0;font-weight:700;color:#334155;font-size:clamp(.92rem,2.2vw,1.05rem)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:16px 36px;margin:6px;border:none;border-radius:999px;font-weight:900;
+  font-size:clamp(1.1rem,3vw,1.35rem);cursor:pointer;font-family:inherit;
+  background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;
+  box-shadow:0 6px 20px rgba(239,68,68,.35);transition:transform .15s
+}
+.btn:hover{transform:translateY(-2px)}
+.btn-go{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 6px 20px rgba(22,163,74,.35)}
+.btn-alt{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff}
+.btn-ghost{background:#fff;border:3px solid #7c3aed;color:#6d28d9;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.hud{
+  position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;
+  padding:10px 14px;display:flex;justify-content:space-between;align-items:flex-start;
+  background:linear-gradient(180deg,rgba(255,255,255,.55),transparent);gap:8px;flex-wrap:wrap
+}
+.hud .stat{background:rgba(255,255,255,.9);border:2px solid #7c3aed55;border-radius:14px;
+  padding:8px 12px;font-weight:800;font-size:clamp(.95rem,2.2vw,1.1rem);backdrop-filter:blur(4px);color:#0f172a}
+.hud .lives{letter-spacing:1px;font-size:1.15rem}
+.play-wrap{
+  position:fixed;left:50%;transform:translateX(-50%);top:58px;z-index:6;
+  max-width:min(1100px,96vw);width:100%;display:none;flex-direction:column;gap:12px;
+  pointer-events:none
+}
+.play-wrap.show{display:flex}
+.q-banner{
+  pointer-events:none;
+  background:rgba(255,254,248,.96);border:4px solid #7c3aed;border-radius:20px;
+  padding:14px 18px;text-align:center;box-shadow:0 10px 32px rgba(15,23,42,.25)
+}
+.q-banner .tag{font-size:clamp(.9rem,2.2vw,1.05rem);font-weight:900;color:#7c3aed;margin-bottom:6px;letter-spacing:.06em}
+.q-banner .q{font-size:clamp(1.45rem,4.4vw,2.15rem);font-weight:900;color:#0f172a;line-height:1.3}
+.q-banner .hint{font-size:clamp(1rem,2.4vw,1.2rem);color:#64748b;margin-top:6px;font-weight:800}
+.q-banner .timer-bar{height:10px;background:#e2e8f0;border-radius:99px;margin-top:10px;overflow:hidden;display:none}
+.q-banner.timed .timer-bar{display:block}
+.q-banner .timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#22c55e,#eab308,#ef4444);
+  transition:width .05s linear;border-radius:99px}
+
+.colour-card{pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:10px}
+.swatch{
+  width:min(420px,72vw);aspect-ratio:5/3.2;max-height:min(38vh,320px);
+  border-radius:28px;border:6px solid #fff;box-shadow:0 12px 32px rgba(15,23,42,.28);
+  position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center
+}
+.swatch .pattern{position:absolute;inset:0;opacity:.35;pointer-events:none}
+.swatch .shape{font-size:clamp(4.2rem,14vw,7rem);line-height:1;filter:drop-shadow(0 4px 0 rgba(0,0,0,.15));z-index:1}
+.swatch .word{
+  position:absolute;bottom:10px;left:0;right:0;text-align:center;
+  font-weight:900;font-size:clamp(1.6rem,5vw,2.3rem);letter-spacing:.04em;
+  text-transform:lowercase;z-index:2;opacity:0;transition:opacity .2s;
+  text-shadow:0 2px 0 rgba(0,0,0,.25), 0 0 8px rgba(255,255,255,.5)
+}
+.swatch.reveal .word{opacity:1}
+.swatch.shake{animation:shake .4s ease}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-10px)}
+  40%{transform:translateX(10px)}
+  60%{transform:translateX(-8px)}
+  80%{transform:translateX(8px)}
+}
+.model-line{
+  min-height:1.4em;font-size:clamp(1.35rem,4vw,1.85rem);font-weight:900;color:#0f172a;
+  background:rgba(255,255,255,.94);border-radius:16px;padding:8px 16px;
+  box-shadow:0 6px 18px rgba(15,23,42,.12);opacity:0;transition:opacity .2s
+}
+.model-line.show{opacity:1}
+.model-line.ok{color:#15803d;border:3px solid #86efac}
+.model-line.bad{color:#b45309;border:3px solid #fdba74}
+.answer-area{pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:12px;padding:0 2px 4px}
+.colour-btn{
+  flex:1 1 150px;max-width:240px;min-height:88px;border-radius:22px;border:5px solid rgba(255,255,255,.9);
+  font-weight:900;font-size:clamp(1.45rem,4.2vw,2rem);cursor:pointer;font-family:inherit;
+  padding:16px 14px;transition:transform .1s, box-shadow .15s, filter .15s;
+  box-shadow:0 8px 0 rgba(15,23,42,.2), 0 10px 22px rgba(15,23,42,.18);
+  text-transform:lowercase;letter-spacing:.02em
+}
+.colour-btn:active{transform:scale(.97) translateY(2px);box-shadow:0 4px 0 rgba(15,23,42,.2)}
+.colour-btn:disabled{cursor:default}
+.colour-btn.c-red{background:#dc2626;color:#fff}
+.colour-btn.c-orange{background:#ea580c;color:#fff}
+.colour-btn.c-yellow{background:#eab308;color:#1c1917}
+.colour-btn.c-green{background:#16a34a;color:#fff}
+.colour-btn.c-blue{background:#2563eb;color:#fff}
+.colour-btn.c-purple{background:#7c3aed;color:#fff}
+.colour-btn.correct-flash{outline:6px solid #4ade80;filter:brightness(1.12);transform:scale(1.04)}
+.colour-btn.wrong-flash{filter:grayscale(.2) brightness(.85);outline:6px solid #f87171}
+.controls-bar{position:fixed;bottom:14px;right:14px;z-index:8;display:flex;gap:8px}
+.icon-btn{
+  width:48px;height:48px;border-radius:14px;border:3px solid #7c3aed66;
+  background:rgba(255,255,255,.9);color:#6d28d9;font-size:1.25rem;cursor:pointer
+}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:7;opacity:0;transition:opacity .15s}
+.flash.ok{background:rgba(74,222,128,.32);opacity:1}
+.flash.bad{background:rgba(248,113,113,.32);opacity:1}
+.session-box{text-align:left;background:#fff;border:2px solid #c4b5fd;border-radius:16px;padding:10px 12px;margin:10px 0 6px}
+.session-box h2{font-size:1rem;margin:0 0 6px;color:#6d28d9;text-align:center}
+.session-row{display:flex;justify-content:space-between;gap:10px;padding:6px 2px;border-bottom:1px dashed #e2e8f0;font-weight:800}
+.session-row:last-child{border-bottom:none}
+.session-empty{text-align:center;color:#94a3b8;font-weight:700;padding:8px}
+.report{text-align:left;max-height:28vh;overflow:auto;margin:10px 0;font-size:.92rem}
+.report .row{padding:6px 4px;border-bottom:1px solid #fde68a;color:#334155;font-weight:700}
+.report .okb{color:#16a34a}.report .badb{color:#dc2626}
+.muted{color:#64748b;font-size:.88rem;font-weight:700}
+.bonus-hint{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:6;
+  background:rgba(255,255,255,.94);border:3px solid #eab308;border-radius:999px;
+  padding:10px 18px;font-weight:800;font-size:clamp(.9rem,2.4vw,1.1rem);color:#92400e;
+  display:none;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.2)
+}
+.bonus-hint.show{display:block}
+.progress-rail{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:5;
+  width:min(640px,86vw);height:12px;border-radius:999px;background:rgba(255,255,255,.65);
+  border:2px solid #7c3aed66;overflow:hidden;display:none;pointer-events:none
+}
+.progress-rail.show{display:block}
+.progress-rail .fill{height:100%;width:0%;background:linear-gradient(90deg,#ef4444,#eab308,#22c55e,#3b82f6,#8b5cf6);transition:width .35s ease}
+.end-score{font-size:clamp(1.15rem,3vw,1.4rem);font-weight:800;color:#0f172a}
+@media (max-height:700px){
+  .play-wrap{top:52px;gap:8px}
+  .swatch{max-height:min(32vh,260px)}
+  .colour-btn{min-height:72px}
+  .panel{padding:18px 16px;margin:22px auto}
+}
+@media (max-width:520px){
+  .colour-btn{min-height:70px;font-size:1.3rem}
+}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="flash" id="flash"></div>
+<div class="hud" id="hud" style="display:none">
+  <div class="stat" id="hudScoreWrap">⭐ <span id="hudScore">0</span></div>
+  <div class="stat" id="hudMainQ">🏁 <span id="hudQLabel">Q</span> <span id="hudQ">1</span>/<span id="hudTotal">8</span></div>
+  <div class="stat" id="hudMainSpeed">⚡ <span id="hudSpeed">1</span>x</div>
+  <div class="stat" id="hudBonusTime" style="display:none">⏱️ <span id="hudTime">0</span>s</div>
+  <div class="stat" id="hudBonusDodge" style="display:none">🚗 Dodged <span id="hudDodged">0</span></div>
+  <div class="stat lives" id="hudLives">❤️❤️❤️❤️</div>
+</div>
+<div class="progress-rail" id="progressRail"><div class="fill" id="progressFill"></div></div>
+<div class="bonus-hint" id="bonusHint">👆 Drag up / down to dodge · 手指上下拖動躲避</div>
+<div class="play-wrap" id="playWrap">
+  <div class="q-banner" id="qBanner">
+    <div class="tag" id="qTag">PRACTICE · 練習</div>
+    <div class="q" id="qText"></div>
+    <div class="hint" id="qHint"></div>
+    <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+  </div>
+  <div class="colour-card" id="colourCard">
+    <div class="swatch" id="swatch">
+      <div class="pattern" id="swatchPattern"></div>
+      <div class="shape" id="swatchShape"></div>
+      <div class="word" id="swatchWord"></div>
+    </div>
+    <div class="model-line" id="modelLine"></div>
+  </div>
+  <div class="answer-area" id="answerArea"></div>
+</div>
+<div class="controls-bar">
+  <button class="icon-btn" id="btnMute" title="Sound on/off" aria-label="Sound">🔇</button>
+  <button class="icon-btn" id="btnPause" title="Pause" style="display:none">⏸</button>
+</div>
+
+<div class="overlay" id="overlayStart">
+  <div class="panel">
+    <h1>🌈 COLOUR RACE</h1>
+    <p class="kicker">The Rainbow Song · P1</p>
+    <div class="howto">
+      <ul>
+        <li>先睇色卡，再選正確英文顏色詞。<br>Look at the colour card, then tap the word.</li>
+        <li><b>練習 Practice</b>：red / orange / yellow · 不計分、不計時</li>
+        <li><b>比賽 Race</b>：8 題 · 20 秒 · 4 命 · 100 + leftover seconds × 10</li>
+        <li><b>進階 Advanced</b>：green / blue / purple · 3 題加分</li>
+        <li><b>獎勵 Bonus</b>：30 秒閃車（可跳過 Skip）</li>
+      </ul>
+    </div>
+    <button class="btn btn-go" id="btnStart">開始練習 START PRACTICE ▶</button>
+    <div class="session-box" id="startSessionBox"></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayReady">
+  <div class="panel">
+    <h1>🏁 Ready to race?</h1>
+    <p class="kicker">準備好比賽了嗎？</p>
+    <p>練習完成！而家比賽 <b>8 題</b> · 每題 <b>20 秒</b> · <b>4 命</b>。<br>Practice finished. Race: 8 questions · 20 seconds · 4 lives.</p>
+    <button class="btn btn-go" id="btnStartRace">START RACE ▶</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayBonusIntro">
+  <div class="panel">
+    <h1>🎁 BONUS DODGE</h1>
+    <p class="kicker">閃車獎勵關 · 可跳過</p>
+    <p>
+      <b>30 seconds</b> · drag <b>up / down</b> to dodge colourful cars.<br>
+      上下拖動躲避 · <b>4 命</b> · 終點線會在最後約 5 秒出現。<br>
+      <span class="muted">Dodge +15 each · Finish +100 · Skip = 0 extra</span>
+    </p>
+    <button class="btn btn-go" id="btnBonusGo">START BONUS ▶</button>
+    <button class="btn btn-ghost" id="btnBonusSkip">Skip 跳過</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayPause">
+  <div class="panel">
+    <h1>⏸ Paused</h1>
+    <p>暫停</p>
+    <button class="btn btn-go" id="btnResume">Resume 繼續</button>
+    <button class="btn btn-ghost" id="btnQuit">Quit to menu 返回</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayEnd">
+  <div class="panel">
+    <h1 id="endTitle">🌈 Super!</h1>
+    <p class="end-score" id="endStats"></p>
+    <div class="report" id="endReport"></div>
+    <div class="session-box" id="endSessionBox"></div>
+    <button class="btn btn-alt" id="btnAgain">Play again 再玩 🔄</button>
+    <button class="btn btn-ghost" id="btnMenu">Main menu 主畫面</button>
+  </div>
+</div>
+<script>
+
+(function(){
+"use strict";
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+// Colour Race P1 — companion to The Rainbow Song (lesson 3).
+// Blueprint: Frequency Race interface, rhythm, and 30s dodge bonus.
+// No cloud leaderboard, no names, no class numbers, no calendar.
+
+const MAX_LIVES = 4;
+const TIMER_START = 20; // fixed 20s in Race + Advanced (do not shrink)
+const PRACTICE_Q = 6;
+const RACE_Q = 8;
+const ADV_Q = 3;
+const LS_SESSION = "colour_race_p1_session_v1";
+
+// Bonus scoring (documented, modest and fair):
+//   +15 points for each car successfully dodged
+//   +100 points for crossing the finish line
+//   Skip awards 0 bonus points
+//   Running out of lives in bonus keeps dodge points already earned; no finish bonus
+// Bonus lives: refill to MAX_LIVES (4), matching Frequency Race (starts bonus with MAX_LIVES).
+const BONUS_PER_DODGE = 15;
+const BONUS_FINISH = 100;
+
+const COLORS = {
+  red:    {id:"red",    hex:"#dc2626", word:"red",    zh:"紅色", shape:"🍎", text:"#fff",    pattern:"stripes"},
+  orange: {id:"orange", hex:"#ea580c", word:"orange", zh:"橙色", shape:"🍊", text:"#fff",    pattern:"dots"},
+  yellow: {id:"yellow", hex:"#eab308", word:"yellow", zh:"黃色", shape:"☀️", text:"#1c1917", pattern:"dashes"},
+  green:  {id:"green",  hex:"#16a34a", word:"green",  zh:"綠色", shape:"🍃", text:"#fff",    pattern:"chevrons"},
+  blue:   {id:"blue",   hex:"#2563eb", word:"blue",   zh:"藍色", shape:"💧", text:"#fff",    pattern:"waves"},
+  purple: {id:"purple", hex:"#7c3aed", word:"purple", zh:"紫色", shape:"🍇", text:"#fff",    pattern:"diamonds"}
+};
+const PRACTICE_IDS = ["red","orange","yellow"];
+const ADV_IDS = ["green","blue","purple"];
+
+let running = false, paused = false, muted = true;
+let score = 0, lives = MAX_LIVES, qIndex = 0, correctCount = 0;
+let raceCorrect = 0, advCorrect = 0, raceAttempted = 0, advAttempted = 0;
+let queue = [], currentQ = null;
+let timerTotal = TIMER_START, timerLeft = TIMER_START, timerRaf = 0, timerEndsAt = 0;
+let answering = false;
+let report = [];
+let sentenceFlip = 0;
+let carX = 0.12, carY = 0.5, carSpeed = 1, boostUntil = 0;
+let roadOffset = 0;
+let audioCtx = null;
+// modes: 'menu' | 'practice' | 'race' | 'advanced' | 'bonus'
+let mode = "menu";
+let raceProgress = 0;
+let bonusActive = false;
+let bonusEndsAt = 0;
+let bonusLeft = 0;
+let bonusDuration = 0;
+let bonusLives = MAX_LIVES;
+let bonusDodged = 0;
+let bonusInvulnUntil = 0;
+let bonusCars = [];
+let bonusSpawnAt = 0;
+let bonusPhase = "idle";
+let bonusCountdownN = 0;
+let bonusCountdownUntil = 0;
+let bonusPlayStartedAt = 0;
+let bonusHitstunUntil = 0;
+let bonusFx = null;
+let bonusFinishX = -1;
+let bonusPlayerX = 0.16;
+let bonusRushing = false;
+let bonusCrossedAt = 0;
+const BONUS_FINISH_WARN = 5;
+let pointerDragging = false;
+let pointerTargetY = 0.5;
+let raceFinishedClear = false;
+let endKind = "try";
+let bonusPointsAwarded = 0;
+
+function esc(s){
+  return String(s==null?"":s).replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[ch]);
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    const t=a[i]; a[i]=a[j]; a[j]=t;
+  }
+  return a;
+}
+function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function todayKey(){
+  const d = new Date();
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+day;
+}
+function loadSession(){
+  try{
+    const raw = localStorage.getItem(LS_SESSION);
+    if(!raw) return {date: todayKey(), players: []};
+    const data = JSON.parse(raw);
+    if(!data || data.date !== todayKey() || !Array.isArray(data.players)) return {date: todayKey(), players: []};
+    return data;
+  }catch(e){ return {date: todayKey(), players: []}; }
+}
+function saveSession(data){
+  try{ localStorage.setItem(LS_SESSION, JSON.stringify(data)); }catch(e){}
+}
+function addSessionScore(entry){
+  const data = loadSession();
+  const n = data.players.length + 1;
+  data.players.push(Object.assign({label: "Player "+n}, entry));
+  saveSession(data);
+  return data;
+}
+function clearSession(){
+  saveSession({date: todayKey(), players: []});
+}
+function renderSessionBox(elId, withClear){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  const data = loadSession();
+  if(!data.players.length){
+    el.innerHTML = "";
+    return;
+  }
+  const rows = data.players.map(p =>
+    '<div class="session-row"><span>'+esc(p.label)+'</span><span>⭐ '+p.score+
+    ' · ✓ '+p.correct+'/'+p.outOf+'</span></div>'
+  ).join("");
+  el.innerHTML = '<h2>今日對賽 · Today’s scores（本機）</h2>'+rows+
+    (withClear ? '<div style="text-align:center;margin-top:8px"><button class="btn btn-ghost" type="button" id="btnClear_'+elId+'" style="font-size:1rem;padding:10px 18px">Clear today’s scores 清除</button></div>' : "");
+  if(withClear){
+    const b = document.getElementById("btnClear_"+elId);
+    if(b) b.onclick = () => {
+      if(confirm("清除今日本機成績？Clear today’s scores on this device?")){
+        clearSession();
+        renderSessionBox("startSessionBox", true);
+        renderSessionBox("endSessionBox", true);
+      }
+    };
+  }
+}
+
+function showOverlay(id){
+  ["overlayStart","overlayReady","overlayBonusIntro","overlayPause","overlayEnd"].forEach(x=>{
+    document.getElementById(x).classList.toggle("hidden", x!==id);
+  });
+}
+function hideOverlays(){
+  ["overlayStart","overlayReady","overlayBonusIntro","overlayPause","overlayEnd"].forEach(x=>{
+    document.getElementById(x).classList.add("hidden");
+  });
+}
+
+function beep(freq, dur, type){
+  if(muted) return;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    g.gain.value = 0.04;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.stop(audioCtx.currentTime + dur);
+  }catch(e){}
+}
+function flash(ok){
+  const el = document.getElementById("flash");
+  el.className = "flash " + (ok ? "ok" : "bad");
+  setTimeout(()=>{ el.className = "flash"; }, 180);
+}
+
+function sentenceFor(colorId, flip){
+  const w = COLORS[colorId].word;
+  return (flip % 2 === 0) ? ("It is " + w + ".") : ("I can see " + w + ".");
+}
+function clozePrompt(flip){
+  return (flip % 2 === 0) ? "It is ____." : "I can see ____.";
+}
+function clozeHint(flip){
+  return (flip % 2 === 0) ? "它是 ____。 · Tap the colour word" : "我看見 ____。 · Tap the colour word";
+}
+
+function patternCss(kind, hex){
+  // Unique pattern per colour so the card is never colour-only (colour-blind friendly).
+  // The English word is revealed after a correct answer; buttons always show the word.
+  if(kind==="stripes") return "repeating-linear-gradient(45deg, "+hex+" 0 14px, rgba(255,255,255,.55) 14px 28px)";
+  if(kind==="dots") return "radial-gradient(circle at 8px 8px, rgba(255,255,255,.7) 3px, transparent 4px) 0 0 / 22px 22px, "+hex;
+  if(kind==="dashes") return "repeating-linear-gradient(90deg, "+hex+" 0 16px, rgba(28,25,23,.28) 16px 22px)";
+  if(kind==="chevrons") return "repeating-linear-gradient(135deg, "+hex+" 0 12px, rgba(255,255,255,.45) 12px 18px, "+hex+" 18px 30px)";
+  if(kind==="waves") return "repeating-radial-gradient(circle at 0 50%, rgba(255,255,255,.5) 0 8px, transparent 8px 16px), "+hex;
+  return "repeating-conic-gradient(from 45deg, rgba(255,255,255,.4) 0 12deg, transparent 12deg 24deg), "+hex;
+}
+
+function buildPracticeQueue(){
+  const colors = shuffle(PRACTICE_IDS.concat(PRACTICE_IDS));
+  return colors.map((id, i) => ({stage:"practice", kind:"tap", color:id, frame:i%2}));
+}
+function buildRaceQueue(){
+  const colors = shuffle(["red","red","red","orange","orange","orange","yellow","yellow"]);
+  const kinds = shuffle(["tap","tap","tap","tap","cloze","cloze","cloze","cloze"]);
+  let f = 0;
+  return colors.map((id, i) => ({
+    stage:"race", kind:kinds[i], color:id, frame: kinds[i]==="cloze" ? (f++ % 2) : (i%2)
+  }));
+}
+function buildAdvQueue(){
+  const colors = shuffle(ADV_IDS.slice());
+  const kinds = shuffle(["tap","cloze","cloze"]);
+  let f = 0;
+  return colors.map((id, i) => ({
+    stage:"advanced", kind:kinds[i], color:id, frame: kinds[i]==="cloze" ? (f++ % 2) : (i%2)
+  }));
+}
+
+
+function resize(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.floor(window.innerWidth * dpr);
+  canvas.height = Math.floor(window.innerHeight * dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function roadGeom(w,h){
+  const top = Math.max(h * 0.48, Math.min(h * 0.55, h - 280));
+  const bot = Math.min(h * 0.92, top + Math.max(160, h * 0.36));
+  return {top, bot, mid:(top+bot)/2, height: bot-top};
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath(); ctx.fill();
+}
+function circle(x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+
+function drawCarSprite(cx, cy, scale, color, plateNo, facingRight, flashInvuln){
+  ctx.save();
+  ctx.translate(cx, cy);
+  if(!facingRight) ctx.scale(-1,1);
+  ctx.scale(scale, scale);
+  if(flashInvuln){
+    ctx.globalAlpha = (Math.floor(performance.now()/80)%2) ? 0.35 : 0.95;
+  }
+  ctx.fillStyle = "rgba(251,191,36,.35)";
+  ctx.beginPath(); ctx.ellipse(-70, 6, 28, 12, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = color;
+  roundRect(-62,-20,124,38,14);
+  const bands = ["#ef4444","#f97316","#eab308","#22c55e","#3b82f6","#8b5cf6"];
+  for(let i=0;i<bands.length;i++){
+    ctx.fillStyle = bands[i];
+    ctx.fillRect(-50+i*16, 2, 16, 6);
+  }
+  ctx.fillStyle = "#1e293b";
+  roundRect(-6,-36,60,22,8);
+  ctx.fillStyle = "#7dd3fc";
+  roundRect(4,-34,44,16,5);
+  ctx.fillStyle = "#0f172a";
+  circle(-36,20,14); circle(40,20,14);
+  ctx.fillStyle = "#94a3b8";
+  circle(-36,20,5); circle(40,20,5);
+  ctx.fillStyle = "#fef9c3";
+  roundRect(54,-8,10,12,3);
+  ctx.fillStyle = "#fff";
+  roundRect(28,-6,22,14,3);
+  ctx.fillStyle = "#0f172a";
+  ctx.font = "bold 11px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(String(plateNo||1), 39, 5);
+  ctx.restore();
+}
+function drawScenery(w, h, rg, now){
+  const sky = ctx.createLinearGradient(0,0,0,rg.top);
+  sky.addColorStop(0,"#7dd3fc"); sky.addColorStop(0.45,"#bae6fd"); sky.addColorStop(1,"#fef9c3");
+  ctx.fillStyle = sky; ctx.fillRect(0,0,w,rg.top);
+
+  const rx = w*0.55, ry = rg.top * 0.95, rr = Math.min(w,h)*0.55;
+  const rbands = ["#ef4444","#f97316","#eab308","#22c55e","#3b82f6","#8b5cf6"];
+  for(let i=0;i<rbands.length;i++){
+    ctx.beginPath();
+    ctx.strokeStyle = rbands[i];
+    ctx.lineWidth = 10;
+    ctx.arc(rx, ry, rr - i*11, Math.PI, Math.PI*2);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "rgba(255,255,255,.9)";
+  for(let i=0;i<5;i++){
+    const cx = ((i*220 - roadOffset*0.35) % (w+200) + w+200) % (w+200) - 100;
+    const cy = 28 + (i%3)*22;
+    ctx.beginPath(); ctx.arc(cx,cy,18,0,Math.PI*2); ctx.arc(cx+22,cy+4,14,0,Math.PI*2); ctx.arc(cx-20,cy+6,12,0,Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle = "#86efac";
+  ctx.beginPath();
+  ctx.moveTo(0, rg.top);
+  for(let x=0;x<=w;x+=28){
+    const y = rg.top - 36 - Math.sin((x + roadOffset*0.12)/90)*10 - Math.cos(x/140)*8;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(w, rg.top); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#4ade80";
+  ctx.beginPath();
+  ctx.moveTo(0, rg.top);
+  for(let x=0;x<=w;x+=24){
+    const y = rg.top - 18 - Math.sin((x + roadOffset*0.2)/70)*7;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(w, rg.top); ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = "#16a34a";
+  ctx.fillRect(0, rg.top - 18, w, 18);
+  ctx.fillStyle = "#15803d";
+  ctx.fillRect(0, rg.bot, w, h - rg.bot);
+
+  for(let i=0;i<8;i++){
+    const tx = ((i*160 - roadOffset*1.1) % (w+160) + w+160) % (w+160) - 80;
+    const ty = rg.top - 10;
+    ctx.fillStyle = "#854d0e";
+    ctx.fillRect(tx-4, ty-28, 8, 28);
+    ctx.fillStyle = i%2 ? "#166534" : "#14532d";
+    ctx.beginPath(); ctx.arc(tx, ty-36, 16, 0, Math.PI*2); ctx.fill();
+  }
+  for(let i=0;i<10;i++){
+    const bx = ((i*130 - roadOffset*1.3) % (w+130) + w+130) % (w+130) - 60;
+    ctx.fillStyle = "#166534";
+    ctx.beginPath(); ctx.ellipse(bx, rg.bot+18, 22, 10, 0, 0, Math.PI*2); ctx.fill();
+  }
+}
+function drawHorizontalRoad(w, h, rg){
+  const asphalt = ctx.createLinearGradient(0, rg.top, 0, rg.bot);
+  asphalt.addColorStop(0, "#64748b");
+  asphalt.addColorStop(0.5, "#475569");
+  asphalt.addColorStop(1, "#334155");
+  ctx.fillStyle = asphalt;
+  ctx.fillRect(0, rg.top, w, rg.height);
+
+  ctx.strokeStyle = "#f8fafc";
+  ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(0, rg.top + 5); ctx.lineTo(w, rg.top + 5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, rg.bot - 5); ctx.lineTo(w, rg.bot - 5); ctx.stroke();
+
+  ctx.strokeStyle = "#fde68a";
+  ctx.lineWidth = 5;
+  ctx.setLineDash([40, 30]);
+  ctx.lineDashOffset = -roadOffset;
+  const y1 = rg.top + rg.height / 3;
+  const y2 = rg.top + rg.height * 2 / 3;
+  ctx.beginPath(); ctx.moveTo(0, y1); ctx.lineTo(w, y1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, y2); ctx.lineTo(w, y2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  for(let x = -((roadOffset*1.4) % 56); x < w + 20; x += 56){
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillRect(x, rg.top - 14, 6, 14);
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillRect(x - 8, rg.top - 16, 22, 4);
+  }
+
+  ctx.fillStyle = "rgba(248,250,252,.18)";
+  ctx.font = "bold 22px sans-serif";
+  ctx.textAlign = "center";
+  for(let i=0;i<6;i++){
+    const cx = ((i*180 - roadOffset*0.9) % (w+180) + w+180) % (w+180) - 90;
+    ctx.fillText(">>", cx, rg.mid + 8);
+  }
+}
+
+
+function drawScene(now){
+  const w = window.innerWidth, h = window.innerHeight;
+  const rg = roadGeom(w,h);
+  drawScenery(w, h, rg, now);
+  drawHorizontalRoad(w, h, rg);
+
+  if(mode === "race" || mode === "advanced" || mode === "menu" || mode === "practice"){
+    const fx = w * 0.93;
+    ctx.fillStyle = "rgba(15,23,42,.45)";
+    ctx.fillRect(fx - 8, rg.top, 16, rg.height);
+    for(let r=0;r<5;r++){
+      for(let c=0;c<3;c++){
+        ctx.fillStyle = ((r+c)%2===0) ? "#fff" : "#0f172a";
+        ctx.fillRect(fx + 12 + c*12, rg.top + 10 + r*12, 12, 12);
+      }
+    }
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = "bold 16px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("FINISH ->", fx - 4, rg.top - 22);
+  }
+
+  function laneY(lane){
+    return rg.top + (0.5 + lane) * (rg.height / 3);
+  }
+
+  if(mode === "bonus"){
+    let shakeX = 0, shakeY = 0;
+    if(bonusFx && now < bonusFx.until){
+      const k = (bonusFx.until - now) / 900;
+      shakeX = (Math.random()-0.5) * bonusFx.shake * k;
+      shakeY = (Math.random()-0.5) * bonusFx.shake * k;
+    }
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
+    if(bonusFinishX >= 0){
+      const fx = bonusFinishX;
+      ctx.fillStyle = "rgba(15,23,42,.5)";
+      ctx.fillRect(fx - 8, rg.top, 16, rg.height);
+      for(let r=0;r<6;r++){
+        for(let c=0;c<3;c++){
+          ctx.fillStyle = ((r+c)%2===0) ? "#fff" : "#0f172a";
+          ctx.fillRect(fx + 10 + c*11, rg.top + 8 + r*12, 11, 12);
+        }
+      }
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 18px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(bonusCrossedAt ? "FINISH!" : "FINISH ->", fx + 8, rg.top - 14);
+    }
+
+    bonusCars.forEach(c => {
+      const ey = laneY(c.lane);
+      const scale = Math.min(w,h) * 0.0009 + 0.8;
+      drawCarSprite(c.x, ey, scale, c.color, c.no, false, false);
+    });
+    const playerY = rg.top + (0.17 + carY * 0.66) * rg.height;
+    const inv = (typeof bonusIsInvuln === "function") ? bonusIsInvuln(now) : (now < bonusInvulnUntil);
+    const scale = Math.min(w,h) * 0.00105 + 0.95;
+    const pxx = w * (bonusPlayerX || 0.16);
+    if(bonusRushing || now < boostUntil){
+      ctx.fillStyle = "rgba(251,191,36,.55)";
+      ctx.beginPath(); ctx.ellipse(pxx-58, playerY, 44, 16, 0,0,Math.PI*2); ctx.fill();
+    }
+    drawCarSprite(pxx, playerY, scale, "#ef4444", 1, true, inv);
+
+    if(bonusCrossedAt > 0){
+      ctx.fillStyle = "rgba(15,23,42,.55)";
+      roundRect(w/2-160, h*0.36, 320, 64, 18);
+      ctx.fillStyle = "#34d399";
+      ctx.font = "900 36px Impact, Haettenschweiler, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("FINISH!", w/2, h*0.36+34);
+      ctx.textBaseline = "alphabetic";
+    } else if(bonusFinishX >= 0 && !bonusRushing){
+      ctx.fillStyle = "rgba(15,23,42,.55)";
+      roundRect(w/2-140, 56, 280, 32, 12);
+      ctx.fillStyle = "#fde68a";
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("終點出現！繼續躲避 -> Finish ahead!", w/2, 78);
+    }
+
+    if(bonusFx && now < bonusFx.until){
+      const life = 1 - (bonusFx.until - now) / 900;
+      const bx = bonusFx.x, by = bonusFx.y;
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.rotate((-18 + life*10) * Math.PI/180);
+      ctx.fillStyle = "rgba(251,191,36,"+(0.95-life*0.5)+")";
+      for(let i=0;i<8;i++){
+        const ang = i * Math.PI/4;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(ang)*12, Math.sin(ang)*12);
+        ctx.lineTo(Math.cos(ang+0.2)*55, Math.sin(ang+0.2)*55);
+        ctx.lineTo(Math.cos(ang-0.2)*55, Math.sin(ang-0.2)*55);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle = "#fff";
+      roundRect(-70, -28, 140, 56, 16);
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 5;
+      ctx.stroke();
+      ctx.fillStyle = "#ef4444";
+      ctx.font = "900 34px Impact, Haettenschweiler, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(bonusFx.word, 0, 2);
+      ctx.fillStyle = "#fde68a";
+      ctx.font = "bold 22px sans-serif";
+      ctx.fillText("* * *", 0, -46);
+      ctx.restore();
+    }
+
+    ctx.restore();
+
+    ctx.fillStyle = "rgba(15,23,42,.65)";
+    roundRect(w/2-170, 12, 340, 40, 14);
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = "bold 20px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("BONUS DODGE · UP / DOWN", w/2, 40);
+
+    if(bonusPhase === "countdown" || bonusPhase === "go"){
+      ctx.fillStyle = "rgba(8,20,40,.45)";
+      ctx.fillRect(0, 0, w, h);
+      const label = bonusCountdownN > 0 ? String(bonusCountdownN) : "GO!";
+      ctx.fillStyle = bonusCountdownN > 0 ? "#fbbf24" : "#34d399";
+      ctx.font = "900 "+Math.floor(Math.min(w,h)*0.22)+"px Impact, Haettenschweiler, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.strokeStyle = "rgba(0,0,0,.45)";
+      ctx.lineWidth = 10;
+      ctx.strokeText(label, w/2, h*0.48);
+      ctx.fillText(label, w/2, h*0.48);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "bold 22px sans-serif";
+      ctx.fillText(bonusCountdownN > 0 ? "Get ready..." : "Dodge!", w/2, h*0.48 + Math.min(w,h)*0.14);
+    }
+  } else {
+    const prog = (mode === "race" || mode === "advanced") ? raceProgress : 0.06;
+    const cx = w * (0.08 + prog * 0.78);
+    const bob = Math.sin(now/450) * 3;
+    const py = rg.mid + bob;
+    const scale = Math.min(w,h) * 0.00105 + 0.95;
+    if(now < boostUntil){
+      ctx.fillStyle = "rgba(251,191,36,.55)";
+      ctx.beginPath(); ctx.ellipse(cx-72, py+2, 42, 14, 0,0,Math.PI*2); ctx.fill();
+    }
+    drawCarSprite(cx, py, scale, "#ef4444", 1, true, false);
+    if(!running || mode === "menu"){
+      ctx.fillStyle = "rgba(15,23,42,.5)";
+      roundRect(w/2-160, rg.bot + 10, 320, 28, 10);
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "bold 13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("橫版賽道 · Landscape colour track ->", w/2, rg.bot + 29);
+    }
+    if(running && (mode === "race" || mode === "advanced")){
+      ctx.fillStyle = "rgba(15,23,42,.55)";
+      roundRect(14, h-48, 150, 34, 12);
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("SPEED " + carSpeed.toFixed(1) + "x", 28, h-25);
+    }
+  }
+}
+
+
+const BONUS_COLORS = ["#ef4444","#f97316","#eab308","#22c55e","#3b82f6","#8b5cf6"];
+function spawnBonusCar(w){
+  const lane = randInt(0,2);
+  bonusCars.push({
+    x: w + randInt(40, 220),
+    lane: lane,
+    speed: 3.2 + Math.random()*2.8 + (correctCount*0.05),
+    color: pick(BONUS_COLORS),
+    no: randInt(10,99),
+    passed: false
+  });
+}
+function bonusSpeedFactor(now){
+  if(!bonusPlayStartedAt || bonusDuration <= 0) return 0.35;
+  const t = Math.max(0, Math.min(1, (now - bonusPlayStartedAt) / (bonusDuration * 1000)));
+  return 0.35 + t * 0.80;
+}
+function triggerHitFx(x, y, now){
+  const words = ["BAM!","POW!","OUCH!","CRASH!","WHOA!"];
+  bonusFx = {until: now + 900, x:x, y:y, word: pick(words), shake: 14};
+  bonusHitstunUntil = now + 900;
+  bonusInvulnUntil = now + 2200;
+  flash(false);
+  beep(160, 0.22, "sawtooth");
+  setTimeout(()=>beep(120, 0.15, "square"), 90);
+}
+function bonusIsInvuln(now){
+  return now < bonusHitstunUntil || now < bonusInvulnUntil;
+}
+function beginBonusPlay(now){
+  bonusPhase = "play";
+  bonusPlayStartedAt = now;
+  bonusEndsAt = now + bonusDuration * 1000;
+  bonusLeft = bonusDuration;
+  bonusSpawnAt = now + 500;
+  bonusInvulnUntil = now + 1000;
+  beep(980, 0.18, "triangle");
+}
+function updateBonus(dt, now){
+  const w = window.innerWidth, h = window.innerHeight;
+  const rg = roadGeom(w,h);
+
+  if(bonusPhase === "countdown" || bonusPhase === "go"){
+    roadOffset += 1.6 * (dt/16);
+    if(now >= bonusCountdownUntil){
+      if(bonusCountdownN > 1){
+        bonusCountdownN -= 1;
+        bonusCountdownUntil = now + 1000;
+        beep(520 + (3-bonusCountdownN)*80, 0.12, "square");
+      } else if(bonusCountdownN === 1){
+        bonusCountdownN = 0;
+        bonusPhase = "go";
+        bonusCountdownUntil = now + 700;
+        beep(780, 0.16, "triangle");
+      } else {
+        beginBonusPlay(now);
+      }
+    }
+    updateHud();
+    return;
+  }
+
+  const inHitstun = now < bonusHitstunUntil;
+  if(!inHitstun){
+    carY += (pointerTargetY - carY) * Math.min(1, dt/80);
+  } else {
+    carY += (pointerTargetY - carY) * Math.min(1, dt/200);
+  }
+  carY = Math.max(0, Math.min(1, carY));
+
+  const spd = bonusSpeedFactor(now);
+
+  if(!inHitstun){
+    roadOffset += (3.2 + spd * 5.5) * (dt/16) * (bonusRushing ? 1.35 : 1);
+  }
+
+  if(!inHitstun && !bonusCrossedAt && now >= bonusSpawnAt){
+    spawnBonusCar(w);
+    const gap = Math.max(380, (1100 - correctCount*25) * (1.15 - spd*0.45));
+    bonusSpawnAt = now + gap + Math.random()*280;
+  }
+
+  if(bonusLives > 0 && bonusEndsAt && !bonusCrossedAt){
+    if(inHitstun){
+      bonusEndsAt += dt;
+    }
+    bonusLeft = Math.max(0, (bonusEndsAt - now)/1000);
+    if(bonusLeft <= BONUS_FINISH_WARN && bonusFinishX < 0){
+      bonusPhase = "finish";
+      bonusFinishX = w + 40;
+      beep(640, 0.1, "triangle");
+    }
+    if(bonusFinishX >= 0 && !bonusRushing){
+      bonusFinishX -= (4.2 + spd * 6) * (dt/16) * 3.4;
+    }
+    if(bonusFinishX >= 0 && !bonusRushing && (bonusFinishX < w * 0.58 || bonusLeft <= 1.1)){
+      bonusRushing = true;
+      bonusInvulnUntil = now + 4000;
+      beep(900, 0.12, "triangle");
+      setTimeout(()=>beep(1100,0.14,"triangle"), 100);
+    }
+    if(bonusLeft <= 0 && !bonusRushing){
+      if(bonusFinishX < 0) bonusFinishX = w * 0.72;
+      bonusPhase = "finish";
+      bonusRushing = true;
+      bonusInvulnUntil = now + 4000;
+    }
+  }
+
+  if(bonusRushing && !bonusCrossedAt){
+    bonusPlayerX += 0.018 * (dt/16) * (1.2 + spd);
+  } else if(!bonusRushing){
+    bonusPlayerX = 0.16;
+  }
+
+  const px = w * bonusPlayerX;
+  const py = rg.top + (0.17 + carY * 0.66) * rg.height;
+  const hitR = Math.min(w,h) * 0.05;
+
+  if(bonusRushing && bonusFinishX >= 0 && !bonusCrossedAt && px >= bonusFinishX - 8){
+    bonusCrossedAt = now;
+    bonusLeft = 0;
+    flash(true);
+    beep(1200, 0.2, "triangle");
+    setTimeout(()=>beep(1400,0.18,"sine"), 120);
+  }
+  if(bonusCrossedAt > 0){
+    bonusPlayerX = Math.min(1.05, bonusPlayerX + 0.01 * (dt/16));
+    if(now - bonusCrossedAt > 900){
+      endBonus(true);
+      return;
+    }
+    updateHud();
+    for(let i=bonusCars.length-1;i>=0;i--){
+      const c = bonusCars[i];
+      c.x -= c.speed * spd * (dt/16) * 6.2;
+      if(c.x < -120) bonusCars.splice(i,1);
+    }
+    return;
+  }
+
+  for(let i=bonusCars.length-1;i>=0;i--){
+    const c = bonusCars[i];
+    if(!inHitstun){
+      c.x -= c.speed * spd * (dt/16) * 6.2;
+    }
+    const ey = rg.top + (0.5 + c.lane) * (rg.height / 3);
+    if(!c.passed && c.x < px - 40){
+      c.passed = true;
+      bonusDodged += 1;
+      beep(660, 0.05, "sine");
+    }
+    if(!bonusIsInvuln(now) && !bonusRushing){
+      const dx = c.x - px, dy = ey - py;
+      if(dx*dx + dy*dy < hitR*hitR){
+        bonusLives -= 1;
+        lives = bonusLives;
+        triggerHitFx(px, py, now);
+        for(let j=0;j<bonusCars.length;j++){
+          const o = bonusCars[j];
+          const oy = rg.top + (0.5 + o.lane) * (rg.height / 3);
+          const odx = o.x - px, ody = oy - py;
+          if(odx*odx + ody*ody < (hitR*2.2)*(hitR*2.2)){
+            o.x = px + hitR*2.8 + 40 + j*30;
+            o.passed = false;
+          }
+        }
+        updateHud();
+        if(bonusLives <= 0){
+          bonusActive = true;
+          setTimeout(() => { if(mode === "bonus") endBonus(false); }, 900);
+          return;
+        }
+        break;
+      }
+    }
+    if(c.x < -120) bonusCars.splice(i,1);
+  }
+
+  if(bonusFx && now >= bonusFx.until) bonusFx = null;
+  updateHud();
+}
+
+let lastTs = 0;
+function loop(ts){
+  if(!lastTs) lastTs = ts;
+  const dt = Math.min(40, ts - lastTs);
+  lastTs = ts;
+  if(running && !paused){
+    if(mode === "race" || mode === "advanced"){
+      roadOffset += (2.6 + carSpeed * 2.8) * (dt/16);
+      const target = mode === "race" ? Math.min(1, qIndex / RACE_Q) : 1;
+      raceProgress += (target - raceProgress) * Math.min(1, dt/280);
+    } else if(mode === "practice"){
+      roadOffset += 1.4 * (dt/16);
+    } else if(mode === "bonus" && bonusActive){
+      updateBonus(dt, ts);
+    }
+  } else if(mode === "menu"){
+    roadOffset += 1.2 * (dt/16);
+  }
+  drawScene(ts);
+  requestAnimationFrame(loop);
+}
+
+function updateHud(){
+  document.getElementById("hudScore").textContent = String(score);
+  const showBonus = mode === "bonus";
+  const showScored = mode === "race" || mode === "advanced";
+  document.getElementById("hudScoreWrap").style.display = (showScored || showBonus) ? "" : "none";
+  document.getElementById("hudMainSpeed").style.display = showScored ? "" : "none";
+  document.getElementById("hudLives").style.display = (showScored || showBonus) ? "" : "none";
+  document.getElementById("hudMainQ").style.display = showBonus ? "none" : "";
+  document.getElementById("hudBonusTime").style.display = showBonus ? "" : "none";
+  document.getElementById("hudBonusDodge").style.display = showBonus ? "" : "none";
+  if(mode === "practice"){
+    document.getElementById("hudQLabel").textContent = "Practice";
+    document.getElementById("hudQ").textContent = String(Math.min(qIndex+1, PRACTICE_Q));
+    document.getElementById("hudTotal").textContent = String(PRACTICE_Q);
+  } else if(mode === "advanced"){
+    document.getElementById("hudQLabel").textContent = "Advanced";
+    document.getElementById("hudQ").textContent = String(Math.min(qIndex+1, ADV_Q));
+    document.getElementById("hudTotal").textContent = String(ADV_Q);
+  } else {
+    document.getElementById("hudQLabel").textContent = "Q";
+    document.getElementById("hudQ").textContent = String(Math.min(qIndex+1, RACE_Q));
+    document.getElementById("hudTotal").textContent = String(RACE_Q);
+  }
+  document.getElementById("hudSpeed").textContent = carSpeed.toFixed(1);
+  if(showBonus){
+    const showT = (bonusPhase === "play" || bonusPhase === "finish") ? bonusLeft : bonusDuration;
+    document.getElementById("hudTime").textContent = String(Math.ceil(showT));
+    document.getElementById("hudDodged").textContent = String(bonusDodged);
+    document.getElementById("hudLives").textContent = "❤️".repeat(Math.max(0,bonusLives)) + "🖤".repeat(Math.max(0, MAX_LIVES-bonusLives));
+  } else {
+    document.getElementById("hudLives").textContent = "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0, MAX_LIVES-lives));
+  }
+  const rail = document.getElementById("progressRail");
+  const fill = document.getElementById("progressFill");
+  if(rail && fill){
+    if(mode === "race" && running){
+      rail.classList.add("show");
+      fill.style.width = Math.round(Math.min(1, qIndex/RACE_Q)*100) + "%";
+    } else if(mode === "advanced" && running){
+      rail.classList.add("show");
+      fill.style.width = "100%";
+    } else {
+      rail.classList.remove("show");
+    }
+  }
+}
+
+
+function paintSwatch(colorId, reveal){
+  const c = COLORS[colorId];
+  const sw = document.getElementById("swatch");
+  sw.style.background = c.hex;
+  document.getElementById("swatchPattern").style.background = patternCss(c.pattern, c.hex);
+  document.getElementById("swatchShape").textContent = c.shape;
+  const word = document.getElementById("swatchWord");
+  word.textContent = c.word;
+  word.style.color = c.text;
+  sw.classList.toggle("reveal", !!reveal);
+  sw.classList.remove("shake");
+}
+function showModel(text, kind){
+  const el = document.getElementById("modelLine");
+  el.textContent = text;
+  el.className = "model-line show" + (kind ? " "+kind : "");
+}
+function hideModel(){
+  const el = document.getElementById("modelLine");
+  el.className = "model-line";
+  el.textContent = "";
+}
+
+function renderAnswers(q, locked){
+  const area = document.getElementById("answerArea");
+  area.innerHTML = "";
+  const ids = q.stage === "advanced" ? shuffle(ADV_IDS.slice()) : shuffle(PRACTICE_IDS.slice());
+  ids.forEach(id => {
+    const c = COLORS[id];
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "colour-btn c-"+id;
+    btn.dataset.color = id;
+    btn.textContent = c.word;
+    btn.setAttribute("aria-label", c.word + " " + c.zh);
+    if(locked) btn.disabled = true;
+    btn.onclick = () => onPick(id, btn);
+    area.appendChild(btn);
+  });
+}
+
+function showQuestion(){
+  if(mode === "practice"){
+    if(qIndex >= queue.length){
+      readyToRace();
+      return;
+    }
+  } else if(mode === "race"){
+    if(qIndex >= queue.length || lives <= 0){
+      endRaceStage(lives > 0 && qIndex >= queue.length);
+      return;
+    }
+  } else if(mode === "advanced"){
+    if(qIndex >= queue.length || lives <= 0){
+      endAdvanced(lives > 0 && qIndex >= queue.length);
+      return;
+    }
+  }
+  currentQ = queue[qIndex];
+  answering = true;
+  updateHud();
+  document.getElementById("playWrap").classList.add("show");
+  const timed = mode === "race" || mode === "advanced";
+  document.getElementById("qBanner").classList.toggle("timed", timed);
+  if(mode === "practice"){
+    document.getElementById("qTag").textContent = "PRACTICE · 練習  " + (qIndex+1) + "/" + PRACTICE_Q;
+  } else if(mode === "race"){
+    document.getElementById("qTag").textContent = "RACE · 比賽  " + (qIndex+1) + "/" + RACE_Q;
+  } else {
+    document.getElementById("qTag").textContent = "ADVANCED · 進階加分  " + (qIndex+1) + "/" + ADV_Q;
+  }
+  if(currentQ.kind === "cloze"){
+    document.getElementById("qText").textContent = clozePrompt(currentQ.frame);
+    document.getElementById("qHint").textContent = clozeHint(currentQ.frame);
+  } else {
+    document.getElementById("qText").textContent = "What colour is it?";
+    document.getElementById("qHint").textContent = "這是什麼顏色？ · Tap the word 點選顏色詞";
+  }
+  paintSwatch(currentQ.color, false);
+  hideModel();
+  renderAnswers(currentQ, false);
+  if(timed) startTimer(TIMER_START);
+  else stopTimer();
+}
+
+function startTimer(sec){
+  stopTimer();
+  timerTotal = sec;
+  timerLeft = sec;
+  timerEndsAt = performance.now() + sec * 1000;
+  document.getElementById("timerFill").style.width = "100%";
+  const tick = () => {
+    if(!running || paused || !answering) return;
+    const leftMs = Math.max(0, timerEndsAt - performance.now());
+    timerLeft = leftMs / 1000;
+    document.getElementById("timerFill").style.width = Math.max(0, (timerLeft/timerTotal)*100) + "%";
+    if(leftMs <= 0){
+      onWrong("Time's up · 時間到", true);
+      return;
+    }
+    timerRaf = requestAnimationFrame(tick);
+  };
+  timerRaf = requestAnimationFrame(tick);
+}
+function stopTimer(){
+  if(timerRaf) cancelAnimationFrame(timerRaf);
+  timerRaf = 0;
+}
+function awardPoints(){
+  const remain = Math.max(0, Math.floor(timerLeft));
+  return 100 + remain * 10;
+}
+
+function lockButtons(){
+  document.querySelectorAll(".colour-btn").forEach(b => { b.disabled = true; });
+}
+function onPick(id, btn){
+  if(!answering || paused || !currentQ) return;
+  if(id === currentQ.color){
+    if(mode === "practice") onPracticeCorrect();
+    else onCorrect(id, btn);
+  } else {
+    if(mode === "practice") onPracticeWrong(btn);
+    else onWrong("Chose " + COLORS[id].word, false, id, btn);
+  }
+}
+
+function onPracticeCorrect(){
+  if(!answering) return;
+  answering = false;
+  lockButtons();
+  paintSwatch(currentQ.color, true);
+  const line = sentenceFor(currentQ.color, currentQ.frame);
+  showModel(line, "ok");
+  flash(true); beep(880, 0.12, "triangle");
+  qIndex += 1;
+  updateHud();
+  setTimeout(() => { if(running && !paused) showQuestion(); }, 1200);
+}
+function onPracticeWrong(btn){
+  if(!answering) return;
+  if(btn) btn.classList.add("wrong-flash");
+  const sw = document.getElementById("swatch");
+  sw.classList.remove("shake");
+  void sw.offsetWidth;
+  sw.classList.add("shake");
+  showModel("Try again · 再試一次", "bad");
+  flash(false); beep(180, 0.16, "sawtooth");
+  setTimeout(() => {
+    if(btn) btn.classList.remove("wrong-flash");
+  }, 400);
+}
+
+function onCorrect(id, btn){
+  if(!answering) return;
+  answering = false;
+  stopTimer();
+  lockButtons();
+  if(btn) btn.classList.add("correct-flash");
+  paintSwatch(currentQ.color, true);
+  const gained = awardPoints();
+  const line = sentenceFor(currentQ.color, currentQ.frame);
+  showModel(line + "  +"+gained, "ok");
+  score += gained;
+  correctCount += 1;
+  if(mode === "race"){ raceCorrect += 1; raceAttempted += 1; }
+  if(mode === "advanced"){ advCorrect += 1; advAttempted += 1; }
+  carSpeed = Math.min(5, +(carSpeed + 0.35).toFixed(2));
+  boostUntil = performance.now() + 900;
+  flash(true); beep(880, 0.12, "triangle");
+  report.push({ok:true, text: line, detail: "✓ " + COLORS[currentQ.color].word + " · +" + gained});
+  qIndex += 1;
+  updateHud();
+  setTimeout(() => { if(running && !paused) showQuestion(); }, 700);
+}
+function onWrong(reason, isTimeout, pickedId, btn){
+  if(!answering) return;
+  answering = false;
+  stopTimer();
+  lockButtons();
+  lives -= 1;
+  if(mode === "race") raceAttempted += 1;
+  if(mode === "advanced") advAttempted += 1;
+  carSpeed = Math.max(1, +(carSpeed - 0.25).toFixed(2));
+  flash(false); beep(180, 0.18, "sawtooth");
+  if(btn) btn.classList.add("wrong-flash");
+  document.querySelectorAll(".colour-btn").forEach(b => {
+    if(b.dataset.color === currentQ.color) b.classList.add("correct-flash");
+  });
+  paintSwatch(currentQ.color, true);
+  const line = sentenceFor(currentQ.color, currentQ.frame);
+  showModel(line, "ok");
+  report.push({ok:false, text: currentQ.kind==="cloze" ? clozePrompt(currentQ.frame) : "What colour is it?",
+    detail: reason + " · Answer: " + COLORS[currentQ.color].word});
+  updateHud();
+  if(lives <= 0){
+    setTimeout(() => {
+      if(mode === "race") endRaceStage(false);
+      else if(mode === "advanced") endAdvanced(false);
+    }, 700);
+    return;
+  }
+  qIndex += 1;
+  setTimeout(() => { if(running && !paused) showQuestion(); }, 800);
+}
+
+function hidePlayUi(){
+  document.getElementById("playWrap").classList.remove("show");
+  document.getElementById("progressRail").classList.remove("show");
+}
+
+function startPractice(){
+  score = 0; lives = MAX_LIVES; qIndex = 0; correctCount = 0;
+  raceCorrect = 0; advCorrect = 0; raceAttempted = 0; advAttempted = 0;
+  carSpeed = 1; boostUntil = 0; report = [];
+  sentenceFlip = 0;
+  queue = buildPracticeQueue();
+  running = true; paused = false;
+  mode = "practice";
+  bonusActive = false;
+  raceProgress = 0;
+  carX = 0.12; carY = 0.5;
+  raceFinishedClear = false;
+  bonusPointsAwarded = 0;
+  document.getElementById("bonusHint").classList.remove("show");
+  hideOverlays();
+  document.getElementById("hud").style.display = "flex";
+  document.getElementById("btnPause").style.display = "inline-flex";
+  updateHud();
+  showQuestion();
+}
+function readyToRace(){
+  answering = false; stopTimer();
+  hidePlayUi();
+  running = true; paused = false;
+  document.getElementById("btnPause").style.display = "none";
+  showOverlay("overlayReady");
+}
+function startRace(){
+  score = 0; lives = MAX_LIVES; qIndex = 0; correctCount = 0;
+  raceCorrect = 0; advCorrect = 0; raceAttempted = 0; advAttempted = 0;
+  carSpeed = 1; boostUntil = 0; report = [];
+  queue = buildRaceQueue();
+  running = true; paused = false;
+  mode = "race";
+  bonusActive = false;
+  raceProgress = 0;
+  carX = 0.12; carY = 0.5;
+  raceFinishedClear = false;
+  bonusPointsAwarded = 0;
+  document.getElementById("bonusHint").classList.remove("show");
+  hideOverlays();
+  document.getElementById("hud").style.display = "flex";
+  document.getElementById("btnPause").style.display = "inline-flex";
+  updateHud();
+  showQuestion();
+}
+function startAdvanced(){
+  qIndex = 0;
+  queue = buildAdvQueue();
+  running = true; paused = false;
+  mode = "advanced";
+  raceProgress = 1;
+  hideOverlays();
+  document.getElementById("hud").style.display = "flex";
+  document.getElementById("btnPause").style.display = "inline-flex";
+  updateHud();
+  showQuestion();
+}
+function endRaceStage(finished){
+  answering = false; stopTimer();
+  hidePlayUi();
+  raceFinishedClear = !!finished;
+  if(finished){
+    startAdvanced();
+    return;
+  }
+  running = false; paused = false; mode = "menu"; bonusActive = false;
+  showFinalOverlay("try");
+}
+function endAdvanced(finished){
+  answering = false; stopTimer();
+  hidePlayUi();
+  if(finished){
+    running = true; paused = false;
+    mode = "menu";
+    document.getElementById("btnPause").style.display = "none";
+    showOverlay("overlayBonusIntro");
+    return;
+  }
+  running = false; paused = false; mode = "menu"; bonusActive = false;
+  showFinalOverlay("well");
+}
+
+
+function startBonus(){
+  mode = "bonus";
+  bonusActive = true;
+  running = true;
+  paused = false;
+  bonusDuration = 30;
+  bonusLeft = bonusDuration;
+  bonusEndsAt = 0;
+  bonusPlayStartedAt = 0;
+  bonusLives = MAX_LIVES; // refill to 4, matching Frequency Race
+  lives = bonusLives;
+  bonusDodged = 0;
+  bonusCars = [];
+  bonusInvulnUntil = 0;
+  bonusSpawnAt = 0;
+  bonusHitstunUntil = 0;
+  bonusFx = null;
+  bonusFinishX = -1;
+  bonusPlayerX = 0.16;
+  bonusRushing = false;
+  bonusCrossedAt = 0;
+  bonusPhase = "countdown";
+  bonusCountdownN = 3;
+  bonusCountdownUntil = performance.now() + 1000;
+  carY = 0.5;
+  pointerTargetY = 0.5;
+  raceProgress = 1;
+  hideOverlays();
+  document.getElementById("hud").style.display = "flex";
+  document.getElementById("btnPause").style.display = "inline-flex";
+  document.getElementById("bonusHint").classList.add("show");
+  document.getElementById("playWrap").classList.remove("show");
+  updateHud();
+  beep(520, 0.12, "square");
+}
+function applyBonusScore(survived){
+  const dodgePts = bonusDodged * BONUS_PER_DODGE;
+  const finishPts = survived ? BONUS_FINISH : 0;
+  bonusPointsAwarded = dodgePts + finishPts;
+  score += bonusPointsAwarded;
+}
+function endBonus(survived){
+  bonusActive = false;
+  running = false;
+  paused = false;
+  mode = "menu";
+  applyBonusScore(!!survived);
+  showFinalOverlay(survived ? "finish" : "well");
+}
+function skipBonus(){
+  bonusActive = false;
+  running = false;
+  paused = false;
+  mode = "menu";
+  bonusPointsAwarded = 0;
+  bonusDodged = 0;
+  showFinalOverlay("super");
+}
+
+function outOfTotal(){
+  return RACE_Q + (raceFinishedClear ? ADV_Q : 0);
+}
+function showFinalOverlay(kind){
+  endKind = kind;
+  document.getElementById("hud").style.display = "none";
+  document.getElementById("playWrap").classList.remove("show");
+  document.getElementById("btnPause").style.display = "none";
+  document.getElementById("progressRail").classList.remove("show");
+  document.getElementById("bonusHint").classList.remove("show");
+  const titles = {
+    try: "Try again · 再試一次",
+    well: "Well done · 做得好！",
+    super: "🌈 Super!",
+    finish: "🌈 Super! · FINISH!"
+  };
+  document.getElementById("endTitle").textContent = titles[kind] || titles.super;
+  const outOf = outOfTotal();
+  let html = "Score <b>"+score+"</b><br>Race ✓ <b>"+raceCorrect+"</b>/"+RACE_Q;
+  if(raceFinishedClear) html += " · Advanced ✓ <b>"+advCorrect+"</b>/"+ADV_Q;
+  html += "<br>Correct <b>"+correctCount+"</b>/"+outOf;
+  if(bonusPointsAwarded){
+    html += "<br>Bonus +<b>"+bonusPointsAwarded+"</b> (dodged "+bonusDodged;
+    if(kind==="finish") html += " · finish +"+BONUS_FINISH;
+    html += ")";
+  } else if(kind==="super" && raceFinishedClear){
+    html += "<br><span class='muted'>Bonus skipped</span>";
+  }
+  document.getElementById("endStats").innerHTML = html;
+  document.getElementById("endReport").innerHTML = report.map(r =>
+    '<div class="row">'+(r.ok?'<span class="okb">✓</span>':'<span class="badb">✗</span>')+' '+esc(r.text)+
+    '<br><span class="muted">'+esc(r.detail)+'</span></div>'
+  ).join("");
+  addSessionScore({
+    score: score,
+    correct: correctCount,
+    outOf: outOf,
+    finished: !!raceFinishedClear,
+    when: Date.now()
+  });
+  renderSessionBox("endSessionBox", true);
+  renderSessionBox("startSessionBox", true);
+  showOverlay("overlayEnd");
+}
+
+function setPointerYFromEvent(e){
+  const h = window.innerHeight;
+  const rg = roadGeom(window.innerWidth, h);
+  let clientY;
+  if(e.touches && e.touches[0]) clientY = e.touches[0].clientY;
+  else clientY = e.clientY;
+  const t = (clientY - rg.top) / Math.max(1, rg.height);
+  pointerTargetY = Math.max(0, Math.min(1, (t - 0.17) / 0.66));
+}
+
+function pauseGame(){
+  if(!running || paused) return;
+  if(!document.getElementById("overlayStart").classList.contains("hidden")) return;
+  if(!document.getElementById("overlayReady").classList.contains("hidden")) return;
+  if(!document.getElementById("overlayBonusIntro").classList.contains("hidden")) return;
+  if(!document.getElementById("overlayEnd").classList.contains("hidden")) return;
+  paused = true;
+  if(mode === "bonus" && bonusActive){
+    if(bonusEndsAt){
+      bonusLeft = Math.max(0, (bonusEndsAt - performance.now())/1000);
+    }
+    if(bonusPhase === "countdown" || bonusPhase === "go"){
+      bonusCountdownUntil = Math.max(0, bonusCountdownUntil - performance.now());
+    }
+  }
+  showOverlay("overlayPause");
+}
+function resumeGame(){
+  if(!running || !paused) return;
+  paused = false;
+  hideOverlays();
+  if(mode === "bonus" && bonusActive){
+    if((bonusPhase === "play" || bonusPhase === "finish") && bonusEndsAt){
+      bonusEndsAt = performance.now() + bonusLeft * 1000;
+    }
+    if(bonusPhase === "countdown" || bonusPhase === "go"){
+      bonusCountdownUntil = performance.now() + bonusCountdownUntil;
+    }
+  }
+  if(answering && (mode === "race" || mode === "advanced")){
+    timerEndsAt = performance.now() + timerLeft * 1000;
+    const tick = () => {
+      if(!running || paused || !answering) return;
+      const leftMs = Math.max(0, timerEndsAt - performance.now());
+      timerLeft = leftMs / 1000;
+      document.getElementById("timerFill").style.width = Math.max(0, (timerLeft/timerTotal)*100) + "%";
+      if(leftMs <= 0){ onWrong("Time's up · 時間到", true); return; }
+      timerRaf = requestAnimationFrame(tick);
+    };
+    timerRaf = requestAnimationFrame(tick);
+  }
+}
+function quitToMenu(){
+  running=false; paused=false; answering=false; stopTimer();
+  mode="menu"; bonusActive=false; bonusCars=[];
+  document.getElementById("hud").style.display="none";
+  document.getElementById("playWrap").classList.remove("show");
+  document.getElementById("btnPause").style.display="none";
+  document.getElementById("progressRail").classList.remove("show");
+  document.getElementById("bonusHint").classList.remove("show");
+  renderSessionBox("startSessionBox", true);
+  showOverlay("overlayStart");
+}
+
+document.getElementById("btnStart").onclick = startPractice;
+document.getElementById("btnStartRace").onclick = startRace;
+document.getElementById("btnBonusGo").onclick = startBonus;
+document.getElementById("btnBonusSkip").onclick = skipBonus;
+document.getElementById("btnAgain").onclick = quitToMenu;
+document.getElementById("btnMenu").onclick = quitToMenu;
+document.getElementById("btnPause").onclick = pauseGame;
+document.getElementById("btnResume").onclick = resumeGame;
+document.getElementById("btnQuit").onclick = quitToMenu;
+document.getElementById("btnMute").onclick = () => {
+  muted = !muted;
+  document.getElementById("btnMute").textContent = muted ? "🔇" : "🔊";
+  if(!muted) beep(520, 0.08, "sine");
+};
+
+function onPointerDown(e){
+  if(mode !== "bonus" || !bonusActive || paused) return;
+  const t = e.target;
+  if(t && t.closest && t.closest(".overlay, .controls-bar, button, a")) return;
+  pointerDragging = true;
+  setPointerYFromEvent(e);
+  if(e.cancelable) e.preventDefault();
+}
+function onPointerMove(e){
+  if(mode !== "bonus" || !bonusActive || paused) return;
+  if(!pointerDragging && !(e.touches && e.touches.length)) return;
+  if(e.touches && e.touches.length) pointerDragging = true;
+  setPointerYFromEvent(e);
+  if(e.cancelable) e.preventDefault();
+}
+function onPointerUp(){ pointerDragging = false; }
+
+window.addEventListener("mousedown", onPointerDown);
+window.addEventListener("mousemove", onPointerMove);
+window.addEventListener("mouseup", onPointerUp);
+window.addEventListener("touchstart", onPointerDown, {passive:false});
+window.addEventListener("touchmove", onPointerMove, {passive:false});
+window.addEventListener("touchend", onPointerUp);
+
+window.addEventListener("keydown", (e) => {
+  if(e.code === "Escape" && running && !paused){ pauseGame(); return; }
+  if(mode === "bonus" && bonusActive && !paused){
+    if(e.code === "ArrowUp" || e.code === "KeyW"){ e.preventDefault(); pointerTargetY = Math.max(0, pointerTargetY - 0.22); }
+    if(e.code === "ArrowDown" || e.code === "KeyS"){ e.preventDefault(); pointerTargetY = Math.min(1, pointerTargetY + 0.22); }
+  }
+});
+
+window.addEventListener("resize", resize);
+resize();
+requestAnimationFrame(loop);
+renderSessionBox("startSessionBox", true);
+showOverlay("overlayStart");
+})();
+
+</script>
+</body>
+</html>
