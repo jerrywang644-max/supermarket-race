@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+<!-- Colour Race P1 v=2 · pictures, two-colour questions, spelling traps -->
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
+<meta name="version" content="2">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#38bdf8">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -78,18 +80,30 @@ html,body{width:100%;height:100%;overflow:hidden;background:#7dd3fc;
 
 .colour-card{pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:10px}
 .swatch{
-  width:min(420px,72vw);aspect-ratio:5/3.2;max-height:min(38vh,320px);
+  width:min(440px,78vw);aspect-ratio:5/3.1;max-height:min(38vh,330px);
   border-radius:28px;border:6px solid #fff;box-shadow:0 12px 32px rgba(15,23,42,.28);
-  position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center
+  position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#fffef8,#f8fafc)
 }
-.swatch .pattern{position:absolute;inset:0;opacity:.35;pointer-events:none}
-.swatch .shape{font-size:clamp(4.2rem,14vw,7rem);line-height:1;filter:drop-shadow(0 4px 0 rgba(0,0,0,.15));z-index:1}
+.swatch.duo{width:min(620px,92vw);aspect-ratio:11/5.2;max-height:min(40vh,340px)}
+.swatch .pics{
+  position:relative;z-index:1;display:flex;align-items:center;justify-content:center;
+  gap:6px;width:100%;height:100%;padding:8px 10px 34px;box-sizing:border-box
+}
+.swatch .pic{flex:1 1 0;height:100%;display:flex;align-items:center;justify-content:center;min-width:0}
+.swatch .pic svg{width:auto;height:100%;max-width:100%;overflow:visible;filter:drop-shadow(0 4px 0 rgba(15,23,42,.12))}
+.swatch .pic-and{
+  flex:0 0 auto;font-weight:900;font-size:clamp(1rem,2.8vw,1.35rem);color:#7c3aed;
+  text-align:center;line-height:1.15;padding:0 2px
+}
+.swatch .pic-and span{display:block;font-size:.8em;color:#64748b}
 .swatch .word{
-  position:absolute;bottom:10px;left:0;right:0;text-align:center;
-  font-weight:900;font-size:clamp(1.6rem,5vw,2.3rem);letter-spacing:.04em;
+  position:absolute;bottom:8px;left:0;right:0;text-align:center;
+  font-weight:900;font-size:clamp(1.5rem,4.6vw,2.15rem);letter-spacing:.04em;
   text-transform:lowercase;z-index:2;opacity:0;transition:opacity .2s;
-  text-shadow:0 2px 0 rgba(0,0,0,.25), 0 0 8px rgba(255,255,255,.5)
+  text-shadow:0 1px 0 #fff, 0 0 8px #fff, 0 0 2px #fff
 }
+.swatch .word .word-dot{color:#64748b;text-shadow:none}
 .swatch.reveal .word{opacity:1}
 .swatch.shake{animation:shake .4s ease}
 @keyframes shake{
@@ -123,8 +137,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#7dd3fc;
 .colour-btn.c-green{background:#16a34a;color:#fff}
 .colour-btn.c-blue{background:#2563eb;color:#fff}
 .colour-btn.c-purple{background:#7c3aed;color:#fff}
+.colour-btn.trap{
+  background:#f8fafc;color:#0f172a;border-color:#cbd5e1;
+  background-image:repeating-linear-gradient(135deg, rgba(15,23,42,.05) 0 8px, transparent 8px 16px)
+}
+.colour-btn.picked{outline:6px solid #38bdf8;transform:scale(1.04);box-shadow:0 0 0 4px #fff, 0 8px 0 rgba(15,23,42,.2)}
 .colour-btn.correct-flash{outline:6px solid #4ade80;filter:brightness(1.12);transform:scale(1.04)}
 .colour-btn.wrong-flash{filter:grayscale(.2) brightness(.85);outline:6px solid #f87171}
+.answer-area.many .colour-btn{flex:1 1 120px;max-width:200px}
 .controls-bar{position:fixed;bottom:14px;right:14px;z-index:8;display:flex;gap:8px}
 .icon-btn{
   width:48px;height:48px;border-radius:14px;border:3px solid #7c3aed66;
@@ -160,6 +180,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#7dd3fc;
 @media (max-height:700px){
   .play-wrap{top:52px;gap:8px}
   .swatch{max-height:min(32vh,260px)}
+  .swatch.duo{max-height:min(34vh,280px)}
   .colour-btn{min-height:72px}
   .panel{padding:18px 16px;margin:22px auto}
 }
@@ -190,8 +211,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#7dd3fc;
   </div>
   <div class="colour-card" id="colourCard">
     <div class="swatch" id="swatch">
-      <div class="pattern" id="swatchPattern"></div>
-      <div class="shape" id="swatchShape"></div>
+      <div class="pics" id="swatchPics"></div>
       <div class="word" id="swatchWord"></div>
     </div>
     <div class="model-line" id="modelLine"></div>
@@ -209,7 +229,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#7dd3fc;
     <p class="kicker">The Rainbow Song · P1</p>
     <div class="howto">
       <ul>
-        <li>先睇色卡，再選正確英文顏色詞。<br>Look at the colour card, then tap the word.</li>
+        <li>先睇圖案，再選正確英文顏色詞（小心拼寫！）。<br>Look at the picture, then tap the correct colour word (watch the spelling!).</li>
+        <li>有時會出現兩種顏色，要選兩個正確的顏色詞。<br>Sometimes two colours — tap both correct words.</li>
         <li><b>練習 Practice</b>：red / orange / yellow · 不計分、不計時</li>
         <li><b>比賽 Race</b>：8 題 · 20 秒 · 4 命 · 100 + leftover seconds × 10</li>
         <li><b>進階 Advanced</b>：green / blue / purple · 3 題加分</li>
@@ -271,9 +292,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#7dd3fc;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Colour Race P1 — companion to The Rainbow Song (lesson 3).
+// Colour Race P1 v2 — companion to The Rainbow Song (lesson 3).
 // Blueprint: Frequency Race interface, rhythm, and 30s dodge bonus.
 // No cloud leaderboard, no names, no class numbers, no calendar.
+// v2: 5+ object pictures per colour, some two-colour questions, spelling-trap options.
 
 const MAX_LIVES = 4;
 const TIMER_START = 20; // fixed 20s in Race + Advanced (do not shrink)
@@ -281,6 +303,7 @@ const PRACTICE_Q = 6;
 const RACE_Q = 8;
 const ADV_Q = 3;
 const LS_SESSION = "colour_race_p1_session_v1";
+const GAME_VER = "2";
 
 // Bonus scoring (documented, modest and fair):
 //   +15 points for each car successfully dodged
@@ -302,10 +325,284 @@ const COLORS = {
 const PRACTICE_IDS = ["red","orange","yellow"];
 const ADV_IDS = ["green","blue","purple"];
 
+// Colour Race P1 v2 — inline SVG clipart (unique silhouette per object).
+function svgEl(inner){
+  return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+inner+"</svg>";
+}
+function svgBalloon(fill, stroke){
+  return svgEl(
+    '<path d="M100 18c-36 0-58 32-58 68 0 30 18 54 44 64l-8 12h44l-8-12c26-10 44-34 44-64 0-36-22-68-58-68z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="4"/>'+
+    '<ellipse cx="80" cy="62" rx="16" ry="24" fill="#fff" opacity=".35"/>'+
+    '<path d="M100 150l-8 8 16 0-8-8z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="3" stroke-linejoin="round"/>'+
+    '<path d="M100 158c-10 12 8 16-2 28 12 2 16-14 8-22 14 6 10 22 2 26" fill="none" stroke="'+stroke+'" stroke-width="3" stroke-linecap="round"/>'
+  );
+}
+function svgCar(fill, stroke){
+  return svgEl(
+    '<rect x="36" y="118" width="22" height="22" rx="11" fill="#1f2937"/>'+
+    '<rect x="142" y="118" width="22" height="22" rx="11" fill="#1f2937"/>'+
+    '<circle cx="47" cy="129" r="16" fill="#111827"/>'+
+    '<circle cx="47" cy="129" r="7" fill="#d1d5db"/>'+
+    '<circle cx="153" cy="129" r="16" fill="#111827"/>'+
+    '<circle cx="153" cy="129" r="7" fill="#d1d5db"/>'+
+    '<path d="M38 108h20l16-32h62l20 32h18c8 0 12 8 12 14v16H28v-16c0-8 4-14 10-14z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="4" stroke-linejoin="round"/>'+
+    '<path d="M78 78h52l14 28H66z" fill="#7dd3fc" stroke="'+stroke+'" stroke-width="3" stroke-linejoin="round"/>'+
+    '<rect x="30" y="112" width="12" height="8" rx="2" fill="#fde68a"/>'+
+    '<rect x="168" y="112" width="8" height="8" rx="2" fill="#fecaca"/>'
+  );
+}
+const PICTURES = {
+  red: {
+    apple: svgEl(
+      '<path d="M100 44c8-20 34-20 38-4-16 6-26 16-38 16s-22-10-38-16c4-16 30-16 38 4z" fill="#22c55e" stroke="#166534" stroke-width="2"/>'+
+      '<path d="M100 50c0-16 10-30 22-34" fill="none" stroke="#7c2d12" stroke-width="8" stroke-linecap="round"/>'+
+      '<ellipse cx="100" cy="122" rx="64" ry="66" fill="#dc2626" stroke="#7f1d1d" stroke-width="4"/>'+
+      '<ellipse cx="78" cy="104" rx="16" ry="24" fill="#fff" opacity=".35"/>'+
+      '<path d="M100 56c-4 12-6 18-6 18" fill="none" stroke="#7f1d1d" stroke-width="3"/>'
+    ),
+    balloon: svgBalloon("#dc2626","#7f1d1d"),
+    car: svgCar("#dc2626","#7f1d1d"),
+    heart: svgEl(
+      '<path d="M100 170S36 124 36 80c0-24 18-40 38-40 14 0 22 8 26 16 4-8 12-16 26-16 20 0 38 16 38 40 0 44-64 90-64 90z" fill="#dc2626" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round"/>'+
+      '<ellipse cx="72" cy="78" rx="14" ry="16" fill="#fff" opacity=".3"/>'
+    ),
+    strawberry: svgEl(
+      '<path d="M100 38l18 16c14-8 34-4 38 8-22 4-40 0-56-10-16 10-34 14-56 10 4-12 24-16 38-8z" fill="#16a34a" stroke="#166534" stroke-width="3" stroke-linejoin="round"/>'+
+      '<path d="M48 70c-4 20 8 58 52 96 44-38 56-76 52-96-12-22-92-22-104 0z" fill="#dc2626" stroke="#7f1d1d" stroke-width="4"/>'+
+      '<circle cx="78" cy="92" r="4" fill="#fde047"/><circle cx="108" cy="86" r="4" fill="#fde047"/>'+
+      '<circle cx="92" cy="114" r="4" fill="#fde047"/><circle cx="122" cy="110" r="4" fill="#fde047"/>'+
+      '<circle cx="80" cy="136" r="4" fill="#fde047"/><circle cx="110" cy="140" r="4" fill="#fde047"/>'+
+      '<circle cx="132" cy="130" r="3.5" fill="#fde047"/>'+
+      '<ellipse cx="84" cy="88" rx="10" ry="12" fill="#fff" opacity=".25"/>'
+    )
+  },
+  orange: {
+    fruit: svgEl(
+      '<path d="M100 40c6-8 20-16 28-10-2 12-10 18-28 22-14-8-18-20-16-28 8 2 14 8 16 16z" fill="#22c55e" stroke="#166534" stroke-width="2"/>'+
+      '<circle cx="100" cy="114" r="66" fill="#ea580c" stroke="#9a3412" stroke-width="4"/>'+
+      '<circle cx="100" cy="114" r="50" fill="none" stroke="#c2410c" stroke-width="2" opacity=".45"/>'+
+      '<path d="M100 56v10M70 70l6 8M130 70l-6 8" stroke="#c2410c" stroke-width="3" stroke-linecap="round" opacity=".6"/>'+
+      '<ellipse cx="78" cy="96" rx="16" ry="22" fill="#fff" opacity=".3"/>'+
+      '<circle cx="100" cy="58" r="5" fill="#9a3412"/>'
+    ),
+    pumpkin: svgEl(
+      '<path d="M96 40c0-16 8-28 20-30 2 14-2 24-16 32" fill="#16a34a" stroke="#166534" stroke-width="3"/>'+
+      '<ellipse cx="100" cy="118" rx="74" ry="58" fill="#ea580c" stroke="#9a3412" stroke-width="4"/>'+
+      '<ellipse cx="100" cy="118" rx="28" ry="58" fill="none" stroke="#9a3412" stroke-width="4"/>'+
+      '<ellipse cx="100" cy="118" rx="52" ry="58" fill="none" stroke="#c2410c" stroke-width="4"/>'+
+      '<ellipse cx="78" cy="100" rx="12" ry="16" fill="#fff" opacity=".25"/>'
+    ),
+    carrot: svgEl(
+      '<path d="M100 18c-8 16-8 28-8 28 12-6 20-4 28 4 0-16-8-28-8-28 4 10-4 16-12-4z" fill="#16a34a" stroke="#166534" stroke-width="3" stroke-linejoin="round"/>'+
+      '<path d="M84 28c-16 8-22 16-20 20 18-4 28-4 40-12-12 2-18-2-20-8z" fill="#22c55e"/>'+
+      '<path d="M86 48l-18 128c0 8 12 12 20 4 28-36 42-86 44-128-14 6-32 4-46-4z" fill="#ea580c" stroke="#9a3412" stroke-width="4" stroke-linejoin="round"/>'+
+      '<path d="M92 80l24 8M88 110l20 8M86 140l16 6" stroke="#c2410c" stroke-width="3" stroke-linecap="round" opacity=".7"/>'
+    ),
+    fish: svgEl(
+      '<ellipse cx="96" cy="108" rx="58" ry="44" fill="#ea580c" stroke="#9a3412" stroke-width="4"/>'+
+      '<path d="M148 108l40-36v72z" fill="#c2410c" stroke="#9a3412" stroke-width="4" stroke-linejoin="round"/>'+
+      '<path d="M90 70c8-22 28-22 32-8-12 6-22 8-32 8z" fill="#ea580c" stroke="#9a3412" stroke-width="3"/>'+
+      '<path d="M88 130c10 18 26 16 32 4" fill="none" stroke="#9a3412" stroke-width="3"/>'+
+      '<circle cx="70" cy="100" r="8" fill="#fff"/><circle cx="72" cy="100" r="4" fill="#111827"/>'+
+      '<path d="M58 114c8 8 18 8 24 2" fill="none" stroke="#9a3412" stroke-width="3" stroke-linecap="round"/>'+
+      '<ellipse cx="88" cy="96" rx="12" ry="14" fill="#fff" opacity=".25"/>'
+    ),
+    basketball: svgEl(
+      '<circle cx="100" cy="104" r="70" fill="#ea580c" stroke="#9a3412" stroke-width="4"/>'+
+      '<path d="M100 34v140M30 104h140" fill="none" stroke="#1c1917" stroke-width="5"/>'+
+      '<path d="M48 54c28 22 76 22 104 0M48 154c28-22 76-22 104 0" fill="none" stroke="#1c1917" stroke-width="5"/>'
+    )
+  },
+  yellow: {
+    banana: svgEl(
+      '<path d="M44 48c8-16 28-22 40-10 40 44 60 84 68 120-18 10-36 4-44-6-10-30-28-66-64-100z" fill="#eab308" stroke="#a16207" stroke-width="4"/>'+
+      '<path d="M50 52c28 36 50 76 62 114" fill="none" stroke="#ca8a04" stroke-width="6" stroke-linecap="round" opacity=".55"/>'+
+      '<path d="M46 46c-6-10-4-20 8-24" fill="none" stroke="#78716c" stroke-width="7" stroke-linecap="round"/>'+
+      '<ellipse cx="78" cy="80" rx="10" ry="16" fill="#fff" opacity=".28" transform="rotate(-30 78 80)"/>'
+    ),
+    sun: svgEl(
+      '<g fill="#eab308" stroke="#a16207" stroke-width="3" stroke-linejoin="round">'+
+      '<path d="M100 16l8 28h-16z"/><path d="M100 184l8-28h-16z"/>'+
+      '<path d="M16 100l28 8v-16z"/><path d="M184 100l-28 8v-16z"/>'+
+      '<path d="M36 36l24 18-10 10z"/><path d="M164 36l-24 18 10 10z"/>'+
+      '<path d="M36 164l24-18-10-10z"/><path d="M164 164l-24-18 10-10z"/>'+
+      '</g>'+
+      '<circle cx="100" cy="100" r="48" fill="#facc15" stroke="#a16207" stroke-width="4"/>'+
+      '<circle cx="84" cy="92" r="6" fill="#78350f"/><circle cx="116" cy="92" r="6" fill="#78350f"/>'+
+      '<path d="M84 116c8 12 24 12 32 0" fill="none" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>'
+    ),
+    star: svgEl(
+      '<path d="M100 22l18 54h58l-46 34 18 56-48-34-48 34 18-56-46-34h58z" fill="#eab308" stroke="#a16207" stroke-width="4" stroke-linejoin="round"/>'+
+      '<ellipse cx="92" cy="86" rx="12" ry="10" fill="#fff" opacity=".35"/>'
+    ),
+    lemon: svgEl(
+      '<g transform="rotate(-18 100 110)">'+
+      '<ellipse cx="100" cy="114" rx="70" ry="50" fill="#eab308" stroke="#a16207" stroke-width="4"/>'+
+      '<path d="M30 114c0-8 6-14 10-14M170 114c0-8-6-14-10-14" fill="none" stroke="#a16207" stroke-width="4" stroke-linecap="round"/>'+
+      '<ellipse cx="80" cy="100" rx="16" ry="20" fill="#fff" opacity=".28"/>'+
+      '</g>'+
+      '<path d="M124 46c8-16 24-18 30-8-12 8-18 14-22 28-10-6-14-14-8-20z" fill="#22c55e" stroke="#166534" stroke-width="2"/>'
+    ),
+    duck: svgEl(
+      '<ellipse cx="108" cy="126" rx="62" ry="40" fill="#eab308" stroke="#a16207" stroke-width="4"/>'+
+      '<circle cx="68" cy="86" r="32" fill="#facc15" stroke="#a16207" stroke-width="4"/>'+
+      '<path d="M40 90c-22 2-28 14-22 22 16 2 28-2 38-8z" fill="#ea580c" stroke="#9a3412" stroke-width="3"/>'+
+      '<circle cx="60" cy="80" r="6" fill="#111827"/>'+
+      '<path d="M130 118c16-8 28-2 36 12" fill="#ca8a04" stroke="#a16207" stroke-width="3"/>'+
+      '<path d="M96 162c-4 16-16 22-16 22m28-20c2 16-6 26-6 26" fill="none" stroke="#a16207" stroke-width="4" stroke-linecap="round"/>'+
+      '<ellipse cx="96" cy="114" rx="14" ry="12" fill="#fff" opacity=".3"/>'
+    )
+  },
+  green: {
+    leaf: svgEl(
+      '<path d="M40 160C36 80 80 24 168 28c-8 88-64 128-128 132z" fill="#16a34a" stroke="#14532d" stroke-width="4"/>'+
+      '<path d="M52 148c40-32 72-72 108-112" fill="none" stroke="#14532d" stroke-width="4" stroke-linecap="round"/>'+
+      '<path d="M84 120c16-4 24-16 28-24M100 96c16-2 26-14 30-20M116 76c12 0 20-10 24-16" fill="none" stroke="#166534" stroke-width="3" stroke-linecap="round"/>'+
+      '<ellipse cx="92" cy="72" rx="14" ry="18" fill="#fff" opacity=".22" transform="rotate(-30 92 72)"/>'
+    ),
+    frog: svgEl(
+      '<ellipse cx="100" cy="128" rx="70" ry="48" fill="#16a34a" stroke="#14532d" stroke-width="4"/>'+
+      '<circle cx="62" cy="78" r="26" fill="#22c55e" stroke="#14532d" stroke-width="4"/>'+
+      '<circle cx="138" cy="78" r="26" fill="#22c55e" stroke="#14532d" stroke-width="4"/>'+
+      '<circle cx="62" cy="78" r="12" fill="#fff"/><circle cx="64" cy="80" r="7" fill="#111827"/>'+
+      '<circle cx="138" cy="78" r="12" fill="#fff"/><circle cx="140" cy="80" r="7" fill="#111827"/>'+
+      '<path d="M78 136c12 16 32 16 44 0" fill="none" stroke="#14532d" stroke-width="4" stroke-linecap="round"/>'+
+      '<ellipse cx="48" cy="150" rx="18" ry="10" fill="#15803d" stroke="#14532d" stroke-width="3"/>'+
+      '<ellipse cx="152" cy="150" rx="18" ry="10" fill="#15803d" stroke="#14532d" stroke-width="3"/>'+
+      '<ellipse cx="86" cy="116" rx="12" ry="10" fill="#fff" opacity=".25"/>'
+    ),
+    pear: svgEl(
+      '<path d="M100 40c0-4 2-12 0-18" fill="none" stroke="#7c2d12" stroke-width="7" stroke-linecap="round"/>'+
+      '<path d="M104 32c12-8 26-4 28 6-12 4-20 8-28 8z" fill="#22c55e" stroke="#166534" stroke-width="2"/>'+
+      '<path d="M100 48c-28 10-44 36-40 64 6 36 28 56 40 56s34-20 40-56c4-28-12-54-40-64z" fill="#16a34a" stroke="#14532d" stroke-width="4"/>'+
+      '<ellipse cx="84" cy="100" rx="14" ry="20" fill="#fff" opacity=".28"/>'
+    ),
+    tree: svgEl(
+      '<rect x="88" y="128" width="24" height="48" rx="4" fill="#7c2d12" stroke="#5c1a0a" stroke-width="3"/>'+
+      '<circle cx="100" cy="78" r="52" fill="#16a34a" stroke="#14532d" stroke-width="4"/>'+
+      '<circle cx="68" cy="96" r="28" fill="#22c55e"/><circle cx="132" cy="96" r="28" fill="#15803d"/>'+
+      '<circle cx="100" cy="58" r="30" fill="#4ade80" opacity=".85"/>'+
+      '<ellipse cx="84" cy="64" rx="12" ry="10" fill="#fff" opacity=".25"/>'
+    ),
+    cactus: svgEl(
+      '<rect x="60" y="150" width="80" height="28" rx="6" fill="#c2410c" stroke="#7c2d12" stroke-width="3"/>'+
+      '<rect x="70" y="142" width="60" height="12" rx="3" fill="#ea580c"/>'+
+      '<rect x="86" y="70" width="28" height="80" rx="14" fill="#16a34a" stroke="#14532d" stroke-width="3"/>'+
+      '<rect x="50" y="88" width="40" height="16" rx="8" fill="#16a34a" stroke="#14532d" stroke-width="3"/>'+
+      '<rect x="110" y="96" width="36" height="16" rx="8" fill="#16a34a" stroke="#14532d" stroke-width="3"/>'+
+      '<circle cx="96" cy="86" r="3" fill="#14532d"/><circle cx="104" cy="108" r="3" fill="#14532d"/>'+
+      '<circle cx="94" cy="124" r="3" fill="#14532d"/><circle cx="64" cy="94" r="2.5" fill="#14532d"/>'+
+      '<circle cx="132" cy="102" r="2.5" fill="#14532d"/>'+
+      '<ellipse cx="96" cy="92" rx="6" ry="10" fill="#fff" opacity=".2"/>'
+    )
+  },
+  blue: {
+    bird: svgEl(
+      '<ellipse cx="108" cy="114" rx="58" ry="40" fill="#2563eb" stroke="#1e3a8a" stroke-width="4"/>'+
+      '<circle cx="64" cy="96" r="30" fill="#3b82f6" stroke="#1e3a8a" stroke-width="4"/>'+
+      '<path d="M38 100c-22 2-28 12-20 20 14 0 26-6 36-12z" fill="#f59e0b" stroke="#b45309" stroke-width="3"/>'+
+      '<circle cx="58" cy="90" r="6" fill="#111827"/>'+
+      '<path d="M120 100c24-28 48-24 56-8-18 8-28 20-44 28z" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="3"/>'+
+      '<path d="M150 118c18 4 28 16 28 16s-8 8-28 6z" fill="#1e40af"/>'+
+      '<path d="M90 148l-6 20m20-18l4 18" fill="none" stroke="#1e3a8a" stroke-width="4" stroke-linecap="round"/>'+
+      '<ellipse cx="96" cy="104" rx="12" ry="10" fill="#fff" opacity=".3"/>'
+    ),
+    fish: svgEl(
+      '<path d="M36 108c8-36 40-56 78-52 30 4 52 28 56 52-4 24-26 48-56 52-38 4-70-16-78-52z" fill="#2563eb" stroke="#1e3a8a" stroke-width="4"/>'+
+      '<path d="M164 108l28-32v64z" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="4" stroke-linejoin="round"/>'+
+      '<path d="M100 70c12-18 28-16 32-4M100 146c12 18 28 16 32 4" fill="none" stroke="#1e3a8a" stroke-width="3"/>'+
+      '<path d="M70 90c10 0 16 8 16 18s-6 18-16 18" fill="none" stroke="#93c5fd" stroke-width="4"/>'+
+      '<path d="M96 86c10 0 16 10 16 22s-6 22-16 22" fill="none" stroke="#93c5fd" stroke-width="4"/>'+
+      '<circle cx="58" cy="104" r="8" fill="#fff"/><circle cx="60" cy="104" r="4" fill="#111827"/>'+
+      '<ellipse cx="80" cy="98" rx="10" ry="12" fill="#fff" opacity=".25"/>'
+    ),
+    berry: svgEl(
+      '<path d="M70 54c-4-16 8-28 20-22m20-6c8-14 24-12 26 0M118 44c6-16 22-14 26-2" fill="none" stroke="#166534" stroke-width="5" stroke-linecap="round"/>'+
+      '<circle cx="78" cy="100" r="32" fill="#2563eb" stroke="#1e3a8a" stroke-width="4"/>'+
+      '<circle cx="122" cy="96" r="30" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="4"/>'+
+      '<circle cx="102" cy="132" r="32" fill="#3b82f6" stroke="#1e3a8a" stroke-width="4"/>'+
+      '<path d="M70 76l8-8 8 6M114 74l8-8 8 6M94 110l8-8 8 6" fill="none" stroke="#1e3a8a" stroke-width="3" stroke-linecap="round"/>'+
+      '<ellipse cx="70" cy="92" rx="8" ry="10" fill="#fff" opacity=".3"/>'+
+      '<ellipse cx="112" cy="88" rx="7" ry="9" fill="#fff" opacity=".25"/>'+
+      '<ellipse cx="94" cy="122" rx="8" ry="10" fill="#fff" opacity=".25"/>'
+    ),
+    car: svgCar("#2563eb","#1e3a8a"),
+    cap: svgEl(
+      '<path d="M40 118c0-40 26-70 60-70s60 30 60 70z" fill="#2563eb" stroke="#1e3a8a" stroke-width="4"/>'+
+      '<path d="M28 118h144c4 0 8 6 8 12H20c0-6 4-12 8-12z" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="4"/>'+
+      '<path d="M24 128h70c24 0 50 4 78 16-40 2-78-2-112-8-16-2-30-6-36-8z" fill="#3b82f6" stroke="#1e3a8a" stroke-width="3"/>'+
+      '<circle cx="100" cy="56" r="8" fill="#1e3a8a"/>'+
+      '<ellipse cx="80" cy="90" rx="16" ry="12" fill="#fff" opacity=".28"/>'
+    )
+  },
+  purple: {
+    grapes: svgEl(
+      '<path d="M100 24c4 16 4 28 0 36 12-8 22-6 32 2 0-16-10-30-10-30 6 10-6 14-22-8z" fill="#16a34a" stroke="#166534" stroke-width="3"/>'+
+      '<circle cx="78" cy="86" r="20" fill="#7c3aed" stroke="#5b21b6" stroke-width="3"/>'+
+      '<circle cx="108" cy="80" r="20" fill="#8b5cf6" stroke="#5b21b6" stroke-width="3"/>'+
+      '<circle cx="136" cy="92" r="20" fill="#7c3aed" stroke="#5b21b6" stroke-width="3"/>'+
+      '<circle cx="66" cy="116" r="20" fill="#6d28d9" stroke="#5b21b6" stroke-width="3"/>'+
+      '<circle cx="96" cy="110" r="20" fill="#7c3aed" stroke="#5b21b6" stroke-width="3"/>'+
+      '<circle cx="126" cy="118" r="20" fill="#8b5cf6" stroke="#5b21b6" stroke-width="3"/>'+
+      '<circle cx="82" cy="144" r="20" fill="#7c3aed" stroke="#5b21b6" stroke-width="3"/>'+
+      '<circle cx="114" cy="146" r="20" fill="#6d28d9" stroke="#5b21b6" stroke-width="3"/>'+
+      '<ellipse cx="72" cy="80" rx="7" ry="8" fill="#fff" opacity=".3"/>'
+    ),
+    flower: svgEl(
+      '<g fill="#7c3aed" stroke="#5b21b6" stroke-width="3">'+
+      '<ellipse cx="100" cy="52" rx="22" ry="30"/>'+
+      '<ellipse cx="100" cy="148" rx="22" ry="30"/>'+
+      '<ellipse cx="52" cy="100" rx="30" ry="22"/>'+
+      '<ellipse cx="148" cy="100" rx="30" ry="22"/>'+
+      '<ellipse cx="64" cy="64" rx="24" ry="28" transform="rotate(-40 64 64)"/>'+
+      '<ellipse cx="136" cy="64" rx="24" ry="28" transform="rotate(40 136 64)"/>'+
+      '<ellipse cx="64" cy="136" rx="24" ry="28" transform="rotate(40 64 136)"/>'+
+      '<ellipse cx="136" cy="136" rx="24" ry="28" transform="rotate(-40 136 136)"/>'+
+      '</g>'+
+      '<circle cx="100" cy="100" r="26" fill="#facc15" stroke="#a16207" stroke-width="3"/>'+
+      '<circle cx="100" cy="100" r="12" fill="#f59e0b"/>'
+    ),
+    butterfly: svgEl(
+      '<path d="M100 46c-36-28-78-8-78 36 0 28 18 40 46 40-8 16-10 28-2 40 22-16 30-34 34-52z" fill="#7c3aed" stroke="#5b21b6" stroke-width="4"/>'+
+      '<path d="M100 46c36-28 78-8 78 36 0 28-18 40-46 40 8 16 10 28 2 40-22-16-30-34-34-52z" fill="#8b5cf6" stroke="#5b21b6" stroke-width="4"/>'+
+      '<circle cx="64" cy="80" r="14" fill="#c4b5fd"/><circle cx="136" cy="80" r="14" fill="#ddd6fe"/>'+
+      '<rect x="94" y="50" width="12" height="110" rx="6" fill="#5b21b6"/>'+
+      '<circle cx="100" cy="48" r="8" fill="#5b21b6"/>'+
+      '<path d="M96 42c-10-16-22-18-26-12M104 42c10-16 22-18 26-12" fill="none" stroke="#5b21b6" stroke-width="3" stroke-linecap="round"/>'
+    ),
+    present: svgEl(
+      '<rect x="40" y="86" width="120" height="84" rx="8" fill="#7c3aed" stroke="#5b21b6" stroke-width="4"/>'+
+      '<rect x="40" y="70" width="120" height="28" rx="6" fill="#8b5cf6" stroke="#5b21b6" stroke-width="4"/>'+
+      '<rect x="90" y="70" width="20" height="100" fill="#facc15" stroke="#a16207" stroke-width="2"/>'+
+      '<rect x="40" y="108" width="120" height="16" fill="#facc15" stroke="#a16207" stroke-width="2"/>'+
+      '<path d="M100 70c-16-28-40-24-36-8 12-4 24 4 36 16 12-12 24-20 36-16 4-16-20-20-36 8z" fill="#f59e0b" stroke="#a16207" stroke-width="3"/>'
+    ),
+    balloon: svgBalloon("#7c3aed","#5b21b6")
+  }
+};
+const PIC_NAMES = {
+  red:["apple","balloon","car","heart","strawberry"],
+  orange:["fruit","pumpkin","carrot","fish","basketball"],
+  yellow:["banana","sun","star","lemon","duck"],
+  green:["leaf","frog","pear","tree","cactus"],
+  blue:["bird","fish","berry","car","cap"],
+  purple:["grapes","flower","butterfly","present","balloon"]
+};
+const TRAPS = {
+  red:["reed","redd"],
+  orange:["orenge","ornage"],
+  yellow:["welloy","yello","yelow"],
+  green:["geren","grean","grene"],
+  blue:["bleu","bloo"],
+  purple:["purpel","perpple","purpul"]
+};
+const RAINBOW_ORDER = ["red","orange","yellow","green","blue","purple"];
+
+
 let running = false, paused = false, muted = true;
 let score = 0, lives = MAX_LIVES, qIndex = 0, correctCount = 0;
 let raceCorrect = 0, advCorrect = 0, raceAttempted = 0, advAttempted = 0;
-let queue = [], currentQ = null;
+let queue = [], currentQ = null, selectedBtns = [];
 let timerTotal = TIMER_START, timerLeft = TIMER_START, timerRaf = 0, timerEndsAt = 0;
 let answering = false;
 let report = [];
@@ -443,9 +740,23 @@ function flash(ok){
   setTimeout(()=>{ el.className = "flash"; }, 180);
 }
 
+function sortColorIds(ids){
+  return ids.slice().sort((a,b) => RAINBOW_ORDER.indexOf(a) - RAINBOW_ORDER.indexOf(b));
+}
+function twoWords(ids){
+  const w = sortColorIds(ids).map(id => COLORS[id].word);
+  return w[0] + " and " + w[1];
+}
 function sentenceFor(colorId, flip){
   const w = COLORS[colorId].word;
   return (flip % 2 === 0) ? ("It is " + w + ".") : ("I can see " + w + ".");
+}
+function sentenceForQ(q){
+  if(q.kind === "two"){
+    const join = twoWords(q.colors);
+    return (q.frame % 2 === 0) ? ("I can see " + join + ".") : ("They are " + join + ".");
+  }
+  return sentenceFor(q.color, q.frame);
 }
 function clozePrompt(flip){
   return (flip % 2 === 0) ? "It is ____." : "I can see ____.";
@@ -453,37 +764,135 @@ function clozePrompt(flip){
 function clozeHint(flip){
   return (flip % 2 === 0) ? "它是 ____。 · Tap the colour word" : "我看見 ____。 · Tap the colour word";
 }
-
-function patternCss(kind, hex){
-  // Unique pattern per colour so the card is never colour-only (colour-blind friendly).
-  // The English word is revealed after a correct answer; buttons always show the word.
-  if(kind==="stripes") return "repeating-linear-gradient(45deg, "+hex+" 0 14px, rgba(255,255,255,.55) 14px 28px)";
-  if(kind==="dots") return "radial-gradient(circle at 8px 8px, rgba(255,255,255,.7) 3px, transparent 4px) 0 0 / 22px 22px, "+hex;
-  if(kind==="dashes") return "repeating-linear-gradient(90deg, "+hex+" 0 16px, rgba(28,25,23,.28) 16px 22px)";
-  if(kind==="chevrons") return "repeating-linear-gradient(135deg, "+hex+" 0 12px, rgba(255,255,255,.45) 12px 18px, "+hex+" 18px 30px)";
-  if(kind==="waves") return "repeating-radial-gradient(circle at 0 50%, rgba(255,255,255,.5) 0 8px, transparent 8px 16px), "+hex;
-  return "repeating-conic-gradient(from 45deg, rgba(255,255,255,.4) 0 12deg, transparent 12deg 24deg), "+hex;
+function answerLabel(q){
+  if(q.kind === "two") return twoWords(q.colors);
+  return COLORS[q.color].word;
 }
 
+function assignPics(list){
+  let prevNames = [];
+  list.forEach(q => {
+    const used = [];
+    const pickOne = (colorId) => {
+      const names = PIC_NAMES[colorId];
+      let pool = names.filter(n => !prevNames.includes(n) && !used.includes(n));
+      if(!pool.length) pool = names.filter(n => !used.includes(n));
+      if(!pool.length) pool = names.slice();
+      const name = pick(pool);
+      used.push(name);
+      return name;
+    };
+    if(q.kind === "two") q.pics = q.colors.map(pickOne);
+    else q.pics = [pickOne(q.color)];
+    prevNames = q.pics.slice();
+  });
+  return list;
+}
 function buildPracticeQueue(){
-  const colors = shuffle(PRACTICE_IDS.concat(PRACTICE_IDS));
-  return colors.map((id, i) => ({stage:"practice", kind:"tap", color:id, frame:i%2}));
+  const bag = ["red","red","orange","orange","yellow","yellow"];
+  const drop = randInt(0, bag.length-1);
+  const singles = shuffle(bag.slice(0,drop).concat(bag.slice(drop+1)));
+  const pair = sortColorIds(shuffle(PRACTICE_IDS.slice()).slice(0,2));
+  const twoQ = {stage:"practice", kind:"two", colors:pair, frame:0};
+  const list = singles.map((id,i) => ({
+    stage:"practice", kind:"tap", color:id, frame:i%2
+  }));
+  // Introduce two-colour after at least two single warm-ups (Q3–Q6).
+  const pos = randInt(2, list.length);
+  list.splice(pos, 0, twoQ);
+  list.forEach((q,i) => { q.frame = i % 2; });
+  return assignPics(list);
+}
+function placeInto(singles, extras, total){
+  const positions = shuffle(Array.from({length:total}, (_,i)=>i));
+  // Prefer non-adjacent extras when possible.
+  let pos = [];
+  for(const p of positions){
+    if(pos.length >= extras.length) break;
+    if(pos.some(x => Math.abs(x-p)===1)) continue;
+    pos.push(p);
+  }
+  if(pos.length < extras.length){
+    pos = positions.slice(0, extras.length);
+  }
+  pos.sort((a,b)=>a-b);
+  const out = [];
+  let s=0, e=0;
+  for(let i=0;i<total;i++){
+    if(pos.includes(i)) out.push(extras[e++]);
+    else out.push(singles[s++]);
+  }
+  return out;
 }
 function buildRaceQueue(){
-  const colors = shuffle(["red","red","red","orange","orange","orange","yellow","yellow"]);
-  const kinds = shuffle(["tap","tap","tap","tap","cloze","cloze","cloze","cloze"]);
+  const singles = shuffle(["red","red","orange","orange","yellow","yellow"]);
+  const kinds = shuffle(["tap","tap","tap","cloze","cloze","cloze"]);
   let f = 0;
-  return colors.map((id, i) => ({
-    stage:"race", kind:kinds[i], color:id, frame: kinds[i]==="cloze" ? (f++ % 2) : (i%2)
+  const singleQs = singles.map((id,i) => ({
+    stage:"race",
+    kind: kinds[i],
+    color: id,
+    frame: kinds[i]==="cloze" ? (f++ % 2) : (i%2)
   }));
+  const pairs = shuffle([["red","orange"],["red","yellow"],["orange","yellow"]]).slice(0,2)
+    .map(p => sortColorIds(p));
+  const twoQs = pairs.map((pair,i) => ({
+    stage:"race", kind:"two", colors:pair, frame:i%2
+  }));
+  return assignPics(placeInto(singleQs, twoQs, RACE_Q));
 }
 function buildAdvQueue(){
-  const colors = shuffle(ADV_IDS.slice());
-  const kinds = shuffle(["tap","cloze","cloze"]);
+  const cols = shuffle(ADV_IDS.slice());
+  const kinds = shuffle(["tap","cloze"]);
   let f = 0;
-  return colors.map((id, i) => ({
-    stage:"advanced", kind:kinds[i], color:id, frame: kinds[i]==="cloze" ? (f++ % 2) : (i%2)
+  const singleQs = [cols[0], cols[1]].map((id,i) => ({
+    stage:"advanced",
+    kind: kinds[i],
+    color: id,
+    frame: kinds[i]==="cloze" ? (f++ % 2) : (i%2)
   }));
+  const other = pick(ADV_IDS.filter(id => id !== cols[2]));
+  const pair = sortColorIds([cols[2], other]);
+  const twoQ = {stage:"advanced", kind:"two", colors:pair, frame:1};
+  return assignPics(placeInto(singleQs, [twoQ], ADV_Q));
+}
+
+function buildOptions(q){
+  if(q.kind === "two"){
+    const [a,b] = q.colors;
+    const palette = q.stage === "advanced" ? ADV_IDS.concat(PRACTICE_IDS) : PRACTICE_IDS;
+    const extraPool = palette.filter(id => id!==a && id!==b);
+    const opts = [
+      {word: COLORS[a].word, colorId:a, ok:true, trap:false},
+      {word: COLORS[b].word, colorId:b, ok:true, trap:false},
+      {word: pick(TRAPS[a]), colorId:null, ok:false, trap:true},
+      {word: pick(TRAPS[b]), colorId:null, ok:false, trap:true}
+    ];
+    if(extraPool.length){
+      const ex = pick(extraPool);
+      opts.push({word: COLORS[ex].word, colorId:ex, ok:false, trap:false});
+    }
+    return shuffle(opts);
+  }
+  const id = q.color;
+  const palette = q.stage === "advanced" ? ADV_IDS : PRACTICE_IDS;
+  const others = palette.filter(x => x!==id);
+  const other = pick(others);
+  const traps = shuffle(TRAPS[id].slice());
+  const opts = [
+    {word: COLORS[id].word, colorId:id, ok:true, trap:false},
+    {word: traps[0], colorId:null, ok:false, trap:true},
+    {word: COLORS[other].word, colorId:other, ok:false, trap:false}
+  ];
+  if(traps[1]){
+    opts.push({word: traps[1], colorId:null, ok:false, trap:true});
+  } else if(others.length > 1){
+    const third = pick(others.filter(x => x!==other));
+    opts.push({word: COLORS[third].word, colorId:third, ok:false, trap:false});
+  } else {
+    opts.push({word: pick(TRAPS[other]), colorId:null, ok:false, trap:true});
+  }
+  return shuffle(opts);
 }
 
 
@@ -1067,17 +1476,37 @@ function updateHud(){
 }
 
 
-function paintSwatch(colorId, reveal){
-  const c = COLORS[colorId];
+function paintCard(q, reveal){
   const sw = document.getElementById("swatch");
-  sw.style.background = c.hex;
-  document.getElementById("swatchPattern").style.background = patternCss(c.pattern, c.hex);
-  document.getElementById("swatchShape").textContent = c.shape;
+  const pics = document.getElementById("swatchPics");
   const word = document.getElementById("swatchWord");
-  word.textContent = c.word;
-  word.style.color = c.text;
+  sw.classList.toggle("duo", q.kind === "two");
   sw.classList.toggle("reveal", !!reveal);
   sw.classList.remove("shake");
+  pics.innerHTML = "";
+  if(q.kind === "two"){
+    q.colors.forEach((id, i) => {
+      if(i){
+        const and = document.createElement("div");
+        and.className = "pic-and";
+        and.innerHTML = "and<br><span>和</span>";
+        pics.appendChild(and);
+      }
+      const wrap = document.createElement("div");
+      wrap.className = "pic";
+      wrap.innerHTML = PICTURES[id][q.pics[i]];
+      pics.appendChild(wrap);
+    });
+    word.innerHTML = sortColorIds(q.colors).map(id =>
+      '<span style="color:'+COLORS[id].hex+'">'+esc(COLORS[id].word)+"</span>"
+    ).join('<span class="word-dot"> • </span>');
+  } else {
+    const wrap = document.createElement("div");
+    wrap.className = "pic";
+    wrap.innerHTML = PICTURES[q.color][q.pics[0]];
+    pics.appendChild(wrap);
+    word.innerHTML = '<span style="color:'+COLORS[q.color].hex+'">'+esc(COLORS[q.color].word)+"</span>";
+  }
 }
 function showModel(text, kind){
   const el = document.getElementById("modelLine");
@@ -1093,19 +1522,32 @@ function hideModel(){
 function renderAnswers(q, locked){
   const area = document.getElementById("answerArea");
   area.innerHTML = "";
-  const ids = q.stage === "advanced" ? shuffle(ADV_IDS.slice()) : shuffle(PRACTICE_IDS.slice());
-  ids.forEach(id => {
-    const c = COLORS[id];
+  selectedBtns = [];
+  const opts = buildOptions(q);
+  area.classList.toggle("many", opts.length >= 5);
+  opts.forEach(opt => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "colour-btn c-"+id;
-    btn.dataset.color = id;
-    btn.textContent = c.word;
-    btn.setAttribute("aria-label", c.word + " " + c.zh);
+    btn.className = "colour-btn " + (opt.trap || !opt.colorId ? "trap" : ("c-"+opt.colorId));
+    btn.dataset.word = opt.word;
+    btn.dataset.ok = opt.ok ? "1" : "0";
+    btn.dataset.trap = opt.trap ? "1" : "0";
+    if(opt.colorId) btn.dataset.color = opt.colorId;
+    btn.textContent = opt.word;
+    btn.setAttribute("aria-label", opt.word + (opt.trap ? " (spelling?)" : (opt.colorId ? " "+COLORS[opt.colorId].zh : "")));
     if(locked) btn.disabled = true;
-    btn.onclick = () => onPick(id, btn);
+    btn.onclick = () => onPick(opt, btn);
     area.appendChild(btn);
   });
+}
+
+function setTwoHint(n){
+  const hint = document.getElementById("qHint");
+  if(n === 1){
+    hint.textContent = "再選另一個顏色詞 · Now tap the other colour word";
+  } else {
+    hint.textContent = "你看見什麼顏色？· Tap TWO colour words 點選兩個正確顏色詞";
+  }
 }
 
 function showQuestion(){
@@ -1127,6 +1569,7 @@ function showQuestion(){
   }
   currentQ = queue[qIndex];
   answering = true;
+  selectedBtns = [];
   updateHud();
   document.getElementById("playWrap").classList.add("show");
   const timed = mode === "race" || mode === "advanced";
@@ -1138,14 +1581,17 @@ function showQuestion(){
   } else {
     document.getElementById("qTag").textContent = "ADVANCED · 進階加分  " + (qIndex+1) + "/" + ADV_Q;
   }
-  if(currentQ.kind === "cloze"){
+  if(currentQ.kind === "two"){
+    document.getElementById("qText").textContent = "What colours can you see?";
+    setTwoHint(0);
+  } else if(currentQ.kind === "cloze"){
     document.getElementById("qText").textContent = clozePrompt(currentQ.frame);
     document.getElementById("qHint").textContent = clozeHint(currentQ.frame);
   } else {
     document.getElementById("qText").textContent = "What colour is it?";
-    document.getElementById("qHint").textContent = "這是什麼顏色？ · Tap the word 點選顏色詞";
+    document.getElementById("qHint").textContent = "這是什麼顏色？ · Tap the word 點選顏色詞（小心拼寫）";
   }
-  paintSwatch(currentQ.color, false);
+  paintCard(currentQ, false);
   hideModel();
   renderAnswers(currentQ, false);
   if(timed) startTimer(TIMER_START);
@@ -1183,14 +1629,48 @@ function awardPoints(){
 function lockButtons(){
   document.querySelectorAll(".colour-btn").forEach(b => { b.disabled = true; });
 }
-function onPick(id, btn){
+function markCorrectBtns(){
+  document.querySelectorAll(".colour-btn").forEach(b => {
+    if(b.dataset.ok === "1") b.classList.add("correct-flash");
+  });
+}
+function onPick(opt, btn){
   if(!answering || paused || !currentQ) return;
-  if(id === currentQ.color){
+  if(currentQ.kind === "two"){
+    onPickTwo(opt, btn);
+    return;
+  }
+  if(opt.ok){
     if(mode === "practice") onPracticeCorrect();
-    else onCorrect(id, btn);
+    else onCorrect(btn);
   } else {
+    const reason = opt.trap ? ("Chose “"+opt.word+"”") : ("Chose " + opt.word);
     if(mode === "practice") onPracticeWrong(btn);
-    else onWrong("Chose " + COLORS[id].word, false, id, btn);
+    else onWrong(reason, false, opt, btn);
+  }
+}
+function onPickTwo(opt, btn){
+  if(btn.classList.contains("picked")){
+    btn.classList.remove("picked");
+    selectedBtns = selectedBtns.filter(b => b !== btn);
+    setTwoHint(selectedBtns.length);
+    return;
+  }
+  if(selectedBtns.length >= 2) return;
+  btn.classList.add("picked");
+  selectedBtns.push(btn);
+  setTwoHint(selectedBtns.length);
+  if(selectedBtns.length < 2) return;
+  const needed = sortColorIds(currentQ.colors).map(id => COLORS[id].word).slice().sort();
+  const got = selectedBtns.map(b => b.dataset.word).slice().sort();
+  const bothOk = selectedBtns.every(b => b.dataset.ok === "1") && got[0]===needed[0] && got[1]===needed[1];
+  if(bothOk){
+    if(mode === "practice") onPracticeCorrect();
+    else onCorrect(null);
+  } else {
+    const reason = "Chose “" + selectedBtns.map(b => b.dataset.word).join(" + ") + "”";
+    if(mode === "practice") onPracticeWrongTwo();
+    else onWrong(reason, false);
   }
 }
 
@@ -1198,13 +1678,13 @@ function onPracticeCorrect(){
   if(!answering) return;
   answering = false;
   lockButtons();
-  paintSwatch(currentQ.color, true);
-  const line = sentenceFor(currentQ.color, currentQ.frame);
-  showModel(line, "ok");
+  paintCard(currentQ, true);
+  markCorrectBtns();
+  showModel(sentenceForQ(currentQ), "ok");
   flash(true); beep(880, 0.12, "triangle");
   qIndex += 1;
   updateHud();
-  setTimeout(() => { if(running && !paused) showQuestion(); }, 1200);
+  setTimeout(() => { if(running && !paused) showQuestion(); }, 1400);
 }
 function onPracticeWrong(btn){
   if(!answering) return;
@@ -1219,16 +1699,33 @@ function onPracticeWrong(btn){
     if(btn) btn.classList.remove("wrong-flash");
   }, 400);
 }
+function onPracticeWrongTwo(){
+  if(!answering) return;
+  const snapshot = selectedBtns.slice();
+  snapshot.forEach(b => b.classList.add("wrong-flash"));
+  const sw = document.getElementById("swatch");
+  sw.classList.remove("shake");
+  void sw.offsetWidth;
+  sw.classList.add("shake");
+  showModel("Try again · 再試一次", "bad");
+  flash(false); beep(180, 0.16, "sawtooth");
+  selectedBtns = [];
+  setTwoHint(0);
+  setTimeout(() => {
+    snapshot.forEach(b => b.classList.remove("wrong-flash","picked"));
+  }, 450);
+}
 
-function onCorrect(id, btn){
+function onCorrect(btn){
   if(!answering) return;
   answering = false;
   stopTimer();
   lockButtons();
   if(btn) btn.classList.add("correct-flash");
-  paintSwatch(currentQ.color, true);
+  markCorrectBtns();
+  paintCard(currentQ, true);
   const gained = awardPoints();
-  const line = sentenceFor(currentQ.color, currentQ.frame);
+  const line = sentenceForQ(currentQ);
   showModel(line + "  +"+gained, "ok");
   score += gained;
   correctCount += 1;
@@ -1237,12 +1734,12 @@ function onCorrect(id, btn){
   carSpeed = Math.min(5, +(carSpeed + 0.35).toFixed(2));
   boostUntil = performance.now() + 900;
   flash(true); beep(880, 0.12, "triangle");
-  report.push({ok:true, text: line, detail: "✓ " + COLORS[currentQ.color].word + " · +" + gained});
+  report.push({ok:true, text: line, detail: "✓ " + answerLabel(currentQ) + " · +" + gained});
   qIndex += 1;
   updateHud();
-  setTimeout(() => { if(running && !paused) showQuestion(); }, 700);
+  setTimeout(() => { if(running && !paused) showQuestion(); }, 800);
 }
-function onWrong(reason, isTimeout, pickedId, btn){
+function onWrong(reason, isTimeout, pickedOpt, btn){
   if(!answering) return;
   answering = false;
   stopTimer();
@@ -1253,24 +1750,23 @@ function onWrong(reason, isTimeout, pickedId, btn){
   carSpeed = Math.max(1, +(carSpeed - 0.25).toFixed(2));
   flash(false); beep(180, 0.18, "sawtooth");
   if(btn) btn.classList.add("wrong-flash");
-  document.querySelectorAll(".colour-btn").forEach(b => {
-    if(b.dataset.color === currentQ.color) b.classList.add("correct-flash");
-  });
-  paintSwatch(currentQ.color, true);
-  const line = sentenceFor(currentQ.color, currentQ.frame);
+  markCorrectBtns();
+  paintCard(currentQ, true);
+  const line = sentenceForQ(currentQ);
   showModel(line, "ok");
-  report.push({ok:false, text: currentQ.kind==="cloze" ? clozePrompt(currentQ.frame) : "What colour is it?",
-    detail: reason + " · Answer: " + COLORS[currentQ.color].word});
+  const prompt = currentQ.kind==="two" ? "What colours can you see?"
+    : (currentQ.kind==="cloze" ? clozePrompt(currentQ.frame) : "What colour is it?");
+  report.push({ok:false, text: prompt, detail: reason + " · Answer: " + answerLabel(currentQ)});
   updateHud();
   if(lives <= 0){
     setTimeout(() => {
       if(mode === "race") endRaceStage(false);
       else if(mode === "advanced") endAdvanced(false);
-    }, 700);
+    }, 800);
     return;
   }
   qIndex += 1;
-  setTimeout(() => { if(running && !paused) showQuestion(); }, 800);
+  setTimeout(() => { if(running && !paused) showQuestion(); }, 900);
 }
 
 function hidePlayUi(){
