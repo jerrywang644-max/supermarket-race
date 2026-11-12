@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<!-- Rainbow Maker P1 v=1 · rainbow-order game for The Rainbow Song -->
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="version" content="1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#7dd3fc">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Rainbow Maker — 砌彩虹 · The Rainbow Song · P1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#7dd3fc;
+  font-family:"Segoe UI","PingFang HK","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:#0f172a;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none}
+body{
+  display:flex;flex-direction:column;
+  background:
+    linear-gradient(180deg,#7dd3fc 0%,#bae6fd 42%,#fde68a 78%,#86efac 100%);
+}
+.overlay{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 30% 15%,rgba(253,224,71,.4),transparent 50%),
+    radial-gradient(ellipse at 85% 8%,rgba(167,139,250,.3),transparent 45%),
+    radial-gradient(ellipse at 50% 100%,rgba(134,239,172,.45),rgba(14,165,233,.5));
+  z-index:10;padding:16px;overflow:auto
+}
+.overlay.hidden{display:none}
+.panel{
+  max-width:640px;width:100%;background:linear-gradient(180deg,#fffef8,#fff7ed);
+  border:5px solid #fff;border-radius:28px;padding:26px 22px;text-align:center;
+  box-shadow:0 0 0 6px #ef4444, 0 0 0 11px #f97316, 0 0 0 16px #eab308, 0 0 0 21px #22c55e,
+    0 0 0 26px #3b82f6, 0 0 0 31px #8b5cf6, 0 18px 50px rgba(15,23,42,.28);
+  margin:34px auto
+}
+.panel h1{
+  font-size:clamp(1.9rem,6.2vw,2.85rem);font-weight:900;letter-spacing:-.5px;line-height:1.1;
+  color:#0f172a;margin-bottom:4px;
+  display:flex;align-items:center;justify-content:center;gap:.35em;flex-wrap:wrap
+}
+.panel h1 .emo{line-height:1;font-size:.92em;filter:none}
+.panel h1 .grad{
+  background:linear-gradient(90deg,#ef4444,#f97316,#eab308,#22c55e,#3b82f6,#8b5cf6);
+  -webkit-background-clip:text;background-clip:text;color:transparent
+}
+.panel .kicker{font-weight:800;letter-spacing:.04em;margin:0 0 8px;color:#7c3aed;font-size:clamp(1rem,2.6vw,1.2rem)}
+.panel p{color:#334155;font-size:clamp(.95rem,2.3vw,1.12rem);margin:8px 0 14px;line-height:1.55}
+.panel p b{color:#0f172a}
+.howto{text-align:left;background:#fff;border:2px solid #fdba74;border-radius:18px;padding:12px 14px;margin:10px 0 16px}
+.howto li{margin:6px 0;font-weight:700;color:#334155;font-size:clamp(.92rem,2.2vw,1.05rem)}
+.order-line{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 6px;
+  font-weight:900;font-size:clamp(.82rem,2.1vw,1.05rem);margin:8px 0 4px}
+.order-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:#fff;
+  border:2px solid rgba(15,23,42,.08);color:#0f172a}
+.order-dot{width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(15,23,42,.25);flex:0 0 auto}
+.order-arrow{color:#64748b;font-weight:900}
+#startOrder .order-line{flex-wrap:nowrap;font-size:clamp(.72rem,1.7vw,.92rem);gap:3px}
+#startOrder .order-chip{padding:2px 6px}
+#startOrder .order-dot{width:10px;height:10px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:16px 36px;margin:6px;border:none;border-radius:999px;font-weight:900;
+  font-size:clamp(1.1rem,3vw,1.35rem);cursor:pointer;font-family:inherit;
+  background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;
+  box-shadow:0 6px 20px rgba(239,68,68,.35);transition:transform .15s
+}
+.btn:hover{transform:translateY(-2px)}
+.btn-go{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 6px 20px rgba(22,163,74,.35)}
+.btn-alt{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff}
+.btn-ghost{background:#fff;border:3px solid #7c3aed;color:#6d28d9;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.hud{
+  position:relative;flex:0 0 auto;z-index:5;pointer-events:none;
+  padding:10px 14px 8px;display:none;justify-content:space-between;align-items:center;
+  background:linear-gradient(180deg,rgba(255,255,255,.55),transparent);gap:8px;flex-wrap:nowrap
+}
+.hud.show{display:flex}
+.hud .stat{background:rgba(255,255,255,.92);border:2px solid #7c3aed55;border-radius:14px;
+  padding:8px 12px;font-weight:800;font-size:clamp(.95rem,2.2vw,1.1rem);backdrop-filter:blur(4px);color:#0f172a}
+.hud .lives{letter-spacing:1px;font-size:1.15rem}
+.hint-bar{
+  position:relative;flex:0 0 auto;z-index:6;
+  width:min(980px,96vw);margin:0 auto 2px;display:none;align-items:center;justify-content:center;
+  background:rgba(255,254,248,.96);border:3px solid #7c3aed;border-radius:18px;
+  padding:6px 10px;box-shadow:0 8px 22px rgba(15,23,42,.16);pointer-events:none
+}
+.hint-bar.show{display:flex}
+.stage{position:relative;flex:1 1 auto;min-height:0;display:none;flex-direction:column;padding:6px 8px 0;z-index:2}
+.stage.show{display:flex}
+.banner{
+  text-align:center;margin:0 auto 4px;width:min(980px,96vw);flex:0 0 auto
+}
+.banner .tag{display:none}
+.banner .sentence{
+  min-height:1.45em;font-size:clamp(1.4rem,4.2vw,2rem);font-weight:900;color:#0f172a;
+  background:rgba(255,255,255,.94);border-radius:16px;padding:8px 16px;margin:6px auto 0;
+  box-shadow:0 6px 18px rgba(15,23,42,.12);max-width:100%
+}
+.banner .sentence.ok{color:#15803d;border:3px solid #86efac}
+.banner .sentence.bad{color:#b45309;border:3px solid #fdba74}
+.banner .timer-bar{height:10px;background:rgba(255,255,255,.7);border:2px solid #7c3aed55;border-radius:99px;margin-top:8px;overflow:hidden;display:none}
+.banner.timed .timer-bar{display:block}
+.banner .timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#22c55e,#eab308,#ef4444);border-radius:99px}
+.rainbow-wrap{flex:1 1 auto;min-height:0;display:flex;align-items:stretch;justify-content:center;position:relative}
+#rainbow{width:min(1000px,98vw);height:100%;overflow:visible;filter:drop-shadow(0 8px 0 rgba(15,23,42,.08))}
+.band{cursor:default}
+.band.swapable{cursor:pointer}
+.band.selected .band-stroke{filter:brightness(1.12);stroke:#fff;stroke-width:6}
+.band.pulse .band-stroke{animation:slotPulse 1.15s ease-in-out infinite;filter:drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 3px #fff)}
+.band.shake{animation:shake .4s ease}
+.band .band-label{
+  font-weight:900;font-size:30px;text-anchor:middle;dominant-baseline:middle;
+  pointer-events:none;letter-spacing:.03em
+}
+.band .tick{font-size:26px;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.tray{
+  flex:0 0 auto;display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:10px;
+  padding:8px 64px 16px 10px;width:min(1000px,98vw);margin:0 auto;min-height:96px
+}
+.tray.hidden{display:none}
+.colour-card{
+  flex:1 1 130px;max-width:170px;min-height:92px;border-radius:22px;border:5px solid #fff;
+  font-weight:900;font-size:clamp(1.45rem,4vw,2.05rem);cursor:pointer;font-family:inherit;
+  padding:12px 8px 10px;transition:transform .1s, box-shadow .15s;
+  box-shadow:0 8px 0 rgba(15,23,42,.2), 0 10px 22px rgba(15,23,42,.18);
+  text-transform:lowercase;letter-spacing:.02em;color:#fff;position:relative;
+  touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05
+}
+.colour-card .zh{font-size:.48em;font-weight:800;opacity:.92;margin-top:2px;text-transform:none}
+.colour-card:active{transform:scale(.97) translateY(2px);box-shadow:0 4px 0 rgba(15,23,42,.2)}
+.colour-card.dragging{opacity:.88;z-index:20;box-shadow:0 16px 30px rgba(15,23,42,.3);cursor:grabbing}
+.colour-card.shake{animation:shake .4s ease}
+.colour-card.c-red{background:#dc2626;color:#fff}
+.colour-card.c-orange{background:#ea580c;color:#fff}
+.colour-card.c-yellow{background:#eab308;color:#1c1917}
+.colour-card.c-green{background:#16a34a;color:#fff}
+.colour-card.c-blue{background:#2563eb;color:#fff}
+.colour-card.c-purple{background:#7c3aed;color:#fff}
+.swap-hint{display:none !important}
+.controls-bar{position:fixed;bottom:14px;right:14px;z-index:8;display:flex;gap:8px}
+.icon-btn{
+  width:48px;height:48px;border-radius:14px;border:3px solid #7c3aed66;
+  background:rgba(255,255,255,.9);color:#6d28d9;font-size:1.25rem;cursor:pointer
+}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:7;opacity:0;transition:opacity .15s}
+.flash.ok{background:rgba(74,222,128,.28);opacity:1}
+.flash.bad{background:rgba(248,113,113,.28);opacity:1}
+.toast{
+  position:fixed;left:50%;top:46%;transform:translate(-50%,-50%) scale(.96);
+  background:rgba(255,254,248,.97);border:4px solid #7c3aed;border-radius:22px;
+  padding:16px 22px;font-weight:900;font-size:clamp(1.2rem,3.4vw,1.7rem);text-align:center;
+  z-index:9;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;
+  box-shadow:0 16px 40px rgba(15,23,42,.25);max-width:90vw
+}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.toast .sub{display:block;font-size:.72em;color:#64748b;margin-top:4px;font-weight:800}
+.flyer{
+  position:fixed;z-index:30;pointer-events:none;border-radius:22px;border:5px solid #fff;
+  font-weight:900;display:flex;align-items:center;justify-content:center;
+  text-transform:lowercase;box-shadow:0 10px 24px rgba(15,23,42,.25);
+  transition:left .45s cubic-bezier(.2,.8,.2,1), top .45s cubic-bezier(.2,.8,.2,1),
+    width .45s cubic-bezier(.2,.8,.2,1), height .45s cubic-bezier(.2,.8,.2,1),
+    opacity .45s, font-size .45s, transform .45s
+}
+.session-box{text-align:left;background:#fff;border:2px solid #c4b5fd;border-radius:16px;padding:10px 12px;margin:10px 0 6px;display:none}
+.session-box.show{display:block}
+.session-box h2{font-size:1rem;margin:0 0 6px;color:#6d28d9;text-align:center}
+.session-row{display:flex;justify-content:space-between;gap:10px;padding:6px 2px;border-bottom:1px dashed #e2e8f0;font-weight:800}
+.session-row:last-child{border-bottom:none}
+.muted{color:#64748b;font-size:.88rem;font-weight:700}
+.end-score{font-size:clamp(1.2rem,3.2vw,1.5rem);font-weight:800;color:#0f172a}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-10px)}
+  40%{transform:translateX(10px)}
+  60%{transform:translateX(-8px)}
+  80%{transform:translateX(8px)}
+}
+@keyframes slotPulse{
+  0%,100%{opacity:1}
+  50%{opacity:.55}
+}
+@keyframes cloudDrift{
+  0%{transform:translateX(0)}
+  50%{transform:translateX(18px)}
+  100%{transform:translateX(0)}
+}
+.cloud{animation:cloudDrift 8s ease-in-out infinite}
+.cloud.c2{animation-duration:11s;animation-delay:-3s}
+@media (max-height:700px){
+  .colour-card{min-height:76px;padding:8px 6px}
+  .panel{padding:18px 16px;margin:26px auto}
+}
+@media (max-width:520px){
+  .colour-card{min-height:72px;font-size:1.3rem;flex-basis:100px}
+  .hud{padding:8px 8px;flex-wrap:wrap}
+  .tray{padding:8px 12px 58px}
+  .hint-bar{padding:5px 6px}
+}
+@media (prefers-reduced-motion:reduce){
+  .cloud,.band.pulse .band-stroke{animation:none}
+  .flyer{transition-duration:.2s}
+}
+</style>
+</head>
+<body>
+<div class="flash" id="flash"></div>
+<div class="toast" id="toast"></div>
+<div class="hud" id="hud">
+  <div class="stat" id="hudPractice">✏️ PRACTICE · 練習</div>
+  <div class="stat" id="hudScoreWrap">⭐ <span id="hudScore">0</span></div>
+  <div class="stat" id="hudRoundWrap">🌈 <span id="hudRound">1</span>/3</div>
+  <div class="stat" id="hudTimeWrap">⏱️ <span id="hudTime">30</span>s</div>
+  <div class="stat lives" id="hudLives">❤️❤️❤️❤️</div>
+</div>
+<div class="hint-bar" id="hintBar"></div>
+
+<div class="stage" id="stage">
+  <div class="banner" id="banner">
+    <div class="tag" id="stageTag">PRACTICE · 練習</div>
+    <div class="sentence" id="sentence">Tap the next colour. 點選下一個顏色。</div>
+    <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+  </div>
+  <div class="swap-hint" id="swapHint">Tap two bands to swap. 點兩段彩虹來交換。</div>
+  <div class="rainbow-wrap">
+    <svg id="rainbow" viewBox="0 0 1000 540" preserveAspectRatio="xMidYMax meet" aria-label="Rainbow"></svg>
+  </div>
+  <div class="tray" id="tray"></div>
+</div>
+
+<div class="controls-bar">
+  <button class="icon-btn" id="btnMute" title="Sound on/off" aria-label="Sound">🔇</button>
+  <button class="icon-btn" id="btnPause" title="Pause" style="display:none" aria-label="Pause">⏸</button>
+</div>
+
+<div class="overlay" id="overlayStart">
+  <div class="panel">
+    <h1><span class="emo">🌈</span><span class="grad">RAINBOW MAKER</span></h1>
+    <p class="kicker">砌彩虹 · The Rainbow Song · P1</p>
+    <div id="startOrder"></div>
+    <div class="howto">
+      <ul>
+        <li>跟著歌曲順序砌彩虹。<br>Put the six colours in song order.</li>
+        <li>點選正確的顏色卡，它會跳進彩虹格。<br>Tap the next colour card — it snaps into the rainbow.</li>
+        <li><b>練習 Practice</b>：砌一道完整彩虹 · 不計分、不計時、不扣命</li>
+        <li><b>比賽 Play</b>：3 關 · 4 命 · 每關約 30 秒<br>正確一格 +100，剩餘秒數 × 10</li>
+      </ul>
+    </div>
+    <button class="btn btn-go" id="btnStart">開始練習 START PRACTICE ▶</button>
+    <div class="session-box" id="startSessionBox"></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayReady">
+  <div class="panel">
+    <h1><span class="emo">🌈</span><span class="grad">Ready to play?</span></h1>
+    <p class="kicker">準備好比賽了嗎？</p>
+    <p>練習完成！而家比賽 <b>3 關</b> · <b>4 命</b> · 每關約 <b>30 秒</b>。<br>
+      Practice finished. Play: 3 rounds · 4 lives · about 30 seconds each.</p>
+    <button class="btn btn-go" id="btnStartPlay">START PLAY ▶</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayRound">
+  <div class="panel">
+    <h1 id="roundTitle"><span class="grad">Round 1</span></h1>
+    <p class="kicker" id="roundKicker">第一關</p>
+    <p id="roundBlurb"></p>
+    <button class="btn btn-go" id="btnRoundGo">Let’s go! 開始 ▶</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayPause">
+  <div class="panel">
+    <h1><span class="emo">⏸</span><span class="grad">Paused</span></h1>
+    <p class="kicker">暫停</p>
+    <button class="btn btn-go" id="btnResume">Resume 繼續 ▶</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayEnd">
+  <div class="panel">
+    <h1 id="endTitle"><span class="grad">Super!</span></h1>
+    <p class="kicker" id="endKicker">做得好！</p>
+    <p class="end-score">⭐ <span id="endScore">0</span><br>
+      🌈 Rainbows <span id="endRainbows">0</span>/3</p>
+    <p class="muted" id="endDetail"></p>
+    <button class="btn btn-alt" id="btnAgain">Play again 再玩 🔄</button>
+    <div class="session-box" id="endSessionBox"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const COLOURS = [
+  {id:"red",    en:"red",    zh:"紅", hex:"#dc2626", text:"#ffffff"},
+  {id:"orange", en:"orange", zh:"橙", hex:"#ea580c", text:"#ffffff"},
+  {id:"yellow", en:"yellow", zh:"黃", hex:"#eab308", text:"#1c1917"},
+  {id:"green",  en:"green",  zh:"綠", hex:"#16a34a", text:"#ffffff"},
+  {id:"blue",   en:"blue",   zh:"藍", hex:"#2563eb", text:"#ffffff"},
+  {id:"purple", en:"purple", zh:"紫", hex:"#7c3aed", text:"#ffffff"}
+];
+const ORDER = COLOURS.map(c => c.id);
+const MAX_LIVES = 4;
+const ROUND_SECS = 30;
+const PLACE_SCORE = 100;
+const TIME_BONUS = 10;
+const LS_SESSION = "rainbow_maker_p1_session_v1";
+const NOTES = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
+
+const CX = 500, CY = 520, A0 = Math.PI + 0.22, A1 = Math.PI * 2 - 0.22;
+const R0 = 448, STEP = 58, STROKE = 50;
+
+let muted = true;
+let audioCtx = null;
+let phase = "start"; // start, practice, ready, intro, play, pause, end
+let round = 0;
+let score = 0;
+let lives = MAX_LIVES;
+let slots = [null,null,null,null,null,null];
+let scoredSlot = [false,false,false,false,false,false];
+let sentenceFlip = 0;
+let locked = false;
+let swapSel = null;
+let rainbowsDone = 0;
+let timedOut = false;
+let timerLeft = ROUND_SECS;
+let timerStartedAt = 0;
+let timerRaf = 0;
+let paused = false;
+let pauseLeft = 0;
+let toastTimer = 0;
+
+const $ = id => document.getElementById(id);
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[ch]));
+}
+function colourById(id){ return COLOURS.find(c => c.id === id); }
+function shuffle(a){
+  a = a.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    const t=a[i]; a[i]=a[j]; a[j]=t;
+  }
+  return a;
+}
+function firstEmpty(){
+  for(let i=0;i<6;i++) if(!slots[i]) return i;
+  return -1;
+}
+function allFilledCorrect(){
+  return slots.every((id,i) => id === ORDER[i]);
+}
+function derangementIds(){
+  let out, guard = 0;
+  do{
+    out = shuffle(ORDER);
+    guard++;
+  }while(out.some((id,i) => id === ORDER[i]) && guard < 80);
+  if(out.some((id,i) => id === ORDER[i])){
+    out = ORDER.slice();
+    for(let i=out.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*i);
+      const t=out[i]; out[i]=out[j]; out[j]=t;
+    }
+  }
+  return out;
+}
+
+function polar(r, a){ return {x: CX + r*Math.cos(a), y: CY + r*Math.sin(a)}; }
+function arcPath(r){
+  const p0 = polar(r, A0), p1 = polar(r, A1);
+  return "M "+p0.x.toFixed(1)+" "+p0.y.toFixed(1)+" A "+r+" "+r+" 0 0 1 "+p1.x.toFixed(1)+" "+p1.y.toFixed(1);
+}
+function midPt(r){ return polar(r, (A0+A1)/2); }
+
+function buildOrderHtml(withWords){
+  return '<div class="order-line">'+COLOURS.map((c,i) =>
+    (i? '<span class="order-arrow">→</span>':'')+
+    '<span class="order-chip"><span class="order-dot" style="background:'+c.hex+'"></span>'+
+    (withWords? esc(c.en):'')+'</span>'
+  ).join("")+'</div>';
+}
+
+function buildRainbowSvg(){
+  const svg = $("rainbow");
+  let clouds = "";
+  clouds += '<g class="cloud" fill="#fff" opacity=".92">';
+  clouds += '<ellipse cx="140" cy="70" rx="54" ry="28"/><ellipse cx="180" cy="64" rx="40" ry="24"/><ellipse cx="100" cy="66" rx="36" ry="20"/>';
+  clouds += '</g>';
+  clouds += '<g class="cloud c2" fill="#fff" opacity=".85">';
+  clouds += '<ellipse cx="860" cy="90" rx="58" ry="26"/><ellipse cx="900" cy="84" rx="36" ry="20"/><ellipse cx="820" cy="86" rx="32" ry="18"/>';
+  clouds += '</g>';
+  const sun = '<g transform="translate(500,448)">'+
+    '<circle r="34" fill="#fde047" stroke="#facc15" stroke-width="5"/>'+
+    '<g stroke="#facc15" stroke-width="4" stroke-linecap="round">'+
+    '<line x1="0" y1="-48" x2="0" y2="-58"/><line x1="0" y1="48" x2="0" y2="58"/>'+
+    '<line x1="-48" y1="0" x2="-58" y2="0"/><line x1="48" y1="0" x2="58" y2="0"/>'+
+    '<line x1="-34" y1="-34" x2="-42" y2="-42"/><line x1="34" y1="-34" x2="42" y2="-42"/>'+
+    '<line x1="-34" y1="34" x2="-42" y2="42"/><line x1="34" y1="34" x2="42" y2="42"/>'+
+    '</g>'+
+    '<circle cx="-14" cy="-8" r="4" fill="#92400e"/><circle cx="14" cy="-8" r="4" fill="#92400e"/>'+
+    '<path d="M -16 10 Q 0 24 16 10" fill="none" stroke="#92400e" stroke-width="3.5" stroke-linecap="round"/>'+
+    '</g>';
+  let bands = "";
+  for(let i=0;i<6;i++){
+    const r = R0 - i*STEP;
+    const mid = midPt(r);
+    bands += '<g class="band" id="band-'+i+'" data-i="'+i+'">'+
+      '<path class="band-hit" d="'+arcPath(r)+'" fill="none" stroke="transparent" stroke-width="'+(STROKE+16)+'" stroke-linecap="butt"/>'+
+      '<path class="band-stroke" d="'+arcPath(r)+'" fill="none" stroke="#e8eef6" stroke-width="'+STROKE+'" stroke-linecap="butt" />'+
+      '<text class="band-label" id="bandLabel-'+i+'" x="'+mid.x.toFixed(1)+'" y="'+mid.y.toFixed(1)+'" fill="#94a3b8"></text>'+
+      '<text class="tick" id="bandTick-'+i+'" x="'+(mid.x+72).toFixed(1)+'" y="'+mid.y.toFixed(1)+'" fill="#16a34a" style="display:none">✓</text>'+
+      '</g>';
+  }
+  svg.innerHTML = clouds + sun + '<g id="bands">'+bands+'</g>';
+  for(let i=0;i<6;i++){
+    $("band-"+i).addEventListener("click", ev => {
+      ev.stopPropagation();
+      onBandTap(i);
+    });
+  }
+}
+
+function paintSlots(opts){
+  opts = opts || {};
+  const next = firstEmpty();
+  opts.nextIndex = next;
+  for(let i=0;i<6;i++){
+    const g = $("band-"+i);
+    const stroke = g.querySelector(".band-stroke");
+    const label = $("bandLabel-"+i);
+    const tick = $("bandTick-"+i);
+    const id = slots[i];
+    g.classList.toggle("pulse", !opts.swapMode && i === next && next !== -1);
+    g.classList.toggle("swapable", !!opts.swapMode);
+    g.classList.toggle("selected", opts.swapMode && swapSel === i);
+    if(id){
+      const c = colourById(id);
+      stroke.setAttribute("stroke", c.hex);
+      stroke.removeAttribute("stroke-dasharray");
+      stroke.setAttribute("stroke-linecap", "butt");
+      label.textContent = c.en;
+      label.setAttribute("fill", c.text);
+      label.setAttribute("stroke", c.text === "#1c1917" ? "none" : "rgba(0,0,0,.18)");
+      label.setAttribute("stroke-width", c.text === "#1c1917" ? "0" : "3");
+      label.setAttribute("paint-order", "stroke fill");
+      const correct = id === ORDER[i];
+      tick.style.display = (opts.swapMode && correct) ? "" : "none";
+    }else{
+      stroke.setAttribute("stroke", i === (opts.nextIndex) ? "#fffef8" : "#e8eef6");
+      stroke.removeAttribute("stroke-dasharray");
+      label.textContent = "";
+      label.setAttribute("fill", "#94a3b8");
+      label.setAttribute("stroke", "none");
+      label.setAttribute("stroke-width", "0");
+      tick.style.display = "none";
+    }
+  }
+}
+
+function ctxAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function beep(freq, dur, type, gain){
+  if(muted) return;
+  try{
+    const c = ctxAudio();
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    g.gain.value = gain || 0.09;
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start();
+    o.stop(c.currentTime + dur);
+  }catch(e){}
+}
+function placeSound(index){
+  const n = NOTES[index] || 400;
+  beep(n, 0.22, "sine", 0.1);
+  setTimeout(function(){ beep(n*1.5, 0.16, "triangle", 0.05); }, 80);
+}
+function wrongSound(){
+  beep(180, 0.18, "square", 0.06);
+  setTimeout(function(){ beep(140, 0.2, "square", 0.05); }, 90);
+}
+function completeSound(){
+  [261.63, 329.63, 392.00, 523.25].forEach(function(n,i){
+    setTimeout(function(){ beep(n, 0.22, "sine", 0.1); }, i*90);
+  });
+}
+function bonusSound(){
+  [392, 494, 587, 784].forEach(function(n,i){
+    setTimeout(function(){ beep(n, 0.16, "triangle", 0.07); }, i*70);
+  });
+}
+
+function flash(ok){
+  const el = $("flash");
+  el.className = "flash " + (ok ? "ok" : "bad");
+  setTimeout(function(){ el.className = "flash"; }, 220);
+}
+function showToast(html, ms){
+  const el = $("toast");
+  el.innerHTML = html;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove("show"); }, ms || 1400);
+}
+function setSentence(text, kind){
+  const el = $("sentence");
+  el.textContent = text;
+  el.className = "sentence" + (kind ? " "+kind : "");
+}
+function modelSentence(colorEn){
+  const t = sentenceFlip++ % 2;
+  return t === 0 ? ("I can see " + colorEn + ".") : ("It is " + colorEn + ".");
+}
+function updateHud(){
+  $("hudScore").textContent = score;
+  $("hudRound").textContent = Math.max(1, round);
+  $("hudTime").textContent = Math.max(0, Math.ceil(timerLeft));
+  $("hudLives").textContent = "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0, MAX_LIVES-lives));
+  const playing = phase === "play" || phase === "pause";
+  $("hud").classList.toggle("show", phase === "practice" || playing);
+  $("hudPractice").style.display = phase === "practice" ? "" : "none";
+  $("hudScoreWrap").style.display = playing ? "" : "none";
+  $("hudRoundWrap").style.display = playing ? "" : "none";
+  $("hudTimeWrap").style.display = playing ? "" : "none";
+  $("hudLives").style.display = playing ? "" : "none";
+  $("btnPause").style.display = playing ? "" : "none";
+}
+
+function showOverlay(id){
+  ["overlayStart","overlayReady","overlayRound","overlayPause","overlayEnd"].forEach(function(x){
+    $(x).classList.toggle("hidden", x !== id);
+  });
+}
+function hideOverlays(){
+  ["overlayStart","overlayReady","overlayRound","overlayPause","overlayEnd"].forEach(function(x){
+    $(x).classList.add("hidden");
+  });
+}
+
+function todayKey(){
+  const d = new Date();
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+day;
+}
+function loadSession(){
+  try{
+    const raw = localStorage.getItem(LS_SESSION);
+    if(!raw) return {date: todayKey(), players: []};
+    const data = JSON.parse(raw);
+    if(!data || data.date !== todayKey() || !Array.isArray(data.players)) return {date: todayKey(), players: []};
+    return data;
+  }catch(e){ return {date: todayKey(), players: []}; }
+}
+function saveSession(data){
+  try{ localStorage.setItem(LS_SESSION, JSON.stringify(data)); }catch(e){}
+}
+function addSessionScore(entry){
+  const data = loadSession();
+  const n = data.players.length + 1;
+  data.players.push(Object.assign({label: "Player "+n}, entry));
+  saveSession(data);
+  return data;
+}
+function clearSession(){
+  saveSession({date: todayKey(), players: []});
+}
+function renderSessionBox(elId, withClear){
+  const el = $(elId);
+  if(!el) return;
+  const data = loadSession();
+  if(!data.players.length){
+    el.innerHTML = "";
+    el.classList.remove("show");
+    return;
+  }
+  el.classList.add("show");
+  const rows = data.players.map(function(p){
+    return '<div class="session-row"><span>'+esc(p.label)+'</span><span>⭐ '+p.score+
+      ' · 🌈 '+(p.rainbows||0)+'/3</span></div>';
+  }).join("");
+  el.innerHTML = '<h2>今日成績 · Today’s scores（本機）</h2>'+rows+
+    (withClear ? '<div style="text-align:center;margin-top:8px"><button class="btn btn-ghost" type="button" id="btnClear_'+elId+'" style="font-size:1rem;padding:10px 18px">Clear today’s scores 清除</button></div>' : "");
+  if(withClear){
+    const b = $("btnClear_"+elId);
+    if(b) b.onclick = function(){
+      if(confirm("清除今日本機成績？Clear today’s scores on this device?")){
+        clearSession();
+        renderSessionBox("startSessionBox", true);
+        renderSessionBox("endSessionBox", true);
+      }
+    };
+  }
+}
+
+function stopTimer(){
+  if(timerRaf){ cancelAnimationFrame(timerRaf); timerRaf = 0; }
+}
+function startTimer(){
+  stopTimer();
+  timedOut = false;
+  timerLeft = ROUND_SECS;
+  timerStartedAt = performance.now();
+  $("banner").classList.add("timed");
+  $("timerFill").style.width = "100%";
+  tickTimer();
+}
+function tickTimer(){
+  if(paused || phase !== "play") return;
+  const elapsed = (performance.now() - timerStartedAt) / 1000;
+  timerLeft = Math.max(0, ROUND_SECS - elapsed);
+  const pct = (timerLeft / ROUND_SECS) * 100;
+  $("timerFill").style.width = pct + "%";
+  $("hudTime").textContent = Math.ceil(timerLeft);
+  if(timerLeft <= 0){
+    stopTimer();
+    onTimeUp();
+    return;
+  }
+  timerRaf = requestAnimationFrame(tickTimer);
+}
+function leftoverSecs(){
+  if(timedOut) return 0;
+  return Math.max(0, Math.ceil(timerLeft));
+}
+
+function onTimeUp(){
+  timedOut = true;
+  $("banner").classList.remove("timed");
+  lives = Math.max(0, lives - 1);
+  updateHud();
+  wrongSound();
+  flash(false);
+  if(lives <= 0){
+    showToast("Time’s up! 時間到！<span class='sub'>No lives left. 沒有命了。</span>", 1400);
+    setTimeout(endGame, 900);
+    return;
+  }
+  showToast("Time’s up! 時間到！<span class='sub'>Keep going — no time bonus. 繼續砌，今關沒有時間加分。</span>", 1800);
+}
+
+function renderTray(ids){
+  const tray = $("tray");
+  tray.classList.remove("hidden");
+  tray.innerHTML = "";
+  ids.forEach(function(id){
+    const c = colourById(id);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "colour-card c-"+c.id;
+    btn.dataset.id = c.id;
+    btn.innerHTML = esc(c.en)+'<span class="zh">'+esc(c.zh)+'</span>';
+    bindCard(btn, c.id);
+    tray.appendChild(btn);
+  });
+}
+function hideTray(){ $("tray").classList.add("hidden"); $("tray").innerHTML = ""; }
+
+function bindCard(el, colorId){
+  let dragging = false, moved = false, startX=0, startY=0, origLeft=0, origTop=0, w=0, h=0;
+  function resetPos(){
+    el.classList.remove("dragging");
+    el.style.position = "";
+    el.style.left = "";
+    el.style.top = "";
+    el.style.width = "";
+    el.style.height = "";
+    el.style.zIndex = "";
+    el.style.transform = "";
+  }
+  el.addEventListener("pointerdown", function(e){
+    if(locked || phase === "pause") return;
+    e.preventDefault();
+    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+    const r = el.getBoundingClientRect();
+    dragging = true; moved = false;
+    startX = e.clientX; startY = e.clientY;
+    origLeft = r.left; origTop = r.top; w = r.width; h = r.height;
+  });
+  el.addEventListener("pointermove", function(e){
+    if(!dragging) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if(!moved && (Math.abs(dx)+Math.abs(dy) > 10)){
+      moved = true;
+      el.classList.add("dragging");
+      el.style.position = "fixed";
+      el.style.width = w+"px";
+      el.style.height = h+"px";
+      el.style.zIndex = "25";
+      el.style.left = origLeft+"px";
+      el.style.top = origTop+"px";
+    }
+    if(moved){
+      el.style.left = (origLeft + dx)+"px";
+      el.style.top = (origTop + dy)+"px";
+    }
+  });
+  function endPointer(e){
+    if(!dragging) return;
+    dragging = false;
+    const wasMoved = moved;
+    moved = false;
+    const rainbowEl = $("rainbow");
+    const rr = rainbowEl.getBoundingClientRect();
+    const overRainbow = e && e.clientX >= rr.left && e.clientX <= rr.right && e.clientY >= rr.top && e.clientY <= rr.bottom;
+    if(wasMoved){
+      if(overRainbow){
+        const cardRect = el.getBoundingClientRect();
+        resetPos();
+        tryPlace(colorId, el, cardRect);
+      }else{
+        resetPos();
+      }
+    }else{
+      resetPos();
+      tryPlace(colorId, el, el.getBoundingClientRect());
+    }
+  }
+  el.addEventListener("pointerup", endPointer);
+  el.addEventListener("pointercancel", function(){ dragging=false; moved=false; resetPos(); });
+}
+
+function tryPlace(colorId, cardEl, fromRect){
+  if(locked) return;
+  if(!(phase === "practice" || phase === "play")) return;
+  if(round === 3 && phase === "play") return;
+  const next = firstEmpty();
+  if(next < 0) return;
+  if(colorId !== ORDER[next]){
+    onWrongCard(cardEl);
+    return;
+  }
+  onCorrectPlace(colorId, next, cardEl, fromRect);
+}
+
+function onWrongCard(cardEl){
+  wrongSound();
+  flash(false);
+  if(cardEl){
+    cardEl.classList.remove("shake");
+    void cardEl.offsetWidth;
+    cardEl.classList.add("shake");
+    setTimeout(function(){ cardEl.classList.remove("shake"); }, 400);
+  }
+  setSentence("Try again. 再試一次。", "bad");
+  if(phase === "play"){
+    lives -= 1;
+    updateHud();
+    if(lives <= 0){
+      locked = true;
+      setTimeout(endGame, 600);
+    }
+  }
+}
+
+function flyToBand(fromRect, index, color, done){
+  const band = $("band-"+index);
+  const target = band.querySelector(".band-label").getBoundingClientRect();
+  const flyer = document.createElement("div");
+  flyer.className = "flyer c-"+color.id;
+  flyer.style.background = color.hex;
+  flyer.style.color = color.text;
+  flyer.style.left = fromRect.left+"px";
+  flyer.style.top = fromRect.top+"px";
+  flyer.style.width = fromRect.width+"px";
+  flyer.style.height = fromRect.height+"px";
+  flyer.style.fontSize = "1.4rem";
+  flyer.textContent = color.en;
+  document.body.appendChild(flyer);
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      const size = 64;
+      flyer.style.left = (target.left + target.width/2 - size/2)+"px";
+      flyer.style.top = (target.top + target.height/2 - size/2)+"px";
+      flyer.style.width = size+"px";
+      flyer.style.height = size+"px";
+      flyer.style.opacity = "0.15";
+      flyer.style.fontSize = "0.7rem";
+      flyer.style.transform = "scale(.4)";
+    });
+  });
+  setTimeout(function(){
+    if(flyer.parentNode) flyer.parentNode.removeChild(flyer);
+    if(done) done();
+  }, 460);
+}
+
+function onCorrectPlace(colorId, index, cardEl, fromRect){
+  locked = true;
+  const color = colourById(colorId);
+  if(cardEl && cardEl.parentNode) cardEl.style.visibility = "hidden";
+  placeSound(index);
+  flash(true);
+  flyToBand(fromRect || (cardEl ? cardEl.getBoundingClientRect() : {left:0,top:0,width:80,height:60}), index, color, function(){
+    slots[index] = colorId;
+    if(cardEl && cardEl.parentNode) cardEl.parentNode.removeChild(cardEl);
+    paintSlots({swapMode:false});
+    setSentence(modelSentence(color.en), "ok");
+    if(phase === "play"){
+      score += PLACE_SCORE;
+      updateHud();
+    }
+    locked = false;
+    if(allFilledCorrect()){
+      locked = true;
+      onRainbowComplete();
+    }
+  });
+}
+
+function onRainbowComplete(){
+  stopTimer();
+  $("banner").classList.remove("timed");
+  completeSound();
+  paintSlots({swapMode: false});
+  if(phase === "practice"){
+    showToast("Super rainbow! 彩虹砌好了！", 1200);
+    setTimeout(function(){
+      phase = "ready";
+      $("stage").classList.remove("show");
+      $("hintBar").classList.remove("show");
+      updateHud();
+      showOverlay("overlayReady");
+    }, 1100);
+    return;
+  }
+  // Play round complete
+  rainbowsDone += 1;
+  let bonus = leftoverSecs() * TIME_BONUS;
+  if(bonus > 0){
+    score += bonus;
+    updateHud();
+    bonusSound();
+    showToast("Rainbow complete! 砌好了！<span class='sub'>+"+bonus+" time bonus 時間加分</span>", 1400);
+  }else{
+    showToast("Rainbow complete! 砌好了！", 1100);
+  }
+  setTimeout(function(){
+    if(round >= 3){
+      endGame();
+    }else{
+      beginRoundIntro(round + 1);
+    }
+  }, 1300);
+}
+
+function onBandTap(i){
+  if(locked || paused) return;
+  if(!(phase === "play" && round === 3)) return;
+  if(swapSel === null){
+    swapSel = i;
+    paintSlots({swapMode:true});
+    setSentence("Now tap another band. 再點另一段。", "");
+    beep(360, 0.08, "sine", 0.06);
+    return;
+  }
+  if(swapSel === i){
+    swapSel = null;
+    paintSlots({swapMode:true});
+    setSentence("Tap two bands to swap. 點兩段彩虹來交換。", "");
+    return;
+  }
+  doSwap(swapSel, i);
+}
+
+function doSwap(a, b){
+  locked = true;
+  const idA = slots[a], idB = slots[b];
+  slots[a] = idB;
+  slots[b] = idA;
+  swapSel = null;
+
+  const wasA = idA === ORDER[a];
+  const wasB = idB === ORDER[b];
+  const nowA = slots[a] === ORDER[a];
+  const nowB = slots[b] === ORDER[b];
+
+  let gained = 0;
+  if(nowA && !scoredSlot[a]){ scoredSlot[a] = true; gained += PLACE_SCORE; }
+  if(nowB && !scoredSlot[b]){ scoredSlot[b] = true; gained += PLACE_SCORE; }
+
+  const helpful = (nowA && !wasA) || (nowB && !wasB);
+  const neitherCorrect = !nowA && !nowB;
+
+  paintSlots({swapMode:true});
+
+  if(neitherCorrect){
+    wrongSound();
+    flash(false);
+    $("band-"+a).classList.remove("shake");
+    $("band-"+b).classList.remove("shake");
+    void $("band-"+a).offsetWidth;
+    $("band-"+a).classList.add("shake");
+    $("band-"+b).classList.add("shake");
+    setSentence("Try another swap. 換另一組看看。", "bad");
+    lives -= 1;
+    updateHud();
+    if(lives <= 0){
+      setTimeout(endGame, 600);
+      return;
+    }
+    locked = false;
+    return;
+  }
+
+  if(gained > 0){
+    score += gained;
+    updateHud();
+    placeSound(nowA ? a : b);
+    flash(true);
+    const parts = [];
+    if(nowA && !wasA) parts.push(colourById(slots[a]).en);
+    if(nowB && !wasB) parts.push(colourById(slots[b]).en);
+    if(parts.length){
+      setSentence(modelSentence(parts[0]) + (parts[1] ? " / " + (sentenceFlip % 2 === 0 ? ("It is "+parts[1]+".") : ("I can see "+parts[1]+".")) : ""), "ok");
+    }
+  }else if(helpful){
+    // already scored earlier; still nice feedback
+    flash(true);
+    setSentence("Good! 好！", "ok");
+    beep(440, 0.12, "sine", 0.08);
+  }else{
+    // swap kept at least one correct (e.g. swapped two already-correct? that's neitherCorrect=false if both stay... 
+    // two already-correct swapped would become both wrong → neitherCorrect. This branch is e.g. one stays correct.
+    beep(400, 0.1, "sine", 0.06);
+    setSentence("Keep going. 繼續。", "ok");
+  }
+
+  if(allFilledCorrect()){
+    onRainbowComplete();
+  }else{
+    locked = false;
+  }
+}
+
+function beginPractice(){
+  hideOverlays();
+  phase = "practice";
+  round = 0;
+  score = 0;
+  lives = MAX_LIVES;
+  rainbowsDone = 0;
+  sentenceFlip = 0;
+  locked = false;
+  swapSel = null;
+  timedOut = false;
+  slots = [null,null,null,null,null,null];
+  scoredSlot = [false,false,false,false,false,false];
+  $("stage").classList.add("show");
+  $("hintBar").classList.add("show");
+  $("stageTag").textContent = "PRACTICE · 練習";
+  $("banner").classList.remove("timed");
+  $("swapHint").classList.remove("show");
+  setSentence("Tap the next colour. 點選下一個顏色。", "");
+  paintSlots({swapMode:false});
+  renderTray(shuffle(ORDER));
+  updateHud();
+}
+
+function beginRoundIntro(n){
+  stopTimer();
+  phase = "intro";
+  round = n;
+  locked = true;
+  $("stage").classList.remove("show");
+  $("hintBar").classList.remove("show");
+  $("banner").classList.remove("timed");
+  const zh = ["","第一關","第二關","第三關"];
+  const titles = ["","Round 1 · Build the rainbow","Round 2 · Fill the gaps","Round 3 · Swap to fix"];
+  const blurbs = [
+    "",
+    "從托盤砌一道完整彩虹。點正確的下一個顏色。<br>Build a full rainbow from the tray. Tap the next colour in song order.",
+    "彩虹已有 2–3 格，把餘下的顏色砌上去。<br>Some colours are already in place. Fill the gaps from the smaller tray.",
+    "六種顏色都在彩虹上，但順序亂了。點兩段來交換，直到順序正確。<br>All six colours are on the rainbow, but mixed up. Tap two bands to swap them."
+  ];
+  $("roundTitle").innerHTML = '<span class="grad">'+esc(titles[n])+'</span>';
+  $("roundKicker").textContent = zh[n] + " · " + n + " / 3";
+  $("roundBlurb").innerHTML = blurbs[n];
+  showOverlay("overlayRound");
+  updateHud();
+}
+
+function startRound(n){
+  hideOverlays();
+  phase = "play";
+  round = n;
+  locked = false;
+  swapSel = null;
+  timedOut = false;
+  sentenceFlip = sentenceFlip || 0;
+  scoredSlot = [false,false,false,false,false,false];
+  $("stage").classList.add("show");
+  $("hintBar").classList.add("show");
+  $("stageTag").textContent = "PLAY · 比賽  ·  ROUND "+n;
+  $("swapHint").classList.toggle("show", n === 3);
+
+  if(n === 1){
+    slots = [null,null,null,null,null,null];
+    paintSlots({swapMode:false});
+    renderTray(shuffle(ORDER));
+    setSentence("Tap the next colour. 點選下一個顏色。", "");
+  }else if(n === 2){
+    slots = [null,null,null,null,null,null];
+    const nFill = Math.random() < 0.5 ? 2 : 3;
+    const pref = shuffle([0,1,2,3,4,5]).slice(0, nFill);
+    pref.forEach(function(i){ slots[i] = ORDER[i]; });
+    const missing = ORDER.filter(function(_,i){ return !slots[i]; });
+    paintSlots({swapMode:false});
+    renderTray(shuffle(missing));
+    setSentence("Fill the gaps. 把空格砌好。", "");
+  }else{
+    slots = derangementIds();
+    hideTray();
+    paintSlots({swapMode:true});
+    setSentence("Tap two bands to swap. 點兩段彩虹來交換。", "");
+  }
+  updateHud();
+  startTimer();
+}
+
+function endGame(){
+  if(phase === "end") return;
+  stopTimer();
+  locked = true;
+  paused = false;
+  phase = "end";
+  $("stage").classList.remove("show");
+  $("hintBar").classList.remove("show");
+  $("banner").classList.remove("timed");
+  $("btnPause").style.display = "none";
+  updateHud();
+  $("hud").classList.remove("show");
+
+  let title = "Try again", kicker = "再試一次！";
+  if(rainbowsDone >= 3){ title = "Super!"; kicker = "太棒了！"; }
+  else if(rainbowsDone >= 1){ title = "Well done"; kicker = "做得好！"; }
+  $("endTitle").innerHTML = '<span class="grad">'+esc(title)+'</span>';
+  $("endKicker").textContent = kicker;
+  $("endScore").textContent = score;
+  $("endRainbows").textContent = rainbowsDone;
+  $("endDetail").textContent = rainbowsDone >= 3
+    ? "You built all 3 rainbows. 你砌好了 3 道彩虹。"
+    : (lives <= 0
+      ? "No lives left this time. 今次沒有命了。"
+      : "Keep practising the song order. 再練習歌曲順序。");
+
+  addSessionScore({score: score, rainbows: rainbowsDone});
+  renderSessionBox("endSessionBox", true);
+  showOverlay("overlayEnd");
+}
+
+function goStart(){
+  stopTimer();
+  paused = false;
+  phase = "start";
+  locked = false;
+  $("stage").classList.remove("show");
+  $("hintBar").classList.remove("show");
+  $("banner").classList.remove("timed");
+  $("hud").classList.remove("show");
+  $("btnPause").style.display = "none";
+  renderSessionBox("startSessionBox", true);
+  showOverlay("overlayStart");
+}
+
+function toggleMute(){
+  muted = !muted;
+  $("btnMute").textContent = muted ? "🔇" : "🔊";
+  if(!muted){
+    try{ ctxAudio(); }catch(e){}
+    beep(520, 0.08, "sine", 0.08);
+  }
+}
+function togglePause(){
+  if(phase !== "play" && phase !== "pause") return;
+  if(!paused){
+    paused = true;
+    phase = "pause";
+    stopTimer();
+    pauseLeft = timerLeft;
+    $("btnPause").textContent = "▶";
+    showOverlay("overlayPause");
+  }else{
+    resumePlay();
+  }
+}
+function resumePlay(){
+  if(!paused && phase !== "pause") return;
+  hideOverlays();
+  paused = false;
+  phase = "play";
+  $("btnPause").textContent = "⏸";
+  // resume timer from remaining, unless already timed out
+  if(!timedOut){
+    timerStartedAt = performance.now() - (ROUND_SECS - pauseLeft) * 1000;
+    timerLeft = pauseLeft;
+    $("banner").classList.add("timed");
+    tickTimer();
+  }
+  $("stage").classList.add("show");
+  $("hintBar").classList.add("show");
+}
+
+function init(){
+  $("startOrder").innerHTML = buildOrderHtml(true);
+  $("hintBar").innerHTML = buildOrderHtml(true);
+  buildRainbowSvg();
+  paintSlots({swapMode:false});
+  $("btnMute").textContent = muted ? "🔇" : "🔊";
+  $("btnStart").onclick = beginPractice;
+  $("btnStartPlay").onclick = function(){ startRound(1); };
+  $("btnRoundGo").onclick = function(){ startRound(round); };
+  $("btnAgain").onclick = goStart;
+  $("btnMute").onclick = toggleMute;
+  $("btnPause").onclick = togglePause;
+  $("btnResume").onclick = resumePlay;
+  document.addEventListener("keydown", function(e){
+    if(e.key === "p" || e.key === "P" || e.key === "Escape"){
+      if(phase === "play" || phase === "pause") togglePause();
+    }
+  });
+  document.addEventListener("visibilitychange", function(){
+    if(document.hidden && phase === "play" && !paused) togglePause();
+  });
+  renderSessionBox("startSessionBox", true);
+}
+
+init();
+})();
+</script>
+</body>
+</html>
