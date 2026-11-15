@@ -555,20 +555,18 @@ const OPENING = {
   imgs: ["computer", "marbles"]
 };
 
-const REORDER = [
+const FOLLOWUPS = [
   {
     id: "video",
     q: "Were there any video games 50 years ago?",
     a: "No, there weren’t.\nThere was hopscotch 50 years ago.",
-    imgs: ["video", "hopscotch"],
-    words: ["Were", "there", "any", "video games", "50 years ago", "?"]
+    imgs: ["video", "hopscotch"]
   },
   {
     id: "online",
     q: "Were there any online games 50 years ago?",
     a: "No, there weren’t.\nThere was hide-and-seek 50 years ago.",
-    imgs: ["online", "hide"],
-    words: ["Were", "there", "any", "online games", "50 years ago", "?"]
+    imgs: ["online", "hide"]
   }
 ];
 
@@ -585,7 +583,7 @@ let typingToken = 0;
 let cycleTimer = null;
 let reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let openingDone = false;
-let reorderIndex = 0;
+let askedFollowups = new Set();
 let busy = false;
 
 function setWaiting() {
@@ -771,98 +769,36 @@ function renderOpeningChoice() {
     if (busy) return;
     askItem(OPENING, () => {
       openingDone = true;
-      reorderIndex = 0;
-      renderReorderTask(REORDER[0]);
+      renderFollowupChoices();
     });
   });
   choices.appendChild(btn);
 }
 
-function renderReorderTask(task) {
-  clearChoices();
-  const box = document.createElement("div");
-  box.className = "reorder-box";
-  box.innerHTML = `
-    <div class="reorder-title">Make the question</div>
-    <div class="reorder-hint">Put the words in order to ask Uncle Paul.</div>
-    <div class="reorder-slots" id="reorderSlots"></div>
-    <div class="reorder-bank" id="reorderBank"></div>
-    <div class="reorder-actions">
-      <button type="button" class="btn-check" id="reorderCheck">Check ✓</button>
-      <button type="button" class="btn-reset" id="reorderReset">Reset</button>
-    </div>
-    <div class="reorder-feedback" id="reorderFeedback"></div>
-  `;
-  choices.appendChild(box);
-
-  const slots = box.querySelector("#reorderSlots");
-  const bank = box.querySelector("#reorderBank");
-  const feedback = box.querySelector("#reorderFeedback");
-  const selected = [];
-  let bankWords = shuffle(task.words);
-
-  function paint() {
-    slots.innerHTML = "";
-    selected.forEach((w, idx) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "wchip in-slot";
-      chip.textContent = w;
-      chip.addEventListener("click", () => {
-        selected.splice(idx, 1);
-        bankWords.push(w);
-        paint();
-      });
-      slots.appendChild(chip);
-    });
-    bank.innerHTML = "";
-    bankWords.forEach((w, idx) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "wchip";
-      chip.textContent = w;
-      chip.addEventListener("click", () => {
-        bankWords.splice(idx, 1);
-        selected.push(w);
-        feedback.textContent = "";
-        feedback.className = "reorder-feedback";
-        paint();
-      });
-      bank.appendChild(chip);
-    });
+function renderFollowupChoices() {
+  const remaining = FOLLOWUPS.filter((item) => !askedFollowups.has(item.id));
+  if (!remaining.length) {
+    finishAll();
+    return;
   }
-
-  box.querySelector("#reorderReset").addEventListener("click", () => {
-    bankWords = shuffle(task.words);
-    selected.length = 0;
-    feedback.textContent = "";
-    feedback.className = "reorder-feedback";
-    paint();
+  clearChoices();
+  const label = document.createElement("div");
+  label.className = "choices-label";
+  label.textContent = remaining.length > 1 ? "Choose a question" : "Ask this question";
+  choices.appendChild(label);
+  const list = remaining.length > 1 ? shuffle(remaining.map((item) => item)) : remaining;
+  list.forEach((item) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "qbtn";
+    btn.textContent = item.q;
+    btn.addEventListener("click", () => {
+      if (busy) return;
+      askedFollowups.add(item.id);
+      askItem(item, () => renderFollowupChoices());
+    });
+    choices.appendChild(btn);
   });
-
-  box.querySelector("#reorderCheck").addEventListener("click", () => {
-    if (busy) return;
-    const built = selected.join(" ");
-    const target = task.words.join(" ");
-    if (built === target) {
-      feedback.textContent = "Great! Now ask Uncle Paul.";
-      feedback.className = "reorder-feedback ok";
-      box.querySelectorAll("button").forEach(b => b.disabled = true);
-      setTimeout(() => askItem(task, () => {
-        reorderIndex += 1;
-        if (reorderIndex < REORDER.length) {
-          renderReorderTask(REORDER[reorderIndex]);
-        } else {
-          finishAll();
-        }
-      }), 450);
-    } else {
-      feedback.textContent = "Not yet — try again!";
-      feedback.className = "reorder-feedback bad";
-    }
-  });
-
-  paint();
 }
 
 function askItem(item, onAfterAnswer) {
@@ -905,7 +841,7 @@ function openChat() {
   clearIllustCycle();
   busy = false;
   openingDone = false;
-  reorderIndex = 0;
+  askedFollowups = new Set();
   setWaiting();
   showIdleQuestion();
   setTalking();
