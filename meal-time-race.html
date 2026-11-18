@@ -171,6 +171,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
   .lane-chip{flex:1 1 46%;max-width:48%}
 }
 
+.lane-chip.is-hidden{display:none !important}
+.lane-hint.choices-2 .lane-chip{flex:1 1 46%;max-width:48%}
+.bonus-hint{
+  display:none;position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+  z-index:6;background:rgba(8,20,24,.88);color:#ecfeff;border:2px solid #5eead4;
+  border-radius:16px;padding:10px 16px;font-weight:800;text-align:center;
+  font-size:clamp(.9rem,2.2vw,1.15rem);letter-spacing:.01em;pointer-events:none;
+}
+.bonus-hint.show{display:block}
+
 </style>
 </head>
 <body>
@@ -180,7 +190,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
 <div class="hud" id="hud" style="display:none">
   <div class="stat">⭐ <span id="hudScore">0</span></div>
   <div class="stat">🏁 Q <span id="hudQ">1</span>/<span id="hudTotal">40</span></div>
-  <div class="stat lives" id="hudLives">❤️❤️❤️</div>
+  <div class="stat lives" id="hudLives">❤️❤️❤️❤️</div>
 </div>
 <div class="q-banner" id="qBanner">
   <div class="practice-tag" id="practiceTag">Practice · no timer · no lives</div>
@@ -196,6 +206,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
   <button class="lane-chip c2" id="btn2" type="button"><span class="key">3 / D</span><span id="opt2"></span></button>
   <button class="lane-chip c3" id="btn3" type="button"><span class="key">4 / F</span><span id="opt3"></span></button>
 </div>
+<div class="bonus-hint" id="bonusHint">← → / A D 或左右拖動躲避 · Drag left / right to dodge</div>
 <div class="controls-bar">
   <button class="icon-btn" id="btnMute" title="Sound on/off" aria-label="Sound">🔇</button>
   <button class="icon-btn" id="btnPause" title="Pause" style="display:none">⏸</button>
@@ -216,8 +227,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
     <p style="font-weight:800;letter-spacing:.02em;margin:0 0 6px;color:#fbbf24">any · some · a lot of</p>
     <p id="startPlayerLine" style="font-weight:800;color:#5eead4;margin-bottom:4px">Playing as: —</p>
     <p>3A Ch.4 Meal time · countable / uncountable<br>
-    Look at the picture. Finish the dialogue.<br>
-    Practice 6 (no score) → Race 24 · 答對超車 +100 · 答錯／逾時撞車扣命 · 3 lives<br>
+    Look at the picture. Choose the missing word.<br>
+    Practice 6 (no score) → Race 10 · 4 lives · 每題 20 秒<br>
+    通關後有 40 秒躲避獎勵關 · 答對 +100<br>
     <span class="muted">點選答案或按 1–4 / A S D F</span></p>
     <p class="cap-line" id="capLine">累積分數 Total: — / 100,000</p>
     <div class="cap-lock hidden" id="capLock">已達 100,000 分上限，先休息一下。<br>You've reached the 100,000 point cap. Please take a break.</div>
@@ -225,7 +237,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
     <button class="btn btn-ghost" id="btnSkipRace" type="button">Skip to Race</button>
     <button class="btn btn-ghost" id="btnBoardStart" type="button">🏆 Leaderboard</button>
     <button class="btn btn-ghost" id="btnChangeName" type="button">Not me? Change name</button>
-    <p class="muted" style="margin-top:14px">老師說明：小三 3A Ch.4 Meal time（Longman Elect p.35–36）。問句用 any（Is there any + 不可數／Are there any + 可數眾數）。肯定答用 some（少少）或 a lot of（好多）；否定答用 any。詞彙限課本：ham, cheese, butter, rice, congee, soup, sugar, salt, jam；mushrooms, onions, sausages, vegetables, noodles。<br>本遊戲屬<strong>中文班</strong>雲端榜（鍵 m）。分數為多局累積，<strong>上限 100,000</strong>，達標後不能再玩（避免過度遊玩）。老師清除密碼 teacher。</p>
+    <p class="muted" style="margin-top:14px">老師說明：小三 3A Ch.4 Meal time（Longman Elect p.35–36）。睇圖選單詞：countable / uncountable、a lot of / some / any、Is / Are、食物名稱。完整句子只作提示。Race：10 題、4 命、每題 20 秒。通關（10 題完成且仍有命）進入 40 秒左右躲避獎勵關：躲開一台車 +10，完成獎勵關 +100；撞車只打斷節奏，唔扣本題分數。詞彙限課本。<br>本遊戲屬<strong>中文班</strong>雲端榜（鍵 m）。分數為多局累積，<strong>上限 100,000</strong>，達標後不能再玩。老師清除密碼 teacher。</p>
   </div>
 </div>
 
@@ -252,7 +264,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b1f24;
 <div class="overlay hidden" id="overlayPractice">
   <div class="panel">
     <h1>⭐ Practice complete</h1>
-    <p>Nice work! Now race for points.<br>答對 +100 · 3 lives · 24 questions</p>
+    <p>Nice work! Now race for points.<br>10 questions · 4 lives · 20 seconds each<br>通關後有 40 秒躲避獎勵關</p>
     <button class="btn" id="btnGoRace">START RACE ▶</button>
     <button class="btn btn-ghost" id="btnPracticeMenu" type="button">Main menu</button>
   </div>
@@ -292,6 +304,13 @@ const CLASS_ROSTER = [
 const LS_PLAYER = "meal_time_race_player_v1";
 const LS_TOTALS = "meal_time_race_totals_v1";
 const SCORE_CAP = 100000;
+const RACE_QUESTIONS = 10;
+const MAX_LIVES = 4;
+const QUESTION_TIME = 20;
+const BONUS_DURATION = 40;
+const BONUS_DODGE_PTS = 10;
+const BONUS_CLEAR_PTS = 100;
+const BONUS_COLORS = ["#f472b6","#38bdf8","#fbbf24","#a855f7","#f97316","#22c55e"];
 let currentPlayer = null; // {name, no}
 
 function playerLabel(p){
@@ -346,6 +365,7 @@ function updatePlayerUI(){
 }
 function goNameSelect(){
   running=false; paused=false; stopBgm();
+  hideBonusHint();
   document.getElementById("hud").style.display="none";
   document.getElementById("qBanner").classList.remove("show");
   document.getElementById("laneHint").classList.remove("show");
@@ -760,70 +780,100 @@ function pickChoices(correct, distractors){
   return {choices, correct: choices.indexOf(correct)};
 }
 
-function makeAnswerQ(food, qty){
+function makeCU(food){
+  const correct = food.kind==="U" ? "uncountable" : "countable";
+  const {choices, correct: ci} = pickChoices(correct, [food.kind==="U" ? "countable" : "uncountable"]);
+  const verb = food.kind==="U" ? "is" : "are";
+  return {
+    kind:"cu", food:food.id, qty:"lot",
+    promptA: food.label + " " + verb + " ______.",
+    promptB: "",
+    q: food.label + " " + verb + " ______.",
+    choices, correct:ci,
+    note: food.kind==="U" ? "Uncountable: we don't count it." : "Countable: we can count them.",
+    explain: correct
+  };
+}
+
+function makeQty(food, qty){
   const qLine = askLine(food);
-  const correct = qty==="none" ? noAns(food) : yesAns(food, qty);
-  const distractors = [];
+  let promptB, correct, distractors, note;
   if(qty==="none"){
-    distractors.push(noAnsWrongAgr(food));
-    distractors.push(yesAns(food, "some"));
-    distractors.push(yesAns(food, "lot"));
-    distractors.push("No, there " + (food.kind==="U"?"isn't":"aren't") + " some " + food.label + ".");
+    promptB = "No, there " + (food.kind==="U"?"isn't":"aren't") + " ______ " + food.label + ".";
+    correct = "any";
+    distractors = ["some","a lot of","a"];
+    note = "Negative answers use any.";
   } else {
-    distractors.push(yesAns(food, qty==="lot"?"some":"lot"));
-    distractors.push(yesAnsWrongAgr(food, qty));
-    distractors.push(noAns(food));
-    distractors.push("Yes, there " + (food.kind==="U"?"is":"are") + " any " + food.label + ".");
+    promptB = "Yes, there " + (food.kind==="U"?"is":"are") + " ______ " + food.label + ".";
+    correct = qty==="lot" ? "a lot of" : "some";
+    distractors = [qty==="lot"?"some":"a lot of", "any", "a"];
+    note = qty==="lot" ? "a lot of = many / a full plate." : "some = a little / a few.";
   }
   const {choices, correct: ci} = pickChoices(correct, distractors);
-  const note = qty==="none"
-    ? ("No + any. " + (food.kind==="U"?"Uncountable → isn't":"Countable → aren't"))
-    : ((qty==="lot"?"a lot of = many. ":"some = a little / a few. ") + (food.kind==="U"?"Uncountable → is":"Countable → are"));
   return {
-    kind:"answer", food:food.id, qty,
-    promptA:qLine, promptB:"______",
-    q: "A: " + qLine + "  B: ______",
+    kind: qty==="none" ? "any" : "qty", food:food.id, qty,
+    promptA: qLine, promptB,
+    q: "A: " + qLine + "  B: " + promptB,
     choices, correct:ci, note, explain:correct
   };
 }
 
-function makeQuestionQ(food, qty){
-  const correctStem = food.kind==="U" ? "Is there any" : "Are there any";
-  const reply = qty==="none" ? noAns(food) : yesAns(food, qty);
-  const distractors = [
-    food.kind==="U" ? "Are there any" : "Is there any",
-    "Is there some",
-    "Are there some",
-    food.kind==="U" ? "Is there a lot of" : "Are there a lot of"
-  ];
-  const {choices, correct: ci} = pickChoices(correctStem, distractors);
-  const note = "Questions use any. " + (food.kind==="U"?"Uncountable → Is there":"Countable → Are there");
+function makeIsAre(food){
+  const correct = food.kind==="U" ? "Is" : "Are";
+  const {choices, correct: ci} = pickChoices(correct, [
+    food.kind==="U" ? "Are" : "Is", "Do", "Does"
+  ]);
   return {
-    kind:"question", food:food.id, qty,
-    promptA: askBlank(food), promptB: reply,
-    q: "A: ______ " + food.label + "?  B: " + reply,
-    choices, correct:ci, note, explain:correctStem
+    kind:"isare", food:food.id, qty:"some",
+    promptA: "______ there any " + food.label + "?",
+    promptB: "",
+    q: "______ there any " + food.label + "?",
+    choices, correct:ci,
+    note: "Questions use any. " + (food.kind==="U"?"Uncountable → Is there":"Countable → Are there"),
+    explain: correct
   };
+}
+
+function makeFoodName(food){
+  const others = shuffle(FOODS.filter(f => f.id!==food.id)).slice(0,3).map(f=>f.label);
+  const {choices, correct: ci} = pickChoices(food.label, others);
+  const promptA = food.kind==="U" ? "This is ______." : "These are ______.";
+  return {
+    kind:"name", food:food.id, qty:"lot",
+    promptA, promptB:"",
+    q: promptA,
+    choices, correct:ci,
+    note: "Look at the picture.",
+    explain: food.label
+  };
+}
+
+function buildItem(spec){
+  const food = FOOD_MAP[spec.id] || spec.foodObj;
+  if(spec.type==="cu") return makeCU(food);
+  if(spec.type==="isare") return makeIsAre(food);
+  if(spec.type==="name") return makeFoodName(food);
+  return makeQty(food, spec.qty);
 }
 
 function allQuestionPool(){
   const out = [];
   FOODS.forEach(food => {
-    ["lot","some","none"].forEach(qty => {
-      out.push(makeAnswerQ(food, qty));
-      out.push(makeQuestionQ(food, qty));
-    });
+    out.push(makeCU(food));
+    ["lot","some","none"].forEach(qty => out.push(makeQty(food, qty)));
+    out.push(makeIsAre(food));
+    out.push(makeFoodName(food));
   });
   return out;
 }
 
 const PRACTICE_SPEC = [
-  {id:"sausages", qty:"lot", type:"answer"},
-  {id:"rice", qty:"some", type:"question"},
-  {id:"ham", qty:"none", type:"answer"},
-  {id:"mushrooms", qty:"lot", type:"question"},
-  {id:"soup", qty:"some", type:"answer"},
-  {id:"onions", qty:"none", type:"answer"}
+  {id:"rice", type:"cu"},
+  {id:"sausages", qty:"lot", type:"qty"},
+  {id:"soup", qty:"some", type:"qty"},
+  {id:"ham", qty:"none", type:"qty"},
+  {id:"mushrooms", type:"isare"},
+  {id:"onions", type:"name"}
 ];
 
 function shuffle(arr){
@@ -832,17 +882,21 @@ function shuffle(arr){
   return a;
 }
 function prepPractice(){
-  return PRACTICE_SPEC.map(s => {
-    const food = FOOD_MAP[s.id];
-    return s.type==="answer" ? makeAnswerQ(food, s.qty) : makeQuestionQ(food, s.qty);
-  });
+  return PRACTICE_SPEC.map(s => buildItem(s));
 }
 function prepQuestions(n){
-  let pool = shuffle(allQuestionPool());
-  if(pool.length < n){
-    while(pool.length < n) pool = pool.concat(shuffle(allQuestionPool()));
-  }
-  return pool.slice(0, n);
+  const pool = allQuestionPool();
+  const take = (kind, k) => {
+    const arr = shuffle(pool.filter(q => q.kind===kind && !q._used));
+    const out = arr.slice(0, k);
+    out.forEach(q => { q._used = true; });
+    return out;
+  };
+  let out = [];
+  out = out.concat(take("cu", 2), take("qty", 3), take("any", 2), take("isare", 1), take("name", 2));
+  const rest = shuffle(pool.filter(q => !q._used));
+  while(out.length < n && rest.length) out.push(rest.shift());
+  return shuffle(out).slice(0, n);
 }
 
 function getLocalTotals(){
@@ -899,18 +953,29 @@ function updateStartCapUI(){
 }
 
 function dialogueHTML(item){
-  return '<div class="line"><span class="who">A:</span>'+esc(item.promptA)+'</div>'+
-         '<div class="line"><span class="who">B:</span>'+esc(item.promptB)+'</div>';
+  if(item.promptB){
+    return '<div class="line"><span class="who">A:</span>'+esc(item.promptA)+'</div>'+
+           '<div class="line"><span class="who">B:</span>'+esc(item.promptB)+'</div>';
+  }
+  return '<div class="line">'+esc(item.promptA)+'</div>';
+}
+
+function addRaceScore(n){
+  const remain = Math.max(0, SCORE_CAP - cachedTotal - score);
+  const gain = Math.min(Math.max(0, n|0), remain);
+  score += gain;
+  if(cachedTotal + score >= SCORE_CAP) hitCap = true;
+  return gain;
 }
 
 
 // ---------- Game state ----------
 let W=0, H=0, dpr=1;
 let running=false, paused=false;
-let score=0, lives=3, qIndex=0, questions=[], correctThisRace=0;
+let score=0, lives=MAX_LIVES, qIndex=0, questions=[], correctThisRace=0;
 let wrongLog=[];
-let phase="idle"; // idle | question | feedback | crash | done
-let timer=0, timerMax=8;
+let phase="idle"; // idle | question | feedback | crash | done | bonus
+let timer=0, timerMax=QUESTION_TIME;
 let playerLane=0; // -1 left 0 center 1 right (visual)
 let playerX=0, targetX=0;
 let speed=0, distance=0;
@@ -920,6 +985,9 @@ let feedbackTimer=0;
 let crashShake=0;
 let particles=[];
 let trees=[]; // shelf posts
+let bonusLeft=0, bonusDodged=0, bonusScore=0, bonusInvuln=0, bonusHitstun=0;
+let bonusCountN=0, bonusCountT=0, bonusSpawn=0, bonusSteer=0, bonusEnded=false;
+let bonusKeys={left:false,right:false};
 
 function resize(){
   dpr = Math.min(devicePixelRatio||1, 2);
@@ -1099,8 +1167,10 @@ function beginSession(kind){
   }
   mode = kind === "practice" ? "practice" : "race";
   hitCap = false;
-  questions = mode==="practice" ? prepPractice() : prepQuestions(24);
-  score=0; lives=3; qIndex=0; wrongLog=[]; correctThisRace=0;
+  questions = mode==="practice" ? prepPractice() : prepQuestions(RACE_QUESTIONS);
+  score=0; lives=MAX_LIVES; qIndex=0; wrongLog=[]; correctThisRace=0;
+  bonusLeft=0; bonusDodged=0; bonusScore=0; bonusEnded=false; bonusKeys={left:false,right:false};
+  hideBonusHint();
   phase="question"; running=true; paused=false;
   speed=6; distance=0; roadOffset=0; playerLane=0; playerX=0; targetX=0;
   rivals = [
@@ -1126,9 +1196,7 @@ function startPractice(){ beginSession("practice"); }
 function startRace(){ beginSession("race"); }
 
 function timerForIndex(i){
-  // 10s → 5s over the race (pictures need a little more time)
-  const t = questions.length-1 || 1;
-  return 10 - (i/t)*5;
+  return QUESTION_TIME;
 }
 
 function presentQuestion(){
@@ -1152,27 +1220,43 @@ function presentQuestion(){
       el.innerHTML = '<span class="opt-txt">'+esc(txt)+'</span>';
     }
   }
+  const nChoices = (qq.choices && qq.choices.length) ? qq.choices.length : 4;
+  for(let i=0;i<4;i++){
+    const btn = document.getElementById("btn"+i);
+    if(btn) btn.classList.toggle("is-hidden", i >= nChoices);
+  }
+  const hint = document.getElementById("laneHint");
+  hint.classList.toggle("choices-2", nChoices===2);
   const banner = document.getElementById("qBanner");
   banner.classList.add("show");
   banner.classList.toggle("practice", mode==="practice");
-  document.getElementById("laneHint").classList.add("show");
+  hint.classList.add("show");
   document.getElementById("timerFill").style.width="100%";
   updateHUD();
 }
 
 function updateHUD(){
   document.getElementById("hudScore").textContent = score;
-  document.getElementById("hudQ").textContent = Math.min(qIndex+1, questions.length);
-  document.getElementById("hudTotal").textContent = questions.length;
+  const qEl = document.getElementById("hudQ");
+  const totEl = document.getElementById("hudTotal");
+  if(mode==="bonus"){
+    if(qEl) qEl.textContent = "🎁";
+    if(totEl) totEl.textContent = Math.ceil(Math.max(0, bonusLeft)) + "s";
+  } else {
+    if(qEl) qEl.textContent = Math.min(qIndex+1, questions.length);
+    if(totEl) totEl.textContent = questions.length;
+  }
   const lifeEl = document.getElementById("hudLives");
   if(mode==="practice") lifeEl.textContent = "⭐ Practice";
-  else lifeEl.textContent = "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0,3-lives));
+  else if(mode==="bonus") lifeEl.textContent = "躲开 " + bonusDodged;
+  else lifeEl.textContent = "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0,MAX_LIVES-lives));
 }
 
 function choose(idx){ // 0..3
   if(phase!=="question" || paused) return;
   idx = idx|0;
   const qq = questions[qIndex];
+  if(!qq || !qq.choices || idx < 0 || idx >= qq.choices.length) return;
   const ok = idx === qq.correct;
   // visual nudge: map 0..3 → left→right
   playerLane = (idx - 1.5) / 1.5; // ~ -1 .. +1
@@ -1182,11 +1266,8 @@ function choose(idx){ // 0..3
   const rightAns = (qq.choices && qq.choices[qq.correct] != null) ? qq.choices[qq.correct] : qq.explain;
   if(ok){
     if(mode==="race"){
-      const remain = Math.max(0, SCORE_CAP - cachedTotal - score);
-      const gain = Math.min(100, remain);
-      score += gain;
+      addRaceScore(100);
       correctThisRace++;
-      if(cachedTotal + score >= SCORE_CAP) hitCap = true;
     }
     phase="feedback"; feedbackTimer=0.7;
     speed = Math.min(14, speed+0.8);
@@ -1241,7 +1322,8 @@ function advanceAfterFeedback(){
     else presentQuestion();
     return;
   }
-  if(hitCap || lives<=0 || qIndex>=questions.length) endRace();
+  if(hitCap || lives<=0) endRace();
+  else if(qIndex>=questions.length) startBonus();
   else presentQuestion();
 }
 
@@ -1261,6 +1343,192 @@ function finishPractice(){
   }
 }
 
+
+function hideBonusHint(){
+  const el = document.getElementById("bonusHint");
+  if(el) el.classList.remove("show");
+}
+function showBonusHint(){
+  const el = document.getElementById("bonusHint");
+  if(el) el.classList.add("show");
+}
+
+function startBonus(){
+  if(hitCap || atCap()){
+    endRace();
+    return;
+  }
+  mode = "bonus";
+  phase = "countdown";
+  bonusLeft = BONUS_DURATION;
+  bonusDodged = 0;
+  bonusScore = 0;
+  bonusEnded = false;
+  bonusInvuln = 0;
+  bonusHitstun = 0;
+  bonusCountN = 3;
+  bonusCountT = 1;
+  bonusSpawn = 0.6;
+  bonusSteer = 0;
+  bonusKeys = {left:false, right:false};
+  bonusEnded = false;
+  rivals = [];
+  playerLane = 0; playerX = 0; targetX = 0;
+  speed = 10;
+  document.getElementById("qBanner").classList.remove("show","practice");
+  document.getElementById("laneHint").classList.remove("show");
+  showBonusHint();
+  hideOverlays();
+  document.getElementById("hud").style.display="flex";
+  document.getElementById("btnPause").style.display="inline-block";
+  document.getElementById("playingAs").classList.add("show");
+  tone(520, 0.12, "square", 0.16);
+  updateHUD();
+}
+
+function spawnBonusCar(){
+  const lanes = [-1, -0.45, 0.45, 1];
+  let lane = lanes[Math.floor(Math.random()*lanes.length)];
+  if(rivals.length){
+    const last = rivals[rivals.length-1];
+    if(Math.abs(last.lane - lane) < 0.2) lane = lanes[(lanes.indexOf(lane)+1)%lanes.length];
+  }
+  rivals.push({
+    z: 0.12 + Math.random()*0.08,
+    lane,
+    color: BONUS_COLORS[Math.floor(Math.random()*BONUS_COLORS.length)],
+    passed:false,
+    scored:false
+  });
+}
+
+function playerLaneValue(){
+  if(!W) return 0;
+  return Math.max(-1, Math.min(1, playerX / (W * 0.26)));
+}
+
+function updateBonus(dt){
+  if(bonusKeys.left && !bonusKeys.right) bonusSteer = -1;
+  else if(bonusKeys.right && !bonusKeys.left) bonusSteer = 1;
+  targetX = bonusSteer * W * 0.28;
+
+  if(phase==="countdown"){
+    bonusCountT -= dt;
+    if(bonusCountT <= 0){
+      if(bonusCountN > 1){
+        bonusCountN -= 1;
+        bonusCountT = 1;
+        tone(520 + (3-bonusCountN)*80, 0.12, "square", 0.16);
+      } else if(bonusCountN === 1){
+        bonusCountN = 0;
+        bonusCountT = 0.7;
+        tone(780, 0.16, "triangle", 0.18);
+      } else {
+        phase = "play";
+        bonusLeft = BONUS_DURATION;
+        bonusInvuln = 1;
+        tone(980, 0.18, "triangle", 0.2);
+      }
+    }
+    updateHUD();
+    return;
+  }
+  if(phase!=="play" && phase!=="finish") return;
+
+  const hitstun = bonusHitstun > 0;
+  if(bonusHitstun > 0) bonusHitstun = Math.max(0, bonusHitstun - dt);
+  if(bonusInvuln > 0) bonusInvuln = Math.max(0, bonusInvuln - dt);
+
+  if(!hitstun){
+    bonusSpawn -= dt;
+    if(bonusSpawn <= 0 && phase==="play"){
+      spawnBonusCar();
+      const t = 1 - (bonusLeft / BONUS_DURATION);
+      bonusSpawn = Math.max(0.45, 1.15 - t*0.55) + Math.random()*0.25;
+    }
+    rivals.forEach(r => {
+      r.z += (0.28 + (1 - bonusLeft/BONUS_DURATION)*0.18) * dt * (phase==="finish" ? 1.25 : 1);
+    });
+    const pLane = playerLaneValue();
+    rivals.forEach(r => {
+      if(!r.scored && r.z >= 0.88){
+        const close = Math.abs(r.lane - pLane) < 0.5 && r.z < 1.05;
+        if(close && bonusInvuln <= 0 && phase==="play"){
+          r.scored = true;
+          r.passed = true;
+          crashShake = 12;
+          bonusHitstun = 0.7;
+          bonusInvuln = 1.6;
+          flash("bad");
+          spawnParticles(false);
+          sfxWrong();
+        } else if(r.z >= 0.96 && !r.passed){
+          r.passed = true;
+          r.scored = true;
+          bonusDodged += 1;
+          const gained = addRaceScore(BONUS_DODGE_PTS);
+          bonusScore += gained;
+          tone(660, 0.05, "sine", 0.12);
+        }
+      }
+    });
+    rivals = rivals.filter(r => r.z < 1.2);
+  }
+
+  if(phase==="play"){
+    bonusLeft = Math.max(0, bonusLeft - dt);
+    if(bonusLeft <= 0 || hitCap){
+      phase = "finish";
+      bonusLeft = 0;
+      bonusCountT = 0.9;
+      if(!hitCap){
+        const gained = addRaceScore(BONUS_CLEAR_PTS);
+        bonusScore += gained;
+        flash("ok");
+        sfxCorrect();
+      }
+      bonusInvuln = 2;
+    }
+  } else if(phase==="finish"){
+    bonusCountT -= dt;
+    if(bonusCountT <= 0){
+      bonusEnded = true;
+      endRace();
+      return;
+    }
+  }
+  updateHUD();
+}
+
+function drawBonusChrome(){
+  if(mode!=="bonus") return;
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.font = "bold "+Math.round(Math.min(W,H)*0.045)+"px sans-serif";
+  ctx.fillStyle = "rgba(15,23,42,.55)";
+  ctx.fillRect(W*0.2, 64, W*0.6, 46);
+  ctx.fillStyle = "#fde68a";
+  const sec = phase==="countdown" ? BONUS_DURATION : Math.ceil(Math.max(0, bonusLeft));
+  ctx.fillText("🎁 BONUS DODGE  "+sec+"s  ·  躲開 "+bonusDodged, W/2, 96);
+  if(phase==="countdown"){
+    const label = bonusCountN > 0 ? String(bonusCountN) : "GO!";
+    ctx.fillStyle = bonusCountN > 0 ? "#fbbf24" : "#34d399";
+    ctx.font = "bold "+Math.round(Math.min(W,H)*0.22)+"px sans-serif";
+    ctx.fillText(label, W/2, H*0.48);
+    ctx.fillStyle = "#ecfeff";
+    ctx.font = "bold "+Math.round(Math.min(W,H)*0.045)+"px sans-serif";
+    ctx.fillText(bonusCountN > 0 ? "Get ready…" : "Dodge!", W/2, H*0.58);
+  }
+  if(bonusInvuln > 0 && phase==="play"){
+    ctx.globalAlpha = 0.15 + 0.15*Math.sin(performance.now()/80);
+    ctx.fillStyle = "#ecfeff";
+    ctx.fillRect(0, H*0.7, W, 8);
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+}
+
+
 function endRace(){
   running=false; phase="done";
   document.getElementById("qBanner").classList.remove("show");
@@ -1271,11 +1539,17 @@ function endRace(){
   const pct = maxQ? Math.round((score/100)/maxQ*100) : 0; // each correct = 100
   const correctCount = correctThisRace;
   document.getElementById("playingAs").classList.remove("show");
+  hideBonusHint();
   let title = lives>0 && qIndex>=maxQ ? "🏆 Finish Line!" : "💥 Race Over";
+  if(bonusEnded && lives>0 && qIndex>=maxQ) title = "🏆 Finish Line + Bonus!";
   if(hitCap) title = "🏁 已達 100,000 分上限";
   document.getElementById("endTitle").textContent = title;
+  const bonusLine = bonusEnded
+    ? ("<br>🎁 Bonus: dodged <b>"+bonusDodged+"</b> cars · +<b>"+bonusScore+"</b> pts")
+    : "";
   document.getElementById("endStats").innerHTML =
     `${currentPlayer ? ("Player: <b>"+playerLabel(currentPlayer)+"</b><br>") : ""}Score <b>${score}</b> · Correct <b>${correctCount}</b>/${maxQ} · Lives left <b>${lives}</b>` +
+    bonusLine +
     (hitCap ? "<br>已達 100,000 分上限，先休息一下。<br>You've reached the 100,000 point cap." : "");
   const rep = document.getElementById("endReport");
   if(!wrongLog.length){
@@ -1336,6 +1610,7 @@ document.getElementById("btnChangeName").onclick = goNameSelect;
 document.getElementById("btnNotMe").onclick = goNameSelect;
 document.getElementById("btnMenu").onclick = ()=>{
   running=false; paused=false; stopBgm();
+  hideBonusHint();
   document.getElementById("playingAs").classList.remove("show");
   document.getElementById("hud").style.display="none";
   document.getElementById("qBanner").classList.remove("show");
@@ -1346,6 +1621,7 @@ document.getElementById("btnMenu").onclick = ()=>{
 };
 document.getElementById("btnQuit").onclick = ()=>{
   paused=false; running=false; stopBgm();
+  hideBonusHint();
   document.getElementById("playingAs").classList.remove("show");
   document.getElementById("hud").style.display="none";
   document.getElementById("qBanner").classList.remove("show");
@@ -1378,19 +1654,44 @@ document.getElementById("btn3").onclick = ()=>choose(3);
 
 addEventListener("keydown", e=>{
   if(e.key==="Escape" && running){ document.getElementById("btnPause").click(); return; }
-  if(paused || phase!=="question") return;
+  if(paused) return;
+  if(mode==="bonus"){
+    if(e.key==="ArrowLeft"||e.key==="a"||e.key==="A"){ bonusKeys.left=true; bonusSteer=-1; }
+    if(e.key==="ArrowRight"||e.key==="d"||e.key==="D"){ bonusKeys.right=true; bonusSteer=1; }
+    return;
+  }
+  if(phase!=="question") return;
   if(e.key==="1"||e.key==="a"||e.key==="A") choose(0);
   if(e.key==="2"||e.key==="s"||e.key==="S") choose(1);
   if(e.key==="3"||e.key==="d"||e.key==="D") choose(2);
   if(e.key==="4"||e.key==="f"||e.key==="F") choose(3);
 });
+addEventListener("keyup", e=>{
+  if(mode!=="bonus") return;
+  if(e.key==="ArrowLeft"||e.key==="a"||e.key==="A") bonusKeys.left=false;
+  if(e.key==="ArrowRight"||e.key==="d"||e.key==="D") bonusKeys.right=false;
+  if(!bonusKeys.left && !bonusKeys.right) bonusSteer = 0;
+});
 
-// tap canvas: 4 vertical quarters during question
+function bonusSteerFromEvent(e){
+  const x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+  bonusSteer = Math.max(-1, Math.min(1, (x / Math.max(1,W)) * 2 - 1));
+}
 canvas.addEventListener("pointerdown", e=>{
-  if(!running||paused||phase!=="question") return;
+  if(!running||paused) return;
+  if(mode==="bonus"){ bonusSteerFromEvent(e); return; }
+  if(phase!=="question") return;
   const x = e.clientX;
-  const i = Math.min(3, Math.max(0, Math.floor(x / (W/4))));
+  const n = (questions[qIndex] && questions[qIndex].choices) ? questions[qIndex].choices.length : 4;
+  const i = Math.min(n-1, Math.max(0, Math.floor(x / (W/n))));
   choose(i);
+});
+canvas.addEventListener("pointermove", e=>{
+  if(!running||paused||mode!=="bonus") return;
+  if(e.buttons || e.pointerType!=="mouse") bonusSteerFromEvent(e);
+});
+canvas.addEventListener("pointerup", e=>{
+  if(mode==="bonus" && !bonusKeys.left && !bonusKeys.right) bonusSteer = 0;
 });
 
 // ---------- Draw helpers ----------
@@ -1558,7 +1859,7 @@ function draw(){
   if(!running){
     ctx.fillStyle="rgba(94,234,212,.08)";
     ctx.font="bold 48px sans-serif"; ctx.textAlign="center";
-    ctx.fillText("CONNECTIVES", W/2, H*0.55);
+    ctx.fillText("MEAL TIME", W/2, H*0.55);
   }
 }
 
@@ -1569,15 +1870,15 @@ function loop(now){
 
   if(running && !paused){
     distance += speed*dt;
-    // smooth player x
     playerX += (targetX - playerX)*Math.min(1, dt*8);
 
-    // move rivals slowly forward/back relative
-    rivals.forEach(r=>{
-      r.z -= speed*dt*0.02;
-      if(r.z < 0.15) r.z = 0.15 + Math.random()*0.1;
-      if(r.z > 0.95) r.z = 0.9;
-    });
+    if(mode!=="bonus"){
+      rivals.forEach(r=>{
+        r.z -= speed*dt*0.02;
+        if(r.z < 0.15) r.z = 0.15 + Math.random()*0.1;
+        if(r.z > 0.95) r.z = 0.9;
+      });
+    }
 
     // update shelf z properly in drawShelfPosts — pass dt
     trees.forEach(t=>{ t.z += speed*dt*0.25; if(t.z>1.05){t.z-=1.05;t.side=Math.random()<0.5?-1:1;} });
@@ -1587,7 +1888,9 @@ function loop(now){
 
     if(crashShake>0) crashShake = Math.max(0, crashShake-dt*20);
 
-    if(phase==="question"){
+    if(mode==="bonus"){
+      updateBonus(dt);
+    } else if(phase==="question"){
       if(mode!=="practice"){
         timer -= dt;
         const pct = Math.max(0, timer/timerMax)*100;
@@ -1669,8 +1972,9 @@ function drawFrame(dt){
     drawCart(p.x,p.y,Math.max(0.4,p.scale*1.55),r.color,false);
   });
 
-  // player
-  drawCart(W/2+playerX, H*0.78, 1.85, "#14b8a6", true);
+  // player (blink during bonus invuln)
+  const blink = (mode==="bonus" && bonusInvuln>0 && Math.floor(performance.now()/100)%2===0);
+  if(!blink) drawCart(W/2+playerX, H*0.78, 1.85, "#14b8a6", true);
 
   particles.forEach(p=>{
     ctx.globalAlpha=Math.max(0,p.life);
@@ -1679,6 +1983,7 @@ function drawFrame(dt){
   });
   ctx.globalAlpha=1;
   ctx.restore();
+  drawBonusChrome();
 
   if(!running){
     // ambient idle animation
