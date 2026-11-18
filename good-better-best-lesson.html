@@ -85,8 +85,11 @@ section{padding:28px 0 8px;scroll-margin-top:64px}
 .sec-ico.coral{background:linear-gradient(135deg,var(--coral),var(--pink))}
 .sec-ico.gold{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
 .sec-ico.book{background:linear-gradient(135deg,var(--blue),var(--purple))}
-.sec-head h2{font-size:1.55rem;font-weight:900;line-height:1.2}
+.sec-head h2{font-size:1.55rem;font-weight:900;line-height:1.2;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sec-head .thumb{font-size:1.45em;line-height:1;filter:drop-shadow(0 2px 0 rgba(0,0,0,.06))}
 .sec-head .sub{color:var(--muted);font-size:.95rem;font-weight:600}
+.zh{display:inline-block;margin-left:6px;font-size:.88em;font-weight:700;color:var(--muted);white-space:nowrap}
+table.rules .zh{display:block;margin:4px 0 0;margin-left:0}
 .card{
   background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
   padding:22px;margin:14px 0;border:2px solid rgba(0,0,0,.035)
@@ -338,8 +341,8 @@ table.rules .hi{color:var(--blue);font-weight:800}
     <div class="sec-head">
       <div class="sec-ico blue">1</div>
       <div>
-        <h2 style="color:var(--blue)">Good</h2>
-        <div class="sub">Irregular: good → better / the best</div>
+        <h2 style="color:var(--blue)"><span class="thumb" aria-hidden="true">👍</span> Good</h2>
+        <div class="sub">Irregular: good（好）→ better（更好）→ the best（最好）</div>
       </div>
     </div>
     <div class="card">
@@ -348,12 +351,12 @@ table.rules .hi{color:var(--blue);font-weight:800}
       <table class="rules">
         <thead><tr><th>ADJECTIVE</th><th>COMPARATIVE (2 things)</th><th>SUPERLATIVE (3 or more)</th></tr></thead>
         <tbody>
-          <tr><td>good</td><td><span class="hi">better</span> than</td><td>the <span class="hi">best</span></td></tr>
+          <tr><td>good <span class="zh">好</span></td><td><span class="hi">better</span> than <span class="zh">更好</span></td><td>the <span class="hi">best</span> <span class="zh">最好</span></td></tr>
         </tbody>
       </table>
     </div>
     <div class="card" id="check1Card">
-      <h3>Check 1 · good, better, the best</h3>
+      <h3>Check 1 · good, better, the best <span class="zh">好、更好、最好</span></h3>
       <p class="muted" style="font-weight:700">5 questions · stories, drawings, books &amp; cakes</p>
       <div class="q-list" id="check1"></div>
       <div class="score-line">
@@ -367,8 +370,8 @@ table.rules .hi{color:var(--blue);font-weight:800}
     <div class="sec-head">
       <div class="sec-ico purple">2</div>
       <div>
-        <h2 style="color:var(--purple)">Bad · 2 or 3+?</h2>
-        <div class="sub">Irregular: bad → worse / the worst</div>
+        <h2 style="color:var(--purple)"><span class="thumb" aria-hidden="true">👎</span> Bad · 2 or 3+?</h2>
+        <div class="sub">Irregular: bad（壞／差）→ worse（更差）→ the worst（最差）</div>
       </div>
     </div>
     <div class="card">
@@ -377,7 +380,7 @@ table.rules .hi{color:var(--blue);font-weight:800}
       <table class="rules">
         <thead><tr><th>ADJECTIVE</th><th>COMPARATIVE (2 things)</th><th>SUPERLATIVE (3 or more)</th></tr></thead>
         <tbody>
-          <tr><td>bad</td><td><span class="hi">worse</span> than</td><td>the <span class="hi">worst</span></td></tr>
+          <tr><td>bad <span class="zh">壞／差</span></td><td><span class="hi">worse</span> than <span class="zh">更差</span></td><td>the <span class="hi">worst</span> <span class="zh">最差</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -391,7 +394,7 @@ table.rules .hi{color:var(--blue);font-weight:800}
       </div>
     </div>
     <div class="card" id="check2Card">
-      <h3>Check 2 · bad, worse, the worst</h3>
+      <h3>Check 2 · bad, worse, the worst <span class="zh">壞／差、更差、最差</span></h3>
       <p class="muted" style="font-weight:700">5 questions · days, weather, soup &amp; films</p>
       <div class="q-list" id="check2"></div>
       <div class="score-line">
