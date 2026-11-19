@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!-- Weather Whack P1 v=1 · How’s the Weather? · cache-bust ?v=1 -->
+<!-- Weather Whack P1 v=2 · moles carry weather cards · 60s / 1-minute race · streak speed-up every 3 hits · cache-bust ?v=2 -->
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1">
+<meta name="version" content="2">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#38bdf8">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -61,30 +61,43 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 .grid-wrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;width:100%}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:clamp(8px,1.6vw,16px);
   width:min(92vw,70vh,640px);aspect-ratio:1;max-height:100%}
-.hole{position:relative;border-radius:50%;background:radial-gradient(ellipse at 50% 40%,#78350f 0%,#431407 70%,#1c0a04 100%);
-  box-shadow:inset 0 10px 16px rgba(0,0,0,.45), 0 4px 0 #14532d;overflow:hidden;cursor:pointer}
-.mole{position:absolute;left:8%;right:8%;bottom:0;height:92%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
-  transform:translateY(110%);transition:transform .22s ease-out;pointer-events:none}
-.mole.up{transform:translateY(6%);pointer-events:auto}
-.mole .body{width:100%;height:100%;background:linear-gradient(180deg,#fffef8,#fde68a);border:4px solid #fff;border-bottom:none;
-  border-radius:22px 22px 10px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 4px 8px;
-  box-shadow:0 -4px 0 rgba(15,23,42,.12)}
-.mole .art{width:68%;height:62%;display:flex;align-items:center;justify-content:center}
+.hole{position:relative;border-radius:18px;background:transparent;overflow:hidden;cursor:pointer}
+.hole-pit{position:absolute;left:5%;right:5%;bottom:1%;height:32%;border-radius:50%;
+  background:radial-gradient(ellipse at 50% 40%,#78350f 0%,#431407 70%,#1c0a04 100%);
+  box-shadow:inset 0 10px 16px rgba(0,0,0,.45), 0 4px 0 #14532d;z-index:1;pointer-events:none}
+.hole-front{position:absolute;left:4%;right:4%;bottom:0;height:17%;border-radius:0 0 50% 50%;
+  background:radial-gradient(ellipse at 50% -20%,#78350f 0%,#431407 55%,#1c0a04 100%);
+  box-shadow:0 4px 0 #14532d;z-index:3;pointer-events:none}
+.mole{position:absolute;left:5%;right:5%;bottom:14%;height:92%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  transform:translateY(175%);transition:transform .22s ease-out;pointer-events:none;z-index:2}
+.mole.up{transform:translateY(0);pointer-events:auto}
+.mole .weather-card{width:88%;flex:0 0 auto;background:#fffef8;border:3px solid #fff;border-radius:16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px 4px 5px;position:relative;z-index:3;
+  box-shadow:0 3px 0 rgba(15,23,42,.14), 0 0 0 4px #f59e0b}
+.mole[data-weather="sunny"] .weather-card{box-shadow:0 3px 0 rgba(15,23,42,.14), 0 0 0 4px #f59e0b}
+.mole[data-weather="rainy"] .weather-card{box-shadow:0 3px 0 rgba(15,23,42,.14), 0 0 0 4px #0ea5e9}
+.mole[data-weather="cloudy"] .weather-card{box-shadow:0 3px 0 rgba(15,23,42,.14), 0 0 0 4px #64748b}
+.mole[data-weather="windy"] .weather-card{box-shadow:0 3px 0 rgba(15,23,42,.14), 0 0 0 4px #22c55e}
+.mole[data-weather="snowy"] .weather-card{box-shadow:0 3px 0 rgba(15,23,42,.14), 0 0 0 4px #38bdf8}
+.mole .art{width:78%;aspect-ratio:1;max-height:min(22vw,18vh,118px);display:flex;align-items:center;justify-content:center}
 .mole .art svg{width:100%;height:100%;overflow:visible}
-.mole .word{font-weight:900;font-size:clamp(.85rem,2.8vw,1.25rem);line-height:1;color:#0f172a;text-transform:lowercase}
-.mole.ok .body{background:linear-gradient(180deg,#dcfce7,#86efac);outline:4px solid #22c55e}
+.mole .word{font-weight:900;font-size:clamp(.85rem,2.6vw,1.2rem);line-height:1.05;color:#0f172a;text-transform:lowercase;margin-top:1px}
+.mole .critter{width:100%;height:42%;flex:0 0 42%;margin-top:-14%;z-index:2;pointer-events:none}
+.mole .critter svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 2px 0 rgba(15,23,42,.18))}
+.mole.ok .weather-card{background:linear-gradient(180deg,#dcfce7,#86efac);outline:4px solid #22c55e}
 .mole.bad{animation:shake .35s ease}
-.mole.bad .body{background:linear-gradient(180deg,#fee2e2,#fca5a5)}
+.mole.bad .weather-card{background:linear-gradient(180deg,#fee2e2,#fca5a5)}
 @keyframes shake{
-  0%,100%{transform:translateY(6%) translateX(0)}
-  20%{transform:translateY(6%) translateX(-8px)}
-  40%{transform:translateY(6%) translateX(8px)}
-  60%{transform:translateY(6%) translateX(-6px)}
-  80%{transform:translateY(6%) translateX(6px)}
+  0%,100%{transform:translateY(0) translateX(0)}
+  20%{transform:translateY(0) translateX(-8px)}
+  40%{transform:translateY(0) translateX(8px)}
+  60%{transform:translateY(0) translateX(-6px)}
+  80%{transform:translateY(0) translateX(6px)}
 }
 .pop{position:fixed;left:50%;top:28%;transform:translate(-50%,-50%);z-index:6;pointer-events:none;
   font-weight:900;font-size:clamp(1.4rem,4vw,2rem);color:#166534;text-shadow:0 2px 0 #fff;opacity:0}
 .pop.show{animation:popfloat .7s ease forwards}
+.pop.faster{color:#c2410c}
 @keyframes popfloat{0%{opacity:0;transform:translate(-50%,-20%)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-80%)}}
 .controls-bar{position:fixed;bottom:14px;right:14px;z-index:8;display:flex;gap:8px}
 .icon-btn{width:48px;height:48px;border-radius:14px;border:3px solid #0284c766;background:rgba(255,255,255,.92);color:#0369a1;font-size:1.25rem;cursor:pointer}
@@ -101,6 +114,9 @@ body{min-height:100dvh;display:flex;flex-direction:column;
   .grid-wrap{width:auto;flex:1;min-width:0}
   .grid{width:min(54vw,74vh,480px)}
   .controls-bar{bottom:10px;right:8px}
+  .mole .art{max-height:min(16vw,20vh,88px)}
+  .mole .word{font-size:clamp(.75rem,2.2vh,1rem)}
+  .mole .critter{height:38%;flex-basis:38%}
 }
 @media (max-width:520px){
   .prompt .icon{width:56px;height:56px}
@@ -114,7 +130,7 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 <div class="hud" id="hud">
   <div class="stat" id="hudMode">PRACTICE</div>
   <div class="stat score" id="hudScore" hidden>⭐ 0</div>
-  <div class="stat timer" id="hudTimer" hidden>⏱️ 45</div>
+  <div class="stat timer" id="hudTimer" hidden>⏱️ 60</div>
   <div class="stat" id="hudHits">0 / 8</div>
 </div>
 
@@ -140,10 +156,10 @@ body{min-height:100dvh;display:flex;flex-direction:column;
     <p>Hit the weather that matches the sentence!<br>sunny / rainy / cloudy / windy / snowy</p>
     <div class="howto">
       <ul>
-        <li>睇上方提示（圖或句子），打中對應天氣的地鼠。</li>
+        <li>睇上方提示（圖或句子），打中地鼠頭上／身上頂著的天氣圖卡。</li>
         <li>打錯會震動，唔扣分；正確地鼠若躲起，會再冒出來。</li>
         <li><b>練習 Practice</b>：較慢、不計時、不計分，打中 8 次後可比賽。</li>
-        <li><b>比賽 Race</b>：45 秒，打中正確天氣 +10。無需輸入姓名。</li>
+        <li><b>比賽 Race</b>：1 分鐘（60 秒），打中正確天氣 +10。每當連對 3 題，地鼠會加快出現，並增加同時出現的地鼠數量。無需輸入姓名。</li>
         <li>投影或平板均可；直向或橫向都可以玩。</li>
       </ul>
     </div>
@@ -156,7 +172,7 @@ body{min-height:100dvh;display:flex;flex-direction:column;
   <div class="panel">
     <h1>🏁 START RACE</h1>
     <p class="kicker">準備好比賽了嗎？</p>
-    <p>練習完成！而家比賽 <b>45 秒</b> · 打中正確天氣 <b>+10</b>。<br>Practice finished. Race: 45 seconds · +10 each hit.</p>
+    <p>練習完成！而家比賽 <b>1 分鐘</b>（60 秒）· 打中正確天氣 <b>+10</b>。<br>連對 3 題會加速，並增加同時出現的地鼠。<br>Practice finished. Race: 1 minute (60 seconds) · +10 each hit.</p>
     <button class="btn btn-go" id="btnStartRace">START RACE ▶</button>
     <button class="btn btn-ghost" id="btnReadyMenu">Main menu 主畫面</button>
   </div>
@@ -179,8 +195,13 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 
 const WEATHERS = ["sunny","rainy","cloudy","windy","snowy"];
 const PRACTICE_HITS = 8;
-const RACE_TIME = 45;
+const RACE_TIME = 60; // 1-minute race
 const HIT_POINTS = 10;
+const STREAK_STEP = 3; // every 3 correct in a row: faster spawn + more moles
+const MAX_RACE_MOLES = 5;
+const MAX_PRACTICE_MOLES = 3;
+const MAX_RACE_LEVEL = 3;
+const MAX_PRACTICE_LEVEL = 2;
 
 let muted = true;
 let mode = "practice";
@@ -190,7 +211,7 @@ let promptKind = "both";
 let queue = [];
 let hits = 0;
 let score = 0;
-let combo = 0;
+let streak = 0;
 let timeLeft = RACE_TIME;
 let moles = [];
 let spawnTimer = null;
@@ -210,6 +231,25 @@ function shuffle(arr){
     const t=a[i]; a[i]=a[j]; a[j]=t;
   }
   return a;
+}
+
+function streakLevel(){
+  const cap = mode==="practice" ? MAX_PRACTICE_LEVEL : MAX_RACE_LEVEL;
+  return Math.min(cap, Math.floor(streak / STREAK_STEP));
+}
+function maxMolesNow(){
+  const cap = mode==="practice" ? MAX_PRACTICE_MOLES : MAX_RACE_MOLES;
+  return Math.min(cap, 2 + streakLevel());
+}
+function upTimeNow(){
+  const lv = streakLevel();
+  if(mode==="practice") return Math.max(2000, 2800 - lv * 250);
+  return Math.max(900, 1600 - lv * 200);
+}
+function spawnDelayNow(){
+  const lv = streakLevel();
+  if(mode==="practice") return Math.max(280, 420 - lv * 50);
+  return Math.max(180, 400 - lv * 70);
 }
 
 function weatherSVG(kind){
@@ -271,6 +311,32 @@ function flake(x,y){
     '</g>';
 }
 
+function moleSVG(){
+  return '<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+    '<ellipse cx="100" cy="122" rx="48" ry="14" fill="#5c3a16" opacity=".35"/>'+
+    '<ellipse cx="48" cy="46" rx="16" ry="20" fill="#6b3f16" stroke="#3f2a10" stroke-width="2"/>'+
+    '<ellipse cx="152" cy="46" rx="16" ry="20" fill="#6b3f16" stroke="#3f2a10" stroke-width="2"/>'+
+    '<ellipse cx="48" cy="50" rx="7" ry="10" fill="#f5c6b8"/>'+
+    '<ellipse cx="152" cy="50" rx="7" ry="10" fill="#f5c6b8"/>'+
+    '<ellipse cx="100" cy="86" rx="66" ry="46" fill="#8b5a2b"/>'+
+    '<ellipse cx="100" cy="94" rx="52" ry="34" fill="#b45309"/>'+
+    '<ellipse cx="28" cy="22" rx="20" ry="14" fill="#e8c4a8" stroke="#92400e" stroke-width="2"/>'+
+    '<ellipse cx="172" cy="22" rx="20" ry="14" fill="#e8c4a8" stroke="#92400e" stroke-width="2"/>'+
+    '<path d="M18 16c0-6 6-8 8-2M28 12c2-6 8-6 8 1M38 16c2-5 8-4 7 2" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round"/>'+
+    '<path d="M162 16c0-6 6-8 8-2M172 12c2-6 8-6 8 1M182 16c2-5 8-4 7 2" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round"/>'+
+    '<ellipse cx="76" cy="78" rx="13" ry="15" fill="#fff"/>'+
+    '<ellipse cx="124" cy="78" rx="13" ry="15" fill="#fff"/>'+
+    '<circle cx="78" cy="82" r="6.5" fill="#1c1917"/>'+
+    '<circle cx="126" cy="82" r="6.5" fill="#1c1917"/>'+
+    '<circle cx="81" cy="79" r="2.2" fill="#fff"/>'+
+    '<circle cx="129" cy="79" r="2.2" fill="#fff"/>'+
+    '<ellipse cx="100" cy="100" rx="24" ry="16" fill="#f5c6b8"/>'+
+    '<ellipse cx="93" cy="98" rx="3.2" ry="2.6" fill="#7c2d12"/>'+
+    '<ellipse cx="107" cy="98" rx="3.2" ry="2.6" fill="#7c2d12"/>'+
+    '<path d="M90 110c7 7 13 7 20 0" fill="none" stroke="#7c2d12" stroke-width="3" stroke-linecap="round"/>'+
+    '</svg>';
+}
+
 function buildGrid(){
   const grid = $("grid");
   grid.innerHTML = "";
@@ -279,10 +345,16 @@ function buildGrid(){
     const hole = document.createElement("div");
     hole.className = "hole";
     hole.dataset.hole = String(i);
+    const pit = document.createElement("div");
+    pit.className = "hole-pit";
     const mole = document.createElement("div");
     mole.className = "mole";
-    mole.innerHTML = '<div class="body"><div class="art"></div><div class="word"></div></div>';
+    mole.innerHTML = '<div class="weather-card"><div class="art"></div><div class="word"></div></div><div class="critter">'+moleSVG()+'</div>';
+    const front = document.createElement("div");
+    front.className = "hole-front";
     hole.appendChild(mole);
+    hole.appendChild(pit);
+    hole.appendChild(front);
     hole.addEventListener("pointerdown", function(e){ e.preventDefault(); onHit(i); });
     grid.appendChild(hole);
     moles.push({el:mole, weather:null, up:false, hideTimer:null});
@@ -375,8 +447,13 @@ function hideMole(i, reason){
   m.up = false;
   m.el.classList.remove("up","ok","bad");
   m.weather = null;
+  m.el.removeAttribute("data-weather");
+  const art = m.el.querySelector(".art");
+  const word = m.el.querySelector(".word");
+  if(art) art.innerHTML = "";
+  if(word) word.textContent = "";
   if(reason==="timeout" && wasTarget && running && !lock){
-    spawnTimer = setTimeout(function(){ if(running && !lock) spawnWave(); }, 280);
+    spawnTimer = setTimeout(function(){ if(running && !lock) spawnWave(); }, spawnDelayNow());
   }
 }
 function showMole(i, weather, upTime){
@@ -384,6 +461,7 @@ function showMole(i, weather, upTime){
   clearHide(i);
   m.weather = weather;
   m.up = true;
+  m.el.dataset.weather = weather;
   m.el.classList.remove("ok","bad");
   m.el.querySelector(".art").innerHTML = weatherSVG(weather);
   m.el.querySelector(".word").textContent = weather;
@@ -397,6 +475,11 @@ function clearAllMoles(){
     clearHide(i);
     m.up=false; m.weather=null;
     m.el.classList.remove("up","ok","bad");
+    m.el.removeAttribute("data-weather");
+    const art = m.el.querySelector(".art");
+    const word = m.el.querySelector(".word");
+    if(art) art.innerHTML = "";
+    if(word) word.textContent = "";
   });
 }
 function emptyHoles(){
@@ -415,14 +498,13 @@ function spawnWave(){
     spawnTimer = setTimeout(function(){ if(running && !lock) spawnWave(); }, 200);
     return;
   }
-  const count = mode==="practice" ? 2 : (Math.random()<0.45 ? 3 : 2);
-  const n = Math.min(count, holes.length);
+  const n = Math.min(maxMolesNow(), holes.length);
   const used = holes.slice(0, n);
   const others = shuffle(WEATHERS.filter(function(w){ return w!==target; }));
   const list = [target];
-  for(let i=1;i<n;i++) list.push(others[i-1]);
+  for(let i=1;i<n;i++) list.push(others[(i-1) % others.length]);
   const mixed = shuffle(list);
-  const upTime = mode==="practice" ? 2800 : 1500;
+  const upTime = upTimeNow();
   used.forEach(function(h,i){ showMole(h, mixed[i], upTime); });
 }
 
@@ -431,14 +513,15 @@ function flash(ok){
   el.className = "flash "+(ok?"ok":"bad");
   setTimeout(function(){ el.className="flash"; }, 200);
 }
-function cheer(msg){
+function cheer(msg, faster){
   const el=$("pop");
   el.textContent = msg;
-  el.classList.remove("show");
+  el.classList.remove("show","faster");
   void el.offsetWidth;
+  if(faster) el.classList.add("faster");
   el.classList.add("show");
   if(popTimer) clearTimeout(popTimer);
-  popTimer = setTimeout(function(){ el.classList.remove("show"); }, 700);
+  popTimer = setTimeout(function(){ el.classList.remove("show","faster"); }, 700);
 }
 
 function updateHud(){
@@ -469,17 +552,19 @@ function onHit(i){
     setTimeout(function(){ m.el.classList.remove("bad"); }, 360);
     beep(180, 0.16, "square");
     flash(false);
-    combo = 0;
+    streak = 0;
     return;
   }
   lock = true;
   clearHide(i);
   m.el.classList.add("ok");
-  beep(680, 0.12, "sine");
+  const prevLevel = streakLevel();
+  streak++;
+  const leveled = streakLevel() > prevLevel;
+  beep(leveled ? 820 : 680, leveled ? 0.16 : 0.12, "sine");
   flash(true);
-  combo++;
-  const phrase = combo>=3 ? "Great! It’s "+target+"!" : "It’s "+target+"!";
-  cheer(phrase);
+  if(leveled) cheer("Faster!", true);
+  else cheer(streak>=3 ? "Great! It’s "+target+"!" : "It’s "+target+"!");
   if(mode==="practice"){
     hits++;
     updateHud();
@@ -525,7 +610,7 @@ function stopTimers(){
 
 function startPractice(){
   stopTimers();
-  mode="practice"; hits=0; score=0; combo=0; queue=[]; target="";
+  mode="practice"; hits=0; score=0; streak=0; queue=[]; target="";
   hide($("overlayStart")); hide($("overlayReady")); hide($("overlayEnd"));
   $("hud").classList.add("show");
   $("play").classList.add("show");
@@ -535,7 +620,7 @@ function startPractice(){
 }
 function startRace(){
   stopTimers();
-  mode="race"; hits=0; score=0; combo=0; queue=[]; target=""; timeLeft=RACE_TIME;
+  mode="race"; hits=0; score=0; streak=0; queue=[]; target=""; timeLeft=RACE_TIME;
   hide($("overlayStart")); hide($("overlayReady")); hide($("overlayEnd"));
   $("hud").classList.add("show");
   $("play").classList.add("show");
@@ -566,7 +651,7 @@ function finishRace(){
   else if(hitsN < 12) title = "Well done!";
   $("endTitle").textContent = title;
   $("endScore").textContent = score;
-  $("endDetail").textContent = "You hit "+hitsN+" correct weather"+(hitsN===1?"":"s")+" in 45 seconds!";
+  $("endDetail").textContent = "You hit "+hitsN+" correct weather"+(hitsN===1?"":"s")+" in 60 seconds!";
   show($("overlayEnd"));
 }
 function goMenu(){
