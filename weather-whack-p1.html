@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!-- Weather Whack P1 v=2 · moles carry weather cards · 60s / 1-minute race · streak speed-up every 3 hits · cache-bust ?v=2 -->
+<!-- Weather Whack P1 v=3 · hit reactions · Stage 2 picture-word match · two 1-minute races · cache-bust ?v=3 -->
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="2">
+<meta name="version" content="3">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#38bdf8">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,7 +20,7 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;padding:16px;overflow:auto}
 .overlay.hidden{display:none}
 .panel{
-  max-width:620px;width:100%;background:linear-gradient(180deg,#fffef8,#fff7ed);
+  max-width:640px;width:100%;background:linear-gradient(180deg,#fffef8,#fff7ed);
   border:5px solid #fff;border-radius:28px;padding:26px 22px;text-align:center;
   box-shadow:0 0 0 6px #f97316, 0 0 0 11px #eab308, 0 0 0 16px #22c55e, 0 0 0 21px #3b82f6, 0 0 0 26px #8b5cf6,
     0 18px 50px rgba(15,23,42,.28);margin:24px auto
@@ -31,7 +31,18 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 .panel p{color:#334155;font-size:clamp(.95rem,2.3vw,1.12rem);margin:8px 0 14px;line-height:1.55}
 .panel p b{color:#0f172a}
 .howto{text-align:left;background:#fff;border:2px solid #7dd3fc;border-radius:18px;padding:12px 14px;margin:10px 0 16px}
-.howto li{margin:6px 0;font-weight:700;color:#334155;font-size:clamp(.9rem,2.2vw,1.02rem);line-height:1.45}
+.howto li{margin:6px 0;font-weight:700;color:#334155;font-size:clamp(.88rem,2.15vw,1.02rem);line-height:1.45}
+.rule-banner{background:#dcfce7;border:3px solid #16a34a;border-radius:18px;padding:12px 14px;margin:10px 0 14px;
+  font-weight:900;font-size:clamp(1.05rem,2.8vw,1.35rem);color:#14532d;line-height:1.4}
+.demo-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin:8px 0 14px}
+.demo-card{width:140px;background:#fff;border-radius:16px;padding:8px 8px 10px;box-shadow:0 0 0 4px #22c55e,0 4px 0 rgba(15,23,42,.12)}
+.demo-card.bad{box-shadow:0 0 0 4px #ef4444,0 4px 0 rgba(15,23,42,.12)}
+.demo-card .art{width:88px;height:88px;margin:0 auto}
+.demo-card .art svg{width:100%;height:100%}
+.demo-card .word{font-weight:900;font-size:1.15rem;margin-top:2px}
+.demo-card .tag{font-weight:900;margin-top:6px;font-size:.95rem}
+.demo-card .tag.ok{color:#15803d}
+.demo-card .tag.no{color:#b91c1c}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:16px 32px;margin:6px;border:none;border-radius:999px;
   font-weight:900;font-size:clamp(1.05rem,2.8vw,1.3rem);cursor:pointer;font-family:inherit;
   background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;box-shadow:0 6px 20px rgba(239,68,68,.35);transition:transform .15s}
@@ -45,6 +56,7 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 .hud .stat{background:rgba(255,255,255,.94);border:2px solid #0284c755;border-radius:14px;padding:8px 14px;font-weight:800;
   font-size:clamp(1.05rem,2.8vw,1.35rem);color:#0f172a}
 .hud .stat.score{background:#fef08a;border-color:#eab308;font-size:clamp(1.15rem,3vw,1.5rem)}
+.hud .stat.score.drop{background:#fee2e2;border-color:#ef4444;color:#b91c1c}
 .hud .stat.timer{min-width:4.6rem;text-align:center}
 .hud .stat.timer.warn{background:#ef4444;color:#fff;border-color:#b91c1c;animation:tick .5s ease infinite alternate}
 @keyframes tick{from{transform:scale(1)}to{transform:scale(1.06)}}
@@ -53,15 +65,18 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 .prompt{width:min(920px,100%);background:rgba(255,254,248,.96);border:4px solid #0284c7;border-radius:22px;padding:8px 12px;
   display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;flex-shrink:0;
   box-shadow:0 8px 24px rgba(15,23,42,.18);text-align:center}
+.prompt.rule{border-color:#16a34a;background:rgba(240,253,244,.96)}
 .prompt .icon{width:72px;height:72px;flex:0 0 auto}
 .prompt .icon svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 3px 0 rgba(15,23,42,.12))}
 .prompt .sent{font-size:clamp(1.45rem,4.6vw,2.2rem);font-weight:900;color:#0f172a;line-height:1.2}
+.prompt.rule .sent{font-size:clamp(1.12rem,3.2vw,1.7rem);color:#14532d}
 .speak-btn{border:3px solid #0284c766;background:#fff;color:#0369a1;border-radius:999px;padding:6px 12px;font-weight:800;
   font-size:.95rem;cursor:pointer;font-family:inherit}
 .grid-wrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;width:100%}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:clamp(8px,1.6vw,16px);
   width:min(92vw,70vh,640px);aspect-ratio:1;max-height:100%}
 .hole{position:relative;border-radius:18px;background:transparent;overflow:hidden;cursor:pointer}
+.hole.reacting{overflow:visible;z-index:6}
 .hole-pit{position:absolute;left:5%;right:5%;bottom:1%;height:32%;border-radius:50%;
   background:radial-gradient(ellipse at 50% 40%,#78350f 0%,#431407 70%,#1c0a04 100%);
   box-shadow:inset 0 10px 16px rgba(0,0,0,.45), 0 4px 0 #14532d;z-index:1;pointer-events:none}
@@ -84,33 +99,83 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 .mole .word{font-weight:900;font-size:clamp(.85rem,2.6vw,1.2rem);line-height:1.05;color:#0f172a;text-transform:lowercase;margin-top:1px}
 .mole .critter{width:100%;height:42%;flex:0 0 42%;margin-top:-14%;z-index:2;pointer-events:none}
 .mole .critter svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 2px 0 rgba(15,23,42,.18))}
+.mole .fx{position:absolute;inset:0;pointer-events:none;z-index:6;overflow:visible}
 .mole.ok .weather-card{background:linear-gradient(180deg,#dcfce7,#86efac);outline:4px solid #22c55e}
-.mole.bad{animation:shake .35s ease}
+.mole.bad{animation:shake .4s ease}
 .mole.bad .weather-card{background:linear-gradient(180deg,#fee2e2,#fca5a5)}
 @keyframes shake{
   0%,100%{transform:translateY(0) translateX(0)}
-  20%{transform:translateY(0) translateX(-8px)}
-  40%{transform:translateY(0) translateX(8px)}
-  60%{transform:translateY(0) translateX(-6px)}
-  80%{transform:translateY(0) translateX(6px)}
+  20%{transform:translateY(0) translateX(-10px)}
+  40%{transform:translateY(0) translateX(10px)}
+  60%{transform:translateY(0) translateX(-7px)}
+  80%{transform:translateY(0) translateX(7px)}
 }
-.pop{position:fixed;left:50%;top:28%;transform:translate(-50%,-50%);z-index:6;pointer-events:none;
-  font-weight:900;font-size:clamp(1.4rem,4vw,2rem);color:#166534;text-shadow:0 2px 0 #fff;opacity:0}
-.pop.show{animation:popfloat .7s ease forwards}
+.mole.hit-stars,.mole.hit-spin,.mole.hit-fly,.mole.hit-dizzy{transition:none;pointer-events:none}
+.mole.hit-stars{animation:hit-stars .56s ease-in forwards}
+.mole.hit-spin{animation:hit-spin .56s ease-in forwards}
+.mole.hit-fly{animation:hit-fly .56s ease-in forwards}
+.mole.hit-dizzy{animation:hit-dizzy .56s ease-in-out forwards}
+@keyframes hit-stars{
+  0%{transform:translateY(0) scale(1)}
+  25%{transform:translateY(-22%) scale(1.14)}
+  50%{transform:translateY(4%) scale(.96)}
+  70%{transform:translateY(-14%) scale(1.06)}
+  100%{transform:translateY(120%) scale(.55);opacity:0}
+}
+@keyframes hit-spin{
+  0%{transform:translateY(0) rotate(0) scale(1)}
+  55%{transform:translateY(-16%) rotate(420deg) scale(1.08)}
+  100%{transform:translateY(30%) rotate(540deg) scale(.2);opacity:0}
+}
+@keyframes hit-fly{
+  0%{transform:translateY(0) rotate(0) scale(1)}
+  35%{transform:translateY(-55%) rotate(-14deg) scale(1.12)}
+  100%{transform:translateY(-165%) rotate(22deg) scale(.55);opacity:0}
+}
+@keyframes hit-dizzy{
+  0%{transform:translateY(0) rotate(0)}
+  18%{transform:translateY(-12%) rotate(-14deg)}
+  36%{transform:translateY(-2%) rotate(14deg)}
+  54%{transform:translateY(-14%) rotate(-12deg)}
+  72%{transform:translateY(-4%) rotate(10deg)}
+  100%{transform:translateY(120%) rotate(0);opacity:0}
+}
+.fx .star{position:absolute;font-size:clamp(1.15rem,3.2vw,1.7rem);line-height:1;animation:star-pop .56s ease-out forwards;
+  text-shadow:0 1px 0 #fff;filter:drop-shadow(0 2px 0 rgba(15,23,42,.12))}
+@keyframes star-pop{
+  0%{transform:translate(0,0) scale(.4) rotate(0);opacity:0}
+  25%{opacity:1}
+  100%{transform:translate(var(--dx),var(--dy)) scale(1.15) rotate(80deg);opacity:0}
+}
+.fx .xmark{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);font-size:clamp(2.4rem,8vw,3.6rem);font-weight:900;
+  color:#dc2626;text-shadow:0 3px 0 #fff,0 0 8px #fff;animation:x-pop .35s ease;line-height:1}
+@keyframes x-pop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}70%{transform:translate(-50%,-50%) scale(1.15)}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+.fx .dizzy-eyes{position:absolute;left:18%;right:18%;top:58%;height:22%;animation:eyes-wobble .56s ease-in-out}
+.fx .dizzy-eyes svg{width:100%;height:100%;overflow:visible}
+@keyframes eyes-wobble{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+.pop{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%);z-index:8;pointer-events:none;
+  font-weight:900;font-size:clamp(1.2rem,3.4vw,1.75rem);color:#166534;text-shadow:none;opacity:0;text-align:center;max-width:90%;
+  background:rgba(255,254,248,.94);border-radius:999px;padding:6px 18px;box-shadow:0 2px 0 rgba(15,23,42,.12)}
+.pop.show{animation:popfloat .75s ease forwards}
 .pop.faster{color:#c2410c}
+.pop.oops{color:#b91c1c}
 @keyframes popfloat{0%{opacity:0;transform:translate(-50%,-20%)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-80%)}}
 .controls-bar{position:fixed;bottom:14px;right:14px;z-index:8;display:flex;gap:8px}
 .icon-btn{width:48px;height:48px;border-radius:14px;border:3px solid #0284c766;background:rgba(255,255,255,.92);color:#0369a1;font-size:1.25rem;cursor:pointer}
 .end-score{font-size:clamp(2rem,8vw,3.2rem);font-weight:900;color:#0369a1}
+.end-break{display:flex;flex-direction:column;gap:6px;background:#fff;border:2px solid #7dd3fc;border-radius:16px;padding:12px 16px;margin:8px auto 14px;max-width:360px;text-align:left}
+.end-break div{font-weight:800;color:#334155;font-size:clamp(1rem,2.5vw,1.2rem);display:flex;justify-content:space-between;gap:12px}
+.end-break div.total{color:#0f172a;border-top:2px dashed #bae6fd;padding-top:8px;margin-top:2px;font-size:clamp(1.1rem,2.8vw,1.35rem)}
 .flash{position:fixed;inset:0;pointer-events:none;z-index:7;opacity:0;transition:opacity .15s}
 .flash.ok{background:rgba(74,222,128,.22);opacity:1}
 .flash.bad{background:rgba(248,113,113,.22);opacity:1}
 @media (orientation:landscape) and (max-height:520px){
   .play{padding-top:52px;padding-right:58px;padding-bottom:8px;flex-direction:row;flex-wrap:wrap;align-items:stretch;gap:8px}
   .hud{padding:6px 10px}
-  .prompt{width:34%;max-width:340px;flex-direction:column;padding:8px}
+  .prompt{width:34%;max-width:360px;flex-direction:column;padding:8px}
   .prompt .icon{width:64px;height:64px}
   .prompt .sent{font-size:clamp(1.2rem,4vh,1.8rem)}
+  .prompt.rule .sent{font-size:clamp(1rem,3.4vh,1.35rem)}
   .grid-wrap{width:auto;flex:1;min-width:0}
   .grid{width:min(54vw,74vh,480px)}
   .controls-bar{bottom:10px;right:8px}
@@ -152,15 +217,15 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 <div class="overlay" id="overlayStart">
   <div class="panel">
     <h1>🌤️ Weather Whack</h1>
-    <p class="kicker">How’s the Weather? · P1</p>
-    <p>Hit the weather that matches the sentence!<br>sunny / rainy / cloudy / windy / snowy</p>
+    <p class="kicker">How’s the Weather? · P1 · 兩關</p>
+    <p>Hit the weather that matches!<br>sunny / rainy / cloudy / windy / snowy</p>
     <div class="howto">
       <ul>
-        <li>睇上方提示（圖或句子），打中地鼠頭上／身上頂著的天氣圖卡。</li>
-        <li>打錯會震動，唔扣分；正確地鼠若躲起，會再冒出來。</li>
-        <li><b>練習 Practice</b>：較慢、不計時、不計分，打中 8 次後可比賽。</li>
-        <li><b>比賽 Race</b>：1 分鐘（60 秒），打中正確天氣 +10。每當連對 3 題，地鼠會加快出現，並增加同時出現的地鼠數量。無需輸入姓名。</li>
-        <li>投影或平板均可；直向或橫向都可以玩。</li>
+        <li>比賽有<b>兩關</b>，每關 <b>1 分鐘</b>。地鼠頭上／身上頂著天氣圖卡。</li>
+        <li><b>練習 Practice</b>：練習第一關。較慢、不計時、不計分，打中 8 次後可比賽。</li>
+        <li><b>第一關</b>：睇上方提示（圖或句子，例如 It’s rainy.），打中對應天氣的地鼠。打中 +10。打錯會震動，第一關唔扣分。</li>
+        <li><b>第二關</b>：只打「圖和字相同」的地鼠。如果圖是太陽、字是 rainy，就不要打。打中相同 +10，打錯 −10（分數不會低過 0）。</li>
+        <li>每當連對 3 題，地鼠會加快出現，並增加同時出現的地鼠數量。無需輸入姓名。投影或平板均可。</li>
       </ul>
     </div>
     <button class="btn btn-go" id="btnPractice">START PRACTICE ▶</button>
@@ -170,11 +235,29 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 
 <div class="overlay hidden" id="overlayReady">
   <div class="panel">
-    <h1>🏁 START RACE</h1>
-    <p class="kicker">準備好比賽了嗎？</p>
-    <p>練習完成！而家比賽 <b>1 分鐘</b>（60 秒）· 打中正確天氣 <b>+10</b>。<br>連對 3 題會加速，並增加同時出現的地鼠。<br>Practice finished. Race: 1 minute (60 seconds) · +10 each hit.</p>
-    <button class="btn btn-go" id="btnStartRace">START RACE ▶</button>
+    <h1>🏁 第一關 START</h1>
+    <p class="kicker">Stage 1 · 準備好了嗎？</p>
+    <p>練習完成！而家進入<b>第一關</b>：<b>1 分鐘</b>，打中提示的天氣 <b>+10</b>。<br>
+    連對 3 題會加速，並增加同時出現的地鼠。<br>
+    Practice finished. Stage 1: 1 minute (60 seconds) · +10 each hit.</p>
+    <button class="btn btn-go" id="btnStartRace">START 第一關 ▶</button>
     <button class="btn btn-ghost" id="btnReadyMenu">Main menu 主畫面</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayStage2">
+  <div class="panel">
+    <h1>🎯 第二關 Stage 2</h1>
+    <p class="kicker" id="stage2Prior">第一關完成！</p>
+    <div class="rule-banner">Hit only if the picture and the word are the same!<br>只打圖和字相同的地鼠！</div>
+    <div class="demo-row">
+      <div class="demo-card" id="demoOk"><div class="art"></div><div class="word">sunny</div><div class="tag ok">✓ 相同 Same</div></div>
+      <div class="demo-card bad" id="demoBad"><div class="art"></div><div class="word">rainy</div><div class="tag no">✖ 不相同 Different</div></div>
+    </div>
+    <p>有些地鼠的<b>圖和字不相同</b>，那些不要打。<br>打中相同的 +10，打錯 −10（不會低過 0）。第二關也是 <b>1 分鐘</b>。<br>
+    連對 3 題同樣會加快、增加地鼠。</p>
+    <button class="btn btn-go" id="btnStartStage2">START 第二關 ▶</button>
+    <button class="btn btn-ghost" id="btnStage2Results">See results 查看成績</button>
   </div>
 </div>
 
@@ -182,6 +265,11 @@ body{min-height:100dvh;display:flex;flex-direction:column;
   <div class="panel">
     <h1 id="endTitle">🌈 Super!</h1>
     <p class="end-score" id="endScore">0</p>
+    <div class="end-break" id="endBreakdown">
+      <div>第一關 Stage 1 <b id="endS1">0</b></div>
+      <div>第二關 Stage 2 <b id="endS2">0</b></div>
+      <div class="total">合計 Total <b id="endTotal">0</b></div>
+    </div>
     <p id="endDetail"></p>
     <button class="btn btn-go" id="btnAgain">Play again 再玩 🔄</button>
     <button class="btn btn-ghost" id="btnBackPractice">Back to practice 返回練習</button>
@@ -195,22 +283,28 @@ body{min-height:100dvh;display:flex;flex-direction:column;
 
 const WEATHERS = ["sunny","rainy","cloudy","windy","snowy"];
 const PRACTICE_HITS = 8;
-const RACE_TIME = 60; // 1-minute race
+const RACE_TIME = 60; // 1-minute race per stage
 const HIT_POINTS = 10;
+const MISS_PENALTY = 10; // Stage 2 mismatch only, floor at 0
 const STREAK_STEP = 3; // every 3 correct in a row: faster spawn + more moles
 const MAX_RACE_MOLES = 5;
 const MAX_PRACTICE_MOLES = 3;
 const MAX_RACE_LEVEL = 3;
 const MAX_PRACTICE_LEVEL = 2;
+const HIT_MS = 560;
+const HIT_FX = ["stars","spin","fly","dizzy"];
 
 let muted = true;
 let mode = "practice";
+let stage = 1;
 let running = false;
 let target = "sunny";
 let promptKind = "both";
 let queue = [];
 let hits = 0;
 let score = 0;
+let stage1Score = 0;
+let stage2Score = 0;
 let streak = 0;
 let timeLeft = RACE_TIME;
 let moles = [];
@@ -220,10 +314,12 @@ let lock = false;
 let currentSpeak = "";
 let audioCtx = null;
 let popTimer = null;
+let lastFx = "";
 
 function $(id){ return document.getElementById(id); }
 function hide(el){ el.classList.add("hidden"); }
 function show(el){ el.classList.remove("hidden"); }
+function isStage2(){ return mode==="race" && stage===2; }
 function shuffle(arr){
   const a = arr.slice();
   for(let i=a.length-1;i>0;i--){
@@ -337,6 +433,68 @@ function moleSVG(){
     '</svg>';
 }
 
+
+function clearFx(m){
+  if(!m || !m.el) return;
+  const hole = m.el.parentElement;
+  if(hole) hole.classList.remove("reacting");
+  m.el.classList.remove("hit-stars","hit-spin","hit-fly","hit-dizzy","ok","bad");
+  const fx = m.el.querySelector(".fx");
+  if(fx) fx.innerHTML = "";
+}
+function resetMolePose(m){
+  if(!m || !m.el) return;
+  m.el.style.transition = "none";
+  clearFx(m);
+  m.el.classList.remove("up","ok","bad");
+  void m.el.offsetWidth;
+  m.el.style.transition = "";
+}
+function pickFx(){
+  const opts = HIT_FX.filter(function(x){ return x!==lastFx; });
+  lastFx = opts[Math.floor(Math.random()*opts.length)];
+  return lastFx;
+}
+function starBurst(){
+  const spots = [
+    [12,8,-28,-36],[70,6,30,-34],[8,40,-34,-8],[78,38,36,-12]
+  ];
+  return spots.map(function(s,i){
+    return '<span class="star" style="left:'+s[0]+'%;top:'+s[1]+'%;--dx:'+s[2]+'px;--dy:'+s[3]+'px">⭐</span>';
+  }).join("");
+}
+function dizzyEyes(){
+  return '<div class="dizzy-eyes"><svg viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+    '<g fill="none" stroke="#7c2d12" stroke-width="3" stroke-linecap="round">'+
+    '<path d="M18 20c4-8 12-8 14 0-4 8-12 8-14 0 4-8 12-8 14 0"/>'+
+    '<path d="M88 20c4-8 12-8 14 0-4 8-12 8-14 0 4-8 12-8 14 0"/>'+
+    '</g>'+
+    '<circle cx="26" cy="20" r="3" fill="#facc15"/><circle cx="96" cy="20" r="3" fill="#facc15"/>'+
+    '</svg></div>';
+}
+function playCorrectFx(m, kind){
+  clearFx(m);
+  if(m.el.parentElement) m.el.parentElement.classList.add("reacting");
+  m.el.classList.add("ok","hit-"+kind);
+  const fx = m.el.querySelector(".fx");
+  if(!fx) return;
+  let html = starBurst();
+  if(kind==="dizzy") html += dizzyEyes();
+  fx.innerHTML = html;
+}
+function playWrongFx(m){
+  m.el.classList.remove("bad");
+  void m.el.offsetWidth;
+  m.el.classList.add("bad");
+  const fx = m.el.querySelector(".fx");
+  if(fx) fx.innerHTML = '<div class="xmark">✖</div>';
+  setTimeout(function(){
+    if(!m.el) return;
+    m.el.classList.remove("bad");
+    if(fx && fx.querySelector(".xmark")) fx.innerHTML = "";
+  }, 680);
+}
+
 function buildGrid(){
   const grid = $("grid");
   grid.innerHTML = "";
@@ -347,20 +505,28 @@ function buildGrid(){
     hole.dataset.hole = String(i);
     const pit = document.createElement("div");
     pit.className = "hole-pit";
-    const mole = document.createElement("div");
-    mole.className = "mole";
-    mole.innerHTML = '<div class="weather-card"><div class="art"></div><div class="word"></div></div><div class="critter">'+moleSVG()+'</div>';
     const front = document.createElement("div");
     front.className = "hole-front";
+    const mole = document.createElement("div");
+    mole.className = "mole";
+    mole.innerHTML = '<div class="weather-card"><div class="art"></div><div class="word"></div></div><div class="critter">'+moleSVG()+'</div><div class="fx"></div>';
     hole.appendChild(mole);
     hole.appendChild(pit);
     hole.appendChild(front);
     hole.addEventListener("pointerdown", function(e){ e.preventDefault(); onHit(i); });
     grid.appendChild(hole);
-    moles.push({el:mole, weather:null, up:false, hideTimer:null});
+    moles.push({el:mole, weather:null, picture:null, word:null, up:false, hideTimer:null, busy:false});
   }
 }
 buildGrid();
+
+function fillDemos(){
+  const ok = $("demoOk");
+  const bad = $("demoBad");
+  if(ok) ok.querySelector(".art").innerHTML = weatherSVG("sunny");
+  if(bad) bad.querySelector(".art").innerHTML = weatherSVG("sunny");
+}
+fillDemos();
 
 function ensureAudio(){
   if(audioCtx) return audioCtx;
@@ -414,6 +580,7 @@ function nextWeather(){
 function setPrompt(w, kind){
   target = w;
   promptKind = kind;
+  $("prompt").classList.remove("rule");
   const icon = $("promptIcon");
   const text = $("promptText");
   const sentence = "It’s "+w+".";
@@ -435,36 +602,58 @@ function setPrompt(w, kind){
   }
   speak(currentSpeak);
 }
+function setStage2Prompt(){
+  target = "";
+  $("prompt").classList.add("rule");
+  $("promptIcon").innerHTML = "";
+  $("promptIcon").style.display = "none";
+  $("promptText").innerHTML = "Hit only if the picture and the word are the same!<br>只打圖和字相同的地鼠！";
+  currentSpeak = "Hit only if the picture and the word are the same!";
+  speak(currentSpeak);
+}
 
 function clearHide(i){
   if(moles[i].hideTimer){ clearTimeout(moles[i].hideTimer); moles[i].hideTimer=null; }
 }
 function hideMole(i, reason){
   const m = moles[i];
-  if(!m.up) return;
+  if(!m.up && reason!=="hit") return;
   clearHide(i);
-  const wasTarget = m.weather===target;
+  const wasTarget = !isStage2() && m.picture===target;
+  const wasConsistent = m.picture && m.picture===m.word;
   m.up = false;
-  m.el.classList.remove("up","ok","bad");
+  m.busy = false;
   m.weather = null;
+  m.picture = null;
+  m.word = null;
   m.el.removeAttribute("data-weather");
   const art = m.el.querySelector(".art");
   const word = m.el.querySelector(".word");
+  resetMolePose(m);
   if(art) art.innerHTML = "";
   if(word) word.textContent = "";
-  if(reason==="timeout" && wasTarget && running && !lock){
-    spawnTimer = setTimeout(function(){ if(running && !lock) spawnWave(); }, spawnDelayNow());
+  if(reason==="timeout" && running && !lock){
+    if(isStage2()){
+      if(!hasConsistentUp()){
+        spawnTimer = setTimeout(function(){ if(running && !lock) spawnWave(); }, spawnDelayNow());
+      }
+    } else if(wasTarget){
+      spawnTimer = setTimeout(function(){ if(running && !lock) spawnWave(); }, spawnDelayNow());
+    }
   }
 }
-function showMole(i, weather, upTime){
+function showMole(i, picture, word, upTime){
   const m = moles[i];
   clearHide(i);
-  m.weather = weather;
+  resetMolePose(m);
+  m.picture = picture;
+  m.word = word;
+  m.weather = picture;
+  m.busy = false;
   m.up = true;
-  m.el.dataset.weather = weather;
-  m.el.classList.remove("ok","bad");
-  m.el.querySelector(".art").innerHTML = weatherSVG(weather);
-  m.el.querySelector(".word").textContent = weather;
+  m.el.dataset.weather = picture;
+  m.el.querySelector(".art").innerHTML = weatherSVG(picture);
+  m.el.querySelector(".word").textContent = word;
   void m.el.offsetWidth;
   m.el.classList.add("up");
   m.hideTimer = setTimeout(function(){ hideMole(i, "timeout"); }, upTime);
@@ -473,26 +662,54 @@ function clearAllMoles(){
   if(spawnTimer){ clearTimeout(spawnTimer); spawnTimer=null; }
   moles.forEach(function(m,i){
     clearHide(i);
-    m.up=false; m.weather=null;
-    m.el.classList.remove("up","ok","bad");
+    m.up=false; m.busy=false; m.weather=null; m.picture=null; m.word=null;
     m.el.removeAttribute("data-weather");
     const art = m.el.querySelector(".art");
     const word = m.el.querySelector(".word");
+    resetMolePose(m);
     if(art) art.innerHTML = "";
     if(word) word.textContent = "";
   });
 }
 function emptyHoles(){
   const list=[];
-  for(let i=0;i<9;i++) if(!moles[i].up) list.push(i);
+  for(let i=0;i<9;i++) if(!moles[i].up && !moles[i].busy) list.push(i);
   return list;
 }
 function hasTargetUp(){
-  return moles.some(function(m){ return m.up && m.weather===target; });
+  return moles.some(function(m){ return m.up && !m.busy && m.picture===target; });
+}
+function hasConsistentUp(){
+  return moles.some(function(m){ return m.up && !m.busy && m.picture && m.picture===m.word; });
+}
+function trapCountFor(n){
+  if(n<=1) return 0;
+  if(n===2) return Math.random()<0.72 ? 1 : 0;
+  if(n===3) return Math.random()<0.55 ? 1 : 2;
+  if(n===4) return Math.random()<0.55 ? 2 : 1;
+  return Math.random()<0.5 ? 2 : 3;
+}
+function makeMatch(avoid){
+  let pool = WEATHERS.slice();
+  if(avoid && avoid.length && avoid.length<WEATHERS.length){
+    const rest = pool.filter(function(w){ return avoid.indexOf(w)<0; });
+    if(rest.length) pool = rest;
+  }
+  const w = pool[Math.floor(Math.random()*pool.length)];
+  return {picture:w, word:w};
+}
+function makeMismatch(){
+  const picture = WEATHERS[Math.floor(Math.random()*WEATHERS.length)];
+  const others = WEATHERS.filter(function(w){ return w!==picture; });
+  const word = others[Math.floor(Math.random()*others.length)];
+  return {picture:picture, word:word};
 }
 function spawnWave(){
   if(!running || lock) return;
-  if(hasTargetUp()) return;
+  if(isStage2()){
+    if(hasConsistentUp()) return;
+    moles.forEach(function(m,i){ if(m.up && !m.busy) hideMole(i, "hit"); });
+  } else if(hasTargetUp()) return;
   const holes = shuffle(emptyHoles());
   if(!holes.length){
     spawnTimer = setTimeout(function(){ if(running && !lock) spawnWave(); }, 200);
@@ -500,12 +717,26 @@ function spawnWave(){
   }
   const n = Math.min(maxMolesNow(), holes.length);
   const used = holes.slice(0, n);
+  const upTime = upTimeNow();
+  if(isStage2()){
+    const traps = trapCountFor(n);
+    const cards = [];
+    const usedPics = [];
+    for(let i=0;i<n-traps;i++){
+      const c = makeMatch(usedPics);
+      usedPics.push(c.picture);
+      cards.push(c);
+    }
+    for(let i=0;i<traps;i++) cards.push(makeMismatch());
+    const mixed = shuffle(cards);
+    used.forEach(function(h,i){ showMole(h, mixed[i].picture, mixed[i].word, upTime); });
+    return;
+  }
   const others = shuffle(WEATHERS.filter(function(w){ return w!==target; }));
   const list = [target];
   for(let i=1;i<n;i++) list.push(others[(i-1) % others.length]);
   const mixed = shuffle(list);
-  const upTime = upTimeNow();
-  used.forEach(function(h,i){ showMole(h, mixed[i], upTime); });
+  used.forEach(function(h,i){ showMole(h, mixed[i], mixed[i], upTime); });
 }
 
 function flash(ok){
@@ -513,15 +744,16 @@ function flash(ok){
   el.className = "flash "+(ok?"ok":"bad");
   setTimeout(function(){ el.className="flash"; }, 200);
 }
-function cheer(msg, faster){
+function cheer(msg, kind){
   const el=$("pop");
   el.textContent = msg;
-  el.classList.remove("show","faster");
+  el.classList.remove("show","faster","oops");
   void el.offsetWidth;
-  if(faster) el.classList.add("faster");
+  if(kind==="faster") el.classList.add("faster");
+  if(kind==="oops") el.classList.add("oops");
   el.classList.add("show");
   if(popTimer) clearTimeout(popTimer);
-  popTimer = setTimeout(function(){ el.classList.remove("show","faster"); }, 700);
+  popTimer = setTimeout(function(){ el.classList.remove("show","faster","oops"); }, 750);
 }
 
 function updateHud(){
@@ -532,7 +764,7 @@ function updateHud(){
     $("hudHits").hidden = false;
     $("hudHits").textContent = hits + " / " + PRACTICE_HITS;
   } else {
-    $("hudMode").textContent = "RACE";
+    $("hudMode").textContent = stage===2 ? "第二關" : "第一關";
     $("hudScore").hidden = false;
     $("hudScore").textContent = "⭐ " + score;
     $("hudTimer").hidden = false;
@@ -540,52 +772,93 @@ function updateHud(){
     $("hudHits").hidden = true;
   }
 }
+function bumpScore(delta){
+  const prev = score;
+  score = Math.max(0, score + delta);
+  updateHud();
+  if(score < prev){
+    $("hudScore").classList.add("drop");
+    setTimeout(function(){ $("hudScore").classList.remove("drop"); }, 420);
+  }
+}
+
+function isCorrectHit(m){
+  if(!m.picture || !m.word) return false;
+  if(isStage2()) return m.picture===m.word;
+  return m.picture===target && m.word===target;
+}
 
 function onHit(i){
-  if(!running || lock) return;
+  if(!running) return;
   const m = moles[i];
-  if(!m.up || !m.weather) return;
-  if(m.weather !== target){
-    m.el.classList.remove("bad");
-    void m.el.offsetWidth;
-    m.el.classList.add("bad");
-    setTimeout(function(){ m.el.classList.remove("bad"); }, 360);
+  if(!m.up || m.busy) return;
+  if(lock && !isStage2()) return;
+  if(!isCorrectHit(m)){
+    playWrongFx(m);
     beep(180, 0.16, "square");
     flash(false);
     streak = 0;
+    if(isStage2()){
+      bumpScore(-MISS_PENALTY);
+      cheer("Picture ≠ word! 圖和字不相同！", "oops");
+    } else {
+      cheer("Oops! 不是這個！", "oops");
+    }
     return;
   }
-  lock = true;
   clearHide(i);
-  m.el.classList.add("ok");
+  m.busy = true;
   const prevLevel = streakLevel();
   streak++;
   const leveled = streakLevel() > prevLevel;
+  const kind = pickFx();
+  playCorrectFx(m, kind);
   beep(leveled ? 820 : 680, leveled ? 0.16 : 0.12, "sine");
   flash(true);
-  if(leveled) cheer("Faster!", true);
+  if(leveled) cheer("Faster!", "faster");
+  else if(isStage2()) cheer("Match! 圖和字相同！");
   else cheer(streak>=3 ? "Great! It’s "+target+"!" : "It’s "+target+"!");
   if(mode==="practice"){
+    lock = true;
     hits++;
     updateHud();
     if(hits >= PRACTICE_HITS){
-      setTimeout(function(){ finishPractice(); }, 420);
+      setTimeout(function(){ finishPractice(); }, HIT_MS);
       return;
     }
-  } else {
-    score += HIT_POINTS;
-    updateHud();
+    setTimeout(function(){
+      if(!running) return;
+      clearAllMoles();
+      lock = false;
+      startPrompt();
+    }, HIT_MS);
+    return;
   }
+  bumpScore(HIT_POINTS);
+  if(isStage2()){
+    setTimeout(function(){
+      if(!running) return;
+      hideMole(i, "hit");
+      if(!hasConsistentUp()) spawnWave();
+    }, HIT_MS);
+    return;
+  }
+  lock = true;
   setTimeout(function(){
     if(!running) return;
     clearAllMoles();
     lock = false;
     startPrompt();
-  }, 420);
+  }, HIT_MS);
 }
 
 function startPrompt(){
   if(!running) return;
+  if(isStage2()){
+    setStage2Prompt();
+    spawnWave();
+    return;
+  }
   const w = nextWeather();
   let kind = "both";
   if(mode==="race"){
@@ -608,25 +881,24 @@ function stopTimers(){
   $("hudTimer").classList.remove("warn");
 }
 
+function hideAllOverlays(){
+  hide($("overlayStart")); hide($("overlayReady")); hide($("overlayStage2")); hide($("overlayEnd"));
+}
+
 function startPractice(){
   stopTimers();
-  mode="practice"; hits=0; score=0; streak=0; queue=[]; target="";
-  hide($("overlayStart")); hide($("overlayReady")); hide($("overlayEnd"));
+  mode="practice"; stage=1; hits=0; score=0; streak=0; queue=[]; target="";
+  $("prompt").classList.remove("rule");
+  hideAllOverlays();
   $("hud").classList.add("show");
   $("play").classList.add("show");
   updateHud();
   running = true;
   startPrompt();
 }
-function startRace(){
-  stopTimers();
-  mode="race"; hits=0; score=0; streak=0; queue=[]; target=""; timeLeft=RACE_TIME;
-  hide($("overlayStart")); hide($("overlayReady")); hide($("overlayEnd"));
-  $("hud").classList.add("show");
-  $("play").classList.add("show");
+function startTimer(){
+  timeLeft = RACE_TIME;
   updateHud();
-  running = true;
-  startPrompt();
   const started = Date.now();
   raceTimer = setInterval(function(){
     timeLeft = Math.max(0, RACE_TIME - Math.floor((Date.now()-started)/1000));
@@ -635,6 +907,29 @@ function startRace(){
     if(timeLeft<=0) finishRace();
   }, 200);
 }
+function startRace(){
+  stopTimers();
+  mode="race"; stage=1; hits=0; score=0; stage1Score=0; stage2Score=0; streak=0; queue=[]; target="";
+  $("prompt").classList.remove("rule");
+  hideAllOverlays();
+  $("hud").classList.add("show");
+  $("play").classList.add("show");
+  updateHud();
+  running = true;
+  startPrompt();
+  startTimer();
+}
+function startStage2(){
+  stopTimers();
+  mode="race"; stage=2; hits=0; score=0; streak=0; queue=[]; target="";
+  hideAllOverlays();
+  $("hud").classList.add("show");
+  $("play").classList.add("show");
+  updateHud();
+  running = true;
+  startPrompt();
+  startTimer();
+}
 function finishPractice(){
   stopTimers();
   $("play").classList.remove("show");
@@ -642,23 +937,41 @@ function finishPractice(){
   show($("overlayReady"));
 }
 function finishRace(){
+  if(stage===1){
+    stage1Score = score;
+    stopTimers();
+    $("play").classList.remove("show");
+    $("hud").classList.remove("show");
+    $("stage2Prior").textContent = "第一關得分 Stage 1 score: " + stage1Score;
+    show($("overlayStage2"));
+    return;
+  }
+  stage2Score = score;
+  showEnd();
+}
+function showEnd(){
   stopTimers();
   $("play").classList.remove("show");
   $("hud").classList.remove("show");
-  const hitsN = score / HIT_POINTS;
+  hideAllOverlays();
+  const total = stage1Score + stage2Score;
   let title = "🌈 Super!";
-  if(hitsN < 6) title = "Keep going!";
-  else if(hitsN < 12) title = "Well done!";
+  if(total < 80) title = "Keep going!";
+  else if(total < 160) title = "Well done!";
   $("endTitle").textContent = title;
-  $("endScore").textContent = score;
-  $("endDetail").textContent = "You hit "+hitsN+" correct weather"+(hitsN===1?"":"s")+" in 60 seconds!";
+  $("endScore").textContent = total;
+  $("endS1").textContent = String(stage1Score);
+  $("endS2").textContent = String(stage2Score);
+  $("endTotal").textContent = String(total);
+  $("endDetail").textContent = "兩關各 1 分鐘完成！ Two 1-minute stages finished!";
   show($("overlayEnd"));
 }
 function goMenu(){
   stopTimers();
   $("play").classList.remove("show");
   $("hud").classList.remove("show");
-  hide($("overlayReady")); hide($("overlayEnd"));
+  $("prompt").classList.remove("rule");
+  hideAllOverlays();
   show($("overlayStart"));
 }
 
@@ -666,6 +979,8 @@ $("btnPractice").onclick = startPractice;
 $("btnSkipRace").onclick = startRace;
 $("btnStartRace").onclick = startRace;
 $("btnReadyMenu").onclick = goMenu;
+$("btnStartStage2").onclick = startStage2;
+$("btnStage2Results").onclick = function(){ showEnd(); };
 $("btnAgain").onclick = startRace;
 $("btnBackPractice").onclick = startPractice;
 $("btnMenu").onclick = goMenu;
