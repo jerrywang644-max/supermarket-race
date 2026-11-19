@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<!-- How’s the Weather? P1 Kahoot-style quiz v=1 · cache-bust ?v=1 -->
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="version" content="1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#38bdf8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>How’s the Weather? · P1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100%;background:#7dd3fc;
+  font-family:"Segoe UI","PingFang HK","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:#0f172a;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+body{min-height:100dvh;display:flex;flex-direction:column;
+  background:radial-gradient(ellipse at 18% 0%,rgba(253,224,71,.55),transparent 46%),
+    radial-gradient(ellipse at 88% 8%,rgba(255,255,255,.55),transparent 42%),
+    radial-gradient(ellipse at 50% 100%,rgba(56,189,248,.5),#38bdf8 60%,#0ea5e9)}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;padding:16px;overflow:auto}
+.overlay.hidden{display:none}
+.panel{
+  max-width:640px;width:100%;background:linear-gradient(180deg,#fffef8,#fff7ed);
+  border:5px solid #fff;border-radius:28px;padding:26px 22px;text-align:center;
+  box-shadow:0 0 0 6px #f97316, 0 0 0 11px #eab308, 0 0 0 16px #22c55e, 0 0 0 21px #3b82f6, 0 0 0 26px #8b5cf6,
+    0 18px 50px rgba(15,23,42,.28);margin:28px auto
+}
+.panel h1{font-size:clamp(1.7rem,5.6vw,2.55rem);font-weight:900;letter-spacing:-.5px;line-height:1.15;
+  background:linear-gradient(90deg,#ea580c,#eab308,#0ea5e9,#2563eb);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
+.panel .kicker{font-weight:800;letter-spacing:.04em;margin:0 0 8px;color:#0369a1;font-size:clamp(1rem,2.6vw,1.2rem)}
+.panel p{color:#334155;font-size:clamp(.95rem,2.3vw,1.12rem);margin:8px 0 12px;line-height:1.55}
+.panel p b{color:#0f172a}
+.howto{text-align:left;background:#fff;border:2px solid #7dd3fc;border-radius:18px;padding:12px 14px;margin:10px 0 16px}
+.howto li{margin:6px 0;font-weight:700;color:#334155;font-size:clamp(.9rem,2.2vw,1.02rem);line-height:1.45}
+.note{text-align:left;background:#fffbeb;border:2px solid #fde68a;border-radius:16px;padding:10px 12px;margin:0 0 16px;
+  color:#78350f;font-size:clamp(.86rem,2.1vw,.98rem);font-weight:700;line-height:1.5}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:16px 32px;margin:6px;border:none;border-radius:999px;
+  font-weight:900;font-size:clamp(1.05rem,2.8vw,1.3rem);cursor:pointer;font-family:inherit;
+  background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;box-shadow:0 6px 20px rgba(239,68,68,.35);transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+[hidden]{display:none!important}
+.btn-go{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 6px 20px rgba(22,163,74,.35)}
+.btn-quiz{background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 6px 20px rgba(37,99,235,.35)}
+.btn-ghost{background:#fff;border:3px solid #0284c7;color:#0369a1;box-shadow:none}
+.hud{position:fixed;top:0;left:0;right:0;z-index:5;padding:10px 14px;display:none;justify-content:space-between;align-items:center;
+  gap:8px;flex-wrap:wrap;background:linear-gradient(180deg,rgba(255,255,255,.7),transparent)}
+.hud.show{display:flex}
+.hud .stat{background:rgba(255,255,255,.92);border:2px solid #0284c755;border-radius:14px;padding:8px 12px;font-weight:800;
+  font-size:clamp(.95rem,2.2vw,1.1rem);color:#0f172a}
+.hud .stat.score{background:#fef08a;border-color:#eab308}
+.hud .stat.timer.warn{background:#ef4444;color:#fff;border-color:#b91c1c;animation:tick .5s ease infinite alternate}
+@keyframes tick{from{transform:scale(1)}to{transform:scale(1.06)}}
+.play{display:none;flex:1;flex-direction:column;align-items:center;width:100%;max-width:980px;margin:0 auto;padding:72px 14px 24px}
+.play.show{display:flex}
+.timer-bar{width:100%;height:12px;background:rgba(255,255,255,.65);border:2px solid #0284c766;border-radius:99px;overflow:hidden;margin-bottom:12px}
+.timer-bar .fill{height:100%;width:100%;background:linear-gradient(90deg,#22c55e,#eab308,#ef4444);transform-origin:left center;border-radius:99px}
+.q-card{width:100%;background:rgba(255,254,248,.96);border:4px solid #0284c7;border-radius:24px;padding:14px 16px 16px;text-align:center;
+  box-shadow:0 10px 32px rgba(15,23,42,.2);margin-bottom:14px}
+.q-card .tag{font-size:clamp(.88rem,2.1vw,1.02rem);font-weight:900;color:#0369a1;letter-spacing:.06em;margin-bottom:6px}
+.q-card .q{font-size:clamp(1.4rem,4.4vw,2.15rem);font-weight:900;color:#0f172a;line-height:1.3}
+.art{display:flex;justify-content:center;margin:8px 0 2px}
+.art .pic{width:min(220px,46vw);height:min(220px,28vh);display:flex;align-items:center;justify-content:center}
+.art .pic svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 4px 0 rgba(15,23,42,.12))}
+.speak-row{margin-top:8px}
+.speak-btn{border:3px solid #0284c766;background:#fff;color:#0369a1;border-radius:999px;padding:8px 16px;font-weight:800;
+  font-size:1rem;cursor:pointer;font-family:inherit}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.opt{appearance:none;border:none;border-radius:22px;padding:18px 14px;cursor:pointer;color:#fff;font-weight:900;
+  font-size:clamp(1.25rem,3.6vw,1.85rem);line-height:1.25;text-align:center;display:flex;align-items:center;justify-content:center;
+  gap:10px;flex-direction:column;min-height:96px;box-shadow:0 6px 0 rgba(15,23,42,.25);transition:transform .12s,filter .15s,opacity .2s;font-family:inherit}
+.opt:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 rgba(15,23,42,.25)}
+.opt .mini{width:72px;height:72px}
+.opt .mini svg{width:100%;height:100%;overflow:visible}
+.opt.a{background:#E21B3C}.opt.b{background:#1368CE}.opt.c{background:#EAB308;color:#1c1917}.opt.d{background:#26890C}
+.opt:disabled{cursor:default}
+.opt.correct{outline:6px solid #fff;filter:brightness(1.12);transform:scale(1.03)}
+.opt.wrong{opacity:.45;filter:grayscale(.4)}
+.opt.dim{opacity:.38}
+.feedback{min-height:3.2rem;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;width:100%;margin-top:12px}
+.fb-msg{font-size:clamp(1.15rem,3vw,1.5rem);font-weight:900;padding:.45rem 1.1rem;border-radius:999px;display:none}
+.fb-msg.ok{background:#16a34a;color:#fff;display:inline-block}
+.fb-msg.bad{background:#dc2626;color:#fff;display:inline-block}
+.controls-bar{position:fixed;bottom:14px;right:14px;z-index:8;display:flex;gap:8px}
+.icon-btn{width:48px;height:48px;border-radius:14px;border:3px solid #0284c766;background:rgba(255,255,255,.92);color:#0369a1;font-size:1.25rem;cursor:pointer}
+.report{text-align:left;max-height:min(34vh,280px);overflow:auto;margin:10px 0 8px;font-size:.95rem;padding-bottom:4px}
+.report .row:last-child{border-bottom:none}
+.report .row{padding:8px 4px;border-bottom:1px solid #fde68a;color:#334155;font-weight:700}
+.report .okb{color:#16a34a}.report .badb{color:#dc2626}
+.end-score{font-size:clamp(1.7rem,6vw,2.6rem);font-weight:900;color:#0369a1}
+.muted{color:#64748b;font-size:.9rem;font-weight:700}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:7;opacity:0;transition:opacity .15s}
+.flash.ok{background:rgba(74,222,128,.28);opacity:1}
+.flash.bad{background:rgba(248,113,113,.28);opacity:1}
+@media (max-width:560px){
+  .opt{min-height:84px;font-size:1.2rem;padding:14px 10px}
+  .opt .mini{width:56px;height:56px}
+  .play{padding-top:96px}
+}
+@media (max-height:700px){
+  .art .pic{height:min(160px,24vh);width:min(160px,40vw)}
+  .opt{min-height:76px}
+  .panel{padding:18px 16px;margin:18px auto}
+}
+</style>
+</head>
+<body>
+<div class="flash" id="flash"></div>
+<div class="hud" id="hud">
+  <div class="stat" id="hudQ">Q 1/12</div>
+  <div class="stat timer" id="hudTimer" hidden>⏱️ 20</div>
+  <div class="stat score" id="hudScore" hidden>⭐ 0</div>
+</div>
+
+<div class="play" id="play">
+  <div class="timer-bar" id="timerBar" hidden><div class="fill" id="timerFill"></div></div>
+  <div class="q-card">
+    <div class="tag" id="qTag">PRACTICE · 練習</div>
+    <div class="q" id="qText"></div>
+    <div class="art" id="qArt"></div>
+    <div class="speak-row"><button type="button" class="speak-btn" id="btnSpeak" aria-label="Speak">🔊 Listen</button></div>
+  </div>
+  <div class="options" id="opts"></div>
+  <div class="feedback">
+    <span class="fb-msg" id="fbMsg"></span>
+    <button type="button" class="btn btn-go" id="btnNext" hidden>Next 下一題 ▶</button>
+  </div>
+</div>
+
+<div class="controls-bar">
+  <button class="icon-btn" id="btnMute" title="Sound on/off" aria-label="Sound">🔇</button>
+</div>
+
+<div class="overlay" id="overlayStart">
+  <div class="panel">
+    <h1>☀️ How’s the Weather?</h1>
+    <p class="kicker">聽音樂學英文 · P1</p>
+    <p>Practise <b>sunny / rainy / cloudy / windy / snowy</b><br>How’s the weather? · It’s ____.</p>
+    <div class="howto">
+      <ul>
+        <li>睇天氣圖，再選正確的英文單詞或句子。</li>
+        <li><b>練習 Practice</b>：6 題 · 不計時、不計分，會顯示對錯和正確答案。</li>
+        <li><b>課堂比賽 Class Quiz</b>：12 題 · 每題 20 秒 · 答對 +100。</li>
+        <li>投影或平板均可；練習不計時；比賽每題 20 秒；無需輸入姓名。</li>
+      </ul>
+    </div>
+    <p class="note">老師可直接開網頁投影搶答；若要用官方 Kahoot，到 create.kahoot.it → Spreadsheet 匯入該 xlsx（官方 Kahoot 沒有圖，網頁版才有圖）。</p>
+    <button class="btn btn-go" id="btnPractice">START PRACTICE ▶</button>
+    <button class="btn btn-quiz" id="btnQuiz">CLASS QUIZ ▶</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayReady">
+  <div class="panel">
+    <h1>🏁 Ready?</h1>
+    <p class="kicker">準備好課堂比賽了嗎？</p>
+    <p>練習完成！而家比賽 <b>12 題</b> · 每題 <b>20 秒</b> · 答對 <b>+100</b>。<br>Practice finished. Class Quiz: 12 questions · 20 seconds each.</p>
+    <button class="btn btn-quiz" id="btnStartQuiz">START CLASS QUIZ ▶</button>
+    <button class="btn btn-ghost" id="btnReadyMenu">Main menu 主畫面</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlayEnd">
+  <div class="panel">
+    <h1 id="endTitle">🌈 Super!</h1>
+    <p class="end-score" id="endScore">0</p>
+    <p id="endDetail"></p>
+    <div class="report" id="endReport"></div>
+    <button class="btn btn-quiz" id="btnAgain">Play again 再玩 🔄</button>
+    <button class="btn btn-ghost" id="btnMenu">Main menu 主畫面</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const LETTERS = ["A","B","C","D"];
+const CLASSES = ["a","b","c","d"];
+const WEATHERS = ["sunny","rainy","cloudy","windy","snowy"];
+const TIMER_SEC = 20;
+const POINTS = 100;
+const PRACTICE_N = 6;
+const QUIZ_N = 12;
+
+let muted = true;
+let mode = "practice"; // practice | quiz
+let idx = 0;
+let score = 0;
+let correctCount = 0;
+let answered = false;
+let wrongs = [];
+let bank = [];
+let currentSpeak = "";
+let timerId = null;
+let timerLeft = TIMER_SEC;
+let timerStarted = 0;
+let audioCtx = null;
+
+function $(id){ return document.getElementById(id); }
+function hide(el){ el.classList.add("hidden"); }
+function show(el){ el.classList.remove("hidden"); }
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    const t = a[i]; a[i]=a[j]; a[j]=t;
+  }
+  return a;
+}
+
+function weatherSVG(kind){
+  if(kind==="sunny"){
+    return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+      '<circle cx="100" cy="100" r="46" fill="#facc15" stroke="#ea580c" stroke-width="4"/>'+
+      '<g stroke="#f59e0b" stroke-width="8" stroke-linecap="round">'+
+      '<line x1="100" y1="18" x2="100" y2="40"/><line x1="100" y1="160" x2="100" y2="182"/>'+
+      '<line x1="18" y1="100" x2="40" y2="100"/><line x1="160" y1="100" x2="182" y2="100"/>'+
+      '<line x1="42" y1="42" x2="58" y2="58"/><line x1="142" y1="142" x2="158" y2="158"/>'+
+      '<line x1="158" y1="42" x2="142" y2="58"/><line x1="58" y1="142" x2="42" y2="158"/>'+
+      '</g>'+
+      '<circle cx="84" cy="96" r="6" fill="#7c2d12"/><circle cx="116" cy="96" r="6" fill="#7c2d12"/>'+
+      '<path d="M80 118c12 16 28 16 40 0" fill="none" stroke="#7c2d12" stroke-width="5" stroke-linecap="round"/>'+
+      '</svg>';
+  }
+  if(kind==="rainy"){
+    return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+      '<ellipse cx="86" cy="78" rx="40" ry="28" fill="#e2e8f0" stroke="#64748b" stroke-width="3"/>'+
+      '<ellipse cx="124" cy="82" rx="46" ry="32" fill="#f8fafc" stroke="#64748b" stroke-width="3"/>'+
+      '<ellipse cx="100" cy="70" rx="34" ry="24" fill="#fff"/>'+
+      '<g fill="#38bdf8" stroke="#0284c7" stroke-width="2">'+
+      '<path d="M58 122c0 10-8 16-8 24a8 8 0 0016 0c0-8-8-14-8-24z"/>'+
+      '<path d="M88 128c0 12-9 18-9 26a9 9 0 0018 0c0-8-9-14-9-26z"/>'+
+      '<path d="M118 122c0 10-8 16-8 24a8 8 0 0016 0c0-8-8-14-8-24z"/>'+
+      '<path d="M146 128c0 12-9 18-9 26a9 9 0 0018 0c0-8-9-14-9-26z"/>'+
+      '</g></svg>';
+  }
+  if(kind==="cloudy"){
+    return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+      '<ellipse cx="78" cy="108" rx="50" ry="34" fill="#94a3b8" stroke="#475569" stroke-width="3"/>'+
+      '<ellipse cx="128" cy="100" rx="54" ry="38" fill="#cbd5e1" stroke="#475569" stroke-width="3"/>'+
+      '<ellipse cx="104" cy="86" rx="40" ry="28" fill="#e2e8f0" stroke="#64748b" stroke-width="3"/>'+
+      '<ellipse cx="70" cy="92" rx="18" ry="12" fill="#f8fafc" opacity=".45"/>'+
+      '</svg>';
+  }
+  if(kind==="windy"){
+    return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+      '<path d="M36 150c8-38 28-70 48-70 8 0 12 8 8 16-8 18-6 40 2 54" fill="#16a34a" stroke="#166534" stroke-width="3" stroke-linejoin="round"/>'+
+      '<path d="M70 80c18-8 28 6 22 22" fill="none" stroke="#166534" stroke-width="4" stroke-linecap="round"/>'+
+      '<rect x="78" y="148" width="10" height="28" rx="3" fill="#7c2d12"/>'+
+      '<g fill="none" stroke="#0284c7" stroke-width="7" stroke-linecap="round">'+
+      '<path d="M70 58c28-4 70-4 92 10 14 8 8 24-6 22"/><path d="M86 86c30-2 64 0 82 12 10 6 4 18-8 16"/><path d="M96 114c26 0 52 4 68 14"/>'+
+      '</g>'+
+      '<path d="M158 128c8 6 4 16-6 14 12 8 4 20-8 16" fill="#4ade80" stroke="#166534" stroke-width="2"/>'+
+      '</svg>';
+  }
+  return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+    '<ellipse cx="86" cy="74" rx="40" ry="26" fill="#e2e8f0" stroke="#64748b" stroke-width="3"/>'+
+    '<ellipse cx="122" cy="78" rx="46" ry="30" fill="#f8fafc" stroke="#64748b" stroke-width="3"/>'+
+    '<g fill="none" stroke="#7dd3fc" stroke-width="3" stroke-linecap="round">'+
+    flake(58,118)+flake(92,132)+flake(128,118)+flake(156,136)+flake(74,158)+flake(118,160)+
+    '</g></svg>';
+}
+function flake(x,y){
+  return '<g transform="translate('+x+' '+y+')">'+
+    '<line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/>'+
+    '<line x1="-6" y1="-6" x2="6" y2="6"/><line x1="6" y1="-6" x2="-6" y2="6"/>'+
+    '</g>';
+}
+
+const PRACTICE = [
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"sunny", answers:["sunny","rainy","cloudy","windy"], correct:"sunny"},
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"rainy", answers:["sunny","rainy","cloudy","snowy"], correct:"rainy"},
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"cloudy", answers:["sunny","rainy","cloudy","windy"], correct:"cloudy"},
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"windy", answers:["rainy","cloudy","windy","snowy"], correct:"windy"},
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"snowy", answers:["sunny","rainy","windy","snowy"], correct:"snowy"},
+  {q:"It’s ____.", speak:"It's...?", weather:"rainy", answers:["sunny","rainy","cloudy","windy"], correct:"rainy"}
+];
+
+const CLASS_QUIZ = [
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"sunny", answers:["sunny","rainy","cloudy","windy"], correct:"sunny"},
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"rainy", answers:["sunny","rainy","cloudy","snowy"], correct:"rainy"},
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"cloudy", answers:["sunny","rainy","cloudy","windy"], correct:"cloudy"},
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"windy", answers:["rainy","cloudy","windy","snowy"], correct:"windy"},
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"snowy", answers:["sunny","rainy","windy","snowy"], correct:"snowy"},
+  {q:"It’s ____.", speak:"It's...?", weather:"rainy", answers:["sunny","rainy","cloudy","windy"], correct:"rainy"},
+  {q:"It’s ____.", speak:"It's...?", weather:"windy", answers:["sunny","cloudy","windy","snowy"], correct:"windy"},
+  {q:"It’s ____.", speak:"It's...?", weather:"sunny", answers:["sunny","rainy","cloudy","snowy"], correct:"sunny"},
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"cloudy", answers:["It’s sunny.","It’s rainy.","It’s cloudy.","It’s snowy."], correct:"It’s cloudy."},
+  {q:"How’s the weather?", speak:"How's the weather?", weather:"snowy", answers:["It’s sunny.","It’s rainy.","It’s windy.","It’s snowy."], correct:"It’s snowy."},
+  {q:"Choose the sentence.", speak:"Choose the sentence.", weather:"windy", answers:["It’s sunny.","It’s rainy.","It’s cloudy.","It’s windy."], correct:"It’s windy."},
+  {q:"Which one is snowy?", speak:"Which one is snowy?", weather:null, answers:["sunny","rainy","cloudy","snowy"], correct:"snowy", icons:true}
+];
+
+function ensureAudio(){
+  if(audioCtx) return audioCtx;
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(AC) audioCtx = new AC();
+  }catch(e){}
+  return audioCtx;
+}
+function beep(freq, dur, type){
+  if(muted) return;
+  try{
+    const ctx = ensureAudio();
+    if(!ctx) return;
+    if(ctx.state==="suspended") ctx.resume();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.08, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + dur);
+  }catch(e){}
+}
+function stopSpeak(){
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
+}
+function speak(text){
+  if(muted || !text) return;
+  try{
+    if(!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = 0.9;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function clearTimer(){
+  if(timerId){ clearInterval(timerId); timerId = null; }
+  $("hudTimer").classList.remove("warn");
+}
+function startTimer(){
+  clearTimer();
+  timerLeft = TIMER_SEC;
+  timerStarted = Date.now();
+  $("hudTimer").hidden = false;
+  $("hudTimer").textContent = "⏱️ " + timerLeft;
+  $("timerBar").hidden = false;
+  const fill = $("timerFill");
+  fill.style.transition = "none";
+  fill.style.transform = "scaleX(1)";
+  requestAnimationFrame(function(){
+    fill.style.transition = "transform "+TIMER_SEC+"s linear";
+    fill.style.transform = "scaleX(0)";
+  });
+  timerId = setInterval(function(){
+    const gone = (Date.now() - timerStarted) / 1000;
+    timerLeft = Math.max(0, Math.ceil(TIMER_SEC - gone));
+    $("hudTimer").textContent = "⏱️ " + timerLeft;
+    if(timerLeft <= 5) $("hudTimer").classList.add("warn");
+    if(timerLeft <= 0){
+      clearTimer();
+      pick(-1, true);
+    }
+  }, 200);
+}
+
+function updateHud(){
+  const total = bank.length;
+  $("hudQ").textContent = "Q " + (idx+1) + "/" + total;
+  if(mode==="quiz"){
+    $("hudScore").hidden = false;
+    $("hudScore").textContent = "⭐ " + score;
+  } else {
+    $("hudScore").hidden = true;
+    $("hudTimer").hidden = true;
+  }
+}
+
+function renderQ(){
+  answered = false;
+  const q = bank[idx];
+  $("qTag").textContent = mode==="practice" ? "PRACTICE · 練習" : "CLASS QUIZ · 比賽";
+  $("qText").textContent = q.q;
+  const art = $("qArt");
+  if(q.weather){
+    art.innerHTML = '<div class="pic">'+weatherSVG(q.weather)+"</div>";
+  } else {
+    art.innerHTML = "";
+  }
+  currentSpeak = q.speak || q.q;
+  $("fbMsg").className = "fb-msg";
+  $("fbMsg").textContent = "";
+  $("btnNext").hidden = true;
+  updateHud();
+
+  const opts = shuffle(q.answers.map(function(t){ return t; }));
+  const box = $("opts");
+  box.innerHTML = "";
+  opts.forEach(function(text, i){
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "opt " + CLASSES[i];
+    btn.dataset.answer = text;
+    if(q.icons && WEATHERS.indexOf(text)>=0){
+      btn.innerHTML = '<span class="mini">'+weatherSVG(text)+'</span><span></span>';
+      btn.querySelector("span:last-child").textContent = text;
+    } else {
+      btn.textContent = text;
+    }
+    btn.addEventListener("click", function(){ pick(i, false); });
+    box.appendChild(btn);
+  });
+  if(mode==="quiz") startTimer();
+  else {
+    clearTimer();
+    $("timerBar").hidden = true;
+    $("hudTimer").hidden = true;
+  }
+  speak(currentSpeak);
+}
+
+function flash(ok){
+  const el = $("flash");
+  el.className = "flash " + (ok ? "ok" : "bad");
+  setTimeout(function(){ el.className = "flash"; }, 250);
+}
+
+function pick(i, timedOut){
+  if(answered) return;
+  answered = true;
+  clearTimer();
+  const q = bank[idx];
+  const buttons = [].slice.call($("opts").children);
+  const chosen = (!timedOut && i>=0) ? buttons[i].dataset.answer : "";
+  const ok = !timedOut && chosen === q.correct;
+
+  buttons.forEach(function(b){
+    b.disabled = true;
+    if(b.dataset.answer === q.correct) b.classList.add("correct");
+    else if(b.dataset.answer === chosen) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+
+  const fb = $("fbMsg");
+  if(ok){
+    if(mode==="quiz"){ score += POINTS; correctCount++; }
+    fb.className = "fb-msg ok";
+    fb.textContent = "✓ " + q.correct;
+    beep(660, 0.12, "sine");
+    flash(true);
+  } else {
+    fb.className = "fb-msg bad";
+    fb.textContent = (timedOut ? "⏰ " : "✗ ") + q.correct;
+    beep(180, 0.18, "square");
+    flash(false);
+    if(mode==="quiz"){
+      wrongs.push({q: q.q, weather: q.weather, correct: q.correct});
+    }
+  }
+  updateHud();
+  const last = idx + 1 >= bank.length;
+  $("btnNext").hidden = false;
+  $("btnNext").textContent = last ? (mode==="practice" ? "Finish practice ▶" : "See results 看總分 ▶") : "Next 下一題 ▶";
+}
+
+function next(){
+  idx++;
+  if(idx >= bank.length){
+    if(mode==="practice"){
+      $("play").classList.remove("show");
+      $("hud").classList.remove("show");
+      hide($("overlayStart")); hide($("overlayEnd"));
+      show($("overlayReady"));
+    } else {
+      finish();
+    }
+  } else {
+    renderQ();
+  }
+}
+
+function finish(){
+  clearTimer();
+  stopSpeak();
+  $("play").classList.remove("show");
+  $("hud").classList.remove("show");
+  const total = bank.length;
+  const pct = total ? Math.round((correctCount/total)*100) : 0;
+  let title = "🌈 Super!";
+  if(pct < 50) title = "Keep going!";
+  else if(pct < 80) title = "Well done!";
+  $("endTitle").textContent = title;
+  $("endScore").textContent = score;
+  $("endDetail").innerHTML = "Correct "+correctCount+" / "+total+" · "+pct+"%<br><span class='muted'>滿分 "+(total*POINTS)+"</span>";
+  const report = $("endReport");
+  report.innerHTML = "";
+  if(wrongs.length===0){
+    report.innerHTML = "<div class='row okb'>✓ All correct! 全部答對！</div>";
+  } else {
+    const h = document.createElement("div");
+    h.className = "row";
+    h.style.color = "#0369a1";
+    h.textContent = "Review · 錯題複習";
+    report.appendChild(h);
+    wrongs.forEach(function(w, n){
+      const row = document.createElement("div");
+      row.className = "row";
+      const label = (w.weather ? w.weather+" · " : "") + w.q;
+      row.innerHTML = "<span class='badb'>✗</span> "+esc(label)+"<br><span class='okb'>→ "+esc(w.correct)+"</span>";
+      report.appendChild(row);
+    });
+  }
+  hide($("overlayStart")); hide($("overlayReady"));
+  show($("overlayEnd"));
+}
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c];
+  });
+}
+
+function startPractice(){
+  stopSpeak();
+  mode = "practice";
+  idx = 0; score = 0; correctCount = 0; answered = false; wrongs = [];
+  bank = PRACTICE.slice();
+  hide($("overlayStart")); hide($("overlayReady")); hide($("overlayEnd"));
+  $("hud").classList.add("show");
+  $("play").classList.add("show");
+  renderQ();
+}
+function startQuiz(){
+  stopSpeak();
+  mode = "quiz";
+  idx = 0; score = 0; correctCount = 0; answered = false; wrongs = [];
+  bank = CLASS_QUIZ.slice();
+  hide($("overlayStart")); hide($("overlayReady")); hide($("overlayEnd"));
+  $("hud").classList.add("show");
+  $("play").classList.add("show");
+  renderQ();
+}
+function goMenu(){
+  clearTimer();
+  stopSpeak();
+  $("play").classList.remove("show");
+  $("hud").classList.remove("show");
+  hide($("overlayReady")); hide($("overlayEnd"));
+  show($("overlayStart"));
+}
+
+$("btnPractice").onclick = startPractice;
+$("btnQuiz").onclick = startQuiz;
+$("btnStartQuiz").onclick = startQuiz;
+$("btnReadyMenu").onclick = goMenu;
+$("btnAgain").onclick = startQuiz;
+$("btnMenu").onclick = goMenu;
+$("btnNext").onclick = next;
+$("btnSpeak").onclick = function(){ if(!muted) speak(currentSpeak); else { muted=false; $("btnMute").textContent="🔊"; speak(currentSpeak);} };
+$("btnMute").onclick = function(){
+  muted = !muted;
+  $("btnMute").textContent = muted ? "🔇" : "🔊";
+  if(muted) stopSpeak();
+  else { ensureAudio(); beep(520, 0.08, "sine"); }
+};
+
+document.addEventListener("keydown", function(e){
+  if($("play").classList.contains("show") && !answered){
+    const map = {Digit1:0,Digit2:1,Digit3:2,Digit4:3,Numpad1:0,Numpad2:1,Numpad3:2,Numpad4:3,KeyA:0,KeyB:1,KeyC:2,KeyD:3};
+    if(map[e.code]!==undefined) pick(map[e.code], false);
+  }
+  if((e.code==="Enter"||e.code==="ArrowRight") && !$("btnNext").hidden && $("play").classList.contains("show")) next();
+});
+
+})();
+</script>
+</body>
+</html>
