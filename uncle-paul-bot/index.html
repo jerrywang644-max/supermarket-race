@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- Uncle Paul Bot v=3 · full-sentence question buttons · cache-bust ?v=3 -->
+<!-- Uncle Paul Bot v=4 · “No, there weren’t.” only · modern games with ✗ · cache-bust ?v=4 -->
+<!-- Teacher URL: https://jerrywang644-max.github.io/supermarket-race/uncle-paul-bot/?v=4 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -543,31 +544,30 @@ const ILLUST = {
   question: { src: "illust-question.jpg?v=1", cap: "?", mark: "", markText: "" },
   computer: { src: "illust-computer.jpg?v=1", cap: "computer games", mark: "cross", markText: "✗" },
   video: { src: "illust-video.jpg?v=1", cap: "video games", mark: "cross", markText: "✗" },
-  online: { src: "illust-online.jpg?v=1", cap: "online games", mark: "cross", markText: "✗" },
-  marbles: { src: "illust-marbles.jpg?v=1", cap: "marbles", mark: "tick", markText: "✓" },
-  hopscotch: { src: "illust-hopscotch.jpg?v=1", cap: "hopscotch", mark: "tick", markText: "✓" },
-  hide: { src: "illust-hide.jpg?v=1", cap: "hide-and-seek", mark: "tick", markText: "✓" }
+  online: { src: "illust-online.jpg?v=1", cap: "online games", mark: "cross", markText: "✗" }
 };
+
+const NO_KEYS = ["computer", "video", "online"];
 
 const OPENING = {
   id: "computer",
   q: "Were there any computer games 50 years ago?",
-  a: "No, there weren’t.\nThere were marbles 50 years ago.",
-  imgs: ["computer", "marbles"]
+  a: "No, there weren’t.",
+  img: "computer"
 };
 
 const FOLLOWUPS = [
   {
     id: "video",
     q: "Were there any video games 50 years ago?",
-    a: "No, there weren’t.\nThere was hopscotch 50 years ago.",
-    imgs: ["video", "hopscotch"]
+    a: "No, there weren’t.",
+    img: "video"
   },
   {
     id: "online",
     q: "Were there any online games 50 years ago?",
-    a: "No, there weren’t.\nThere was hide-and-seek 50 years ago.",
-    imgs: ["online", "hide"]
+    a: "No, there weren’t.",
+    img: "online"
   }
 ];
 
@@ -585,6 +585,7 @@ let cycleTimer = null;
 let reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let openingDone = false;
 let askedFollowups = new Set();
+let askedNoKeys = ["computer"];
 let busy = false;
 
 function setWaiting() {
@@ -627,9 +628,17 @@ function showIllust(key) {
   setTimeout(next, illustImg.classList.contains("show") ? 180 : 0);
 }
 
-function showIdleQuestion() {
-  clearIllustCycle();
-  showIllust("question");
+function noCycleKeys() {
+  return NO_KEYS.filter((key) => askedNoKeys.indexOf(key) >= 0);
+}
+
+function showNoPictures() {
+  startIllustCycle(noCycleKeys());
+}
+
+function rememberNo(key) {
+  if (key && askedNoKeys.indexOf(key) < 0) askedNoKeys.push(key);
+  showNoPictures();
 }
 
 function startIllustCycle(keys) {
@@ -811,13 +820,11 @@ function askItem(item, onAfterAnswer) {
   clearChoices();
   addBubble("you", item.q);
   setWaiting();
-  startIllustCycle(item.imgs);
   setTimeout(() => {
     setTalking();
     typeBot(item.a, () => {
       setWaiting();
-      if (item.imgs && item.imgs.length) startIllustCycle(item.imgs);
-      else clearIllustCycle();
+      rememberNo(item.img);
       busy = false;
       if (onAfterAnswer) onAfterAnswer();
     });
@@ -827,10 +834,11 @@ function askItem(item, onAfterAnswer) {
 function finishAll() {
   clearChoices();
   setTalking();
-  startIllustCycle(["marbles", "hopscotch", "hide"]);
-  typeBot("Well done! You asked all my questions.\nThere weren’t any computer games, video games or online games 50 years ago.\nThere were marbles, hopscotch and hide-and-seek.", () => {
+  askedNoKeys = NO_KEYS.slice();
+  showNoPictures();
+  typeBot("Well done! You asked all my questions.\nThere weren’t any computer games, video games or online games 50 years ago.", () => {
     setWaiting();
-    startIllustCycle(["marbles", "hopscotch", "hide"]);
+    showNoPictures();
   });
 }
 
@@ -846,12 +854,13 @@ function openChat() {
   busy = false;
   openingDone = false;
   askedFollowups = new Set();
+  askedNoKeys = ["computer"];
   setWaiting();
-  showIdleQuestion();
+  showNoPictures();
   setTalking();
   typeBot("Hello! I’m Uncle Paul.\nStart with this question about computer games.", () => {
     setWaiting();
-    showIdleQuestion();
+    showNoPictures();
     renderOpeningChoice();
   });
 }
