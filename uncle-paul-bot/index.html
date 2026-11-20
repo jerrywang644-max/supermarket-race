@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Uncle Paul Bot v=3 · full-sentence question buttons · cache-bust ?v=3 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -747,7 +748,10 @@ function shuffle(arr) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
-  if (a.join(" ") === arr.join(" ")) return shuffle(arr);
+  // Question buttons are objects. Array#join turns every object into
+  // "[object Object]", so a same-order retry written with join() matches
+  // every permutation and recurses until the stack overflows. Either order
+  // is a valid follow-up, so return this Fisher–Yates result as-is.
   return a;
 }
 
