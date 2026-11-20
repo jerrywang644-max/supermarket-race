@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- Uncle David Bot v=3 · follow-up questions use 3-part chips · was/were distractor only · cache-bust ?v=3 -->
+<!-- Classroom URL: https://jerrywang644-max.github.io/supermarket-race/uncle-david-bot/?v=3 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -428,6 +430,7 @@
     font-weight: 700;
     cursor: pointer;
     color: var(--ink);
+    white-space: nowrap;
   }
   .wchip:hover { border-color: var(--accent); background: #fff8ee; }
   .wchip.in-slot { background: #efe2cf; }
@@ -560,14 +563,16 @@ const REORDER = [
     q: "Were there any trams 50 years ago?",
     a: "Yes, there were.",
     imgs: ["tram"],
-    words: ["Were", "there", "any", "trams", "50 years ago", "?"]
+    words: ["Were there any", "trams", "50 years ago"],
+    extra: "Was there any"
   },
   {
     id: "aeroplanes",
     q: "Were there any aeroplanes 50 years ago?",
     a: "Yes, there were.",
     imgs: ["aeroplane"],
-    words: ["Were", "there", "any", "aeroplanes", "50 years ago", "?"]
+    words: ["Were there any", "aeroplanes", "50 years ago"],
+    extra: "Was there any"
   }
 ];
 
@@ -779,6 +784,17 @@ function renderOpeningChoice() {
   choices.appendChild(btn);
 }
 
+function chipPool(task) {
+  const pool = task.words.slice();
+  if (task.extra) pool.push(task.extra);
+  return pool;
+}
+
+function questionFromChips(parts) {
+  const body = parts.join(" ").replace(/\?+$/, "").trim();
+  return body + "?";
+}
+
 function renderReorderTask(task) {
   clearChoices();
   const box = document.createElement("div");
@@ -800,7 +816,7 @@ function renderReorderTask(task) {
   const bank = box.querySelector("#reorderBank");
   const feedback = box.querySelector("#reorderFeedback");
   const selected = [];
-  let bankWords = shuffle(task.words);
+  let bankWords = shuffle(chipPool(task));
 
   function paint() {
     slots.innerHTML = "";
@@ -834,7 +850,7 @@ function renderReorderTask(task) {
   }
 
   box.querySelector("#reorderReset").addEventListener("click", () => {
-    bankWords = shuffle(task.words);
+    bankWords = shuffle(chipPool(task));
     selected.length = 0;
     feedback.textContent = "";
     feedback.className = "reorder-feedback";
@@ -849,7 +865,8 @@ function renderReorderTask(task) {
       feedback.textContent = "Great! Now ask Uncle David.";
       feedback.className = "reorder-feedback ok";
       box.querySelectorAll("button").forEach(b => b.disabled = true);
-      setTimeout(() => askItem(task, () => {
+      const asked = Object.assign({}, task, { q: questionFromChips(selected) });
+      setTimeout(() => askItem(asked, () => {
         reorderIndex += 1;
         if (reorderIndex < REORDER.length) {
           renderReorderTask(REORDER[reorderIndex]);
