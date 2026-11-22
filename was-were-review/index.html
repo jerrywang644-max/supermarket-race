@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google" content="notranslate">
+<title>There was / There were</title>
+<!-- cache-bust ?v=1 -->
+<link rel="preload" as="image" href="illust-telephone.jpg">
+<link rel="preload" as="image" href="illust-letter.jpg">
+<link rel="preload" as="image" href="illust-tram.jpg">
+<link rel="preload" as="image" href="illust-radio.jpg">
+<style>
+  :root {
+    --paper: #f3eee4;
+    --ink: #1c1712;
+    --muted: #5e564b;
+    --line: #ddd4c4;
+    --card: #fffcf8;
+    --verb: #08386a;
+    --verb-bg: #c5dff6;
+    --end: #7c2d12;
+    --end-bg: #fed7aa;
+    --go: #0f5c40;
+    --go-press: #0c4a34;
+    --off-bg: #e6e1d6;
+    --off-ink: #8f877b;
+    --off-line: #d5cfc3;
+    --tab: #2a241c;
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  html, body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  body {
+    min-height: 100dvh;
+    font-family: system-ui, -apple-system, "Segoe UI", "PingFang HK", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "WenQuanYi Micro Hei", sans-serif;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  button:focus { outline: none; }
+
+  button:focus-visible {
+    outline: 3px solid var(--verb);
+    outline-offset: 3px;
+  }
+
+  main {
+    width: min(1120px, 100%);
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding:
+      max(0.65rem, env(safe-area-inset-top))
+      max(0.85rem, env(safe-area-inset-right))
+      max(0.7rem, env(safe-area-inset-bottom))
+      max(0.85rem, env(safe-area-inset-left));
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.4rem, 1.1vh, 0.85rem);
+  }
+
+  h1 {
+    margin: 0;
+    text-align: center;
+    font-size: clamp(1.25rem, 3.2vh, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+
+  .items {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .items button {
+    min-height: 54px;
+    padding: 0.4rem 0.25rem;
+    border: 3px solid var(--line);
+    border-radius: 14px;
+    background: var(--card);
+    color: var(--ink);
+    font-size: clamp(1rem, 2.3vw, 1.45rem);
+    font-weight: 750;
+    line-height: 1.15;
+  }
+
+  .items button[aria-pressed="true"] {
+    background: var(--tab);
+    border-color: var(--tab);
+    color: #fff;
+  }
+
+  .pictures {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.55rem, 2vw, 1.35rem);
+  }
+
+  .card {
+    width: fit-content;
+    max-width: min(78vw, 540px);
+    background: var(--card);
+    border: 3px solid #efe6d8;
+    border-radius: 22px;
+    padding: 0.4rem;
+    box-shadow: 0 8px 20px rgba(48, 34, 16, 0.08);
+  }
+
+  .card[hidden] { display: none !important; }
+
+  .pictures.pair .card {
+    max-width: min(40vw, 420px);
+  }
+
+  .card img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: clamp(150px, 34vh, 460px);
+    border-radius: 14px;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  .sentence-wrap {
+    container-type: inline-size;
+    width: 100%;
+  }
+
+  .sentence {
+    margin: 0;
+    text-align: center;
+    font-size: clamp(1.7rem, 5.45cqi, 4.6rem);
+    font-weight: 650;
+    line-height: 1.45;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
+  .verb {
+    color: var(--verb);
+    background: var(--verb-bg);
+    font-weight: 800;
+    border-radius: 0.22em;
+    padding: 0.02em 0.18em 0.06em;
+  }
+
+  .noun { font-weight: 700; }
+
+  .ending {
+    color: var(--end);
+    background: var(--end-bg);
+    font-weight: 800;
+    border-radius: 0.16em;
+    padding: 0.02em 0.1em 0.05em;
+  }
+
+  .controls,
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+  }
+
+  .count-btn {
+    min-height: 76px;
+    height: clamp(76px, 11vh, 112px);
+    border: 4px solid var(--go);
+    border-radius: 20px;
+    background: var(--go);
+    color: #fff;
+    font-size: clamp(2.3rem, 5.4vh, 3.6rem);
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+
+  .count-btn:active:not(:disabled) { background: var(--go-press); border-color: var(--go-press); }
+
+  .count-btn:disabled {
+    background: var(--off-bg);
+    border-color: var(--off-line);
+    color: var(--off-ink);
+    cursor: default;
+  }
+
+  .hint {
+    margin: 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: clamp(1.05rem, 2.3vw, 1.4rem);
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .pager button {
+    min-height: 58px;
+    border: 3px solid #d9d0c0;
+    border-radius: 16px;
+    background: var(--card);
+    color: var(--ink);
+    font-size: clamp(1.15rem, 2.5vw, 1.55rem);
+    font-weight: 800;
+  }
+
+  .pager button:active { background: #f3ece1; }
+
+  @media (max-height: 760px) {
+    main { gap: 0.35rem; }
+    h1 { font-size: 1.2rem; }
+    .items button { min-height: 46px; }
+    .card img { max-height: 28vh; }
+    .count-btn { height: 72px; min-height: 72px; font-size: 2.2rem; }
+    .pager button { min-height: 48px; }
+    .hint br { display: none; }
+    .hint .zh::before { content: "  ·  "; }
+  }
+
+  @media (max-width: 560px) {
+    .sentence {
+      white-space: normal;
+      text-wrap: balance;
+      font-size: clamp(1.7rem, 8.2vw, 2.5rem);
+    }
+    .items button { font-size: 0.95rem; }
+  }
+
+  @media (forced-colors: active) {
+    .verb, .ending { outline: 2px solid CanvasText; }
+    .count-btn:disabled { opacity: 0.55; }
+  }
+</style>
+</head>
+<body>
+<main id="app" data-count="1" data-item="telephone">
+  <h1>There was / There were</h1>
+
+  <div class="items" role="group" aria-label="Items">
+    <button type="button" class="item" data-index="0" aria-pressed="true">telephone</button>
+    <button type="button" class="item" data-index="1" aria-pressed="false">letter</button>
+    <button type="button" class="item" data-index="2" aria-pressed="false">tram</button>
+    <button type="button" class="item" data-index="3" aria-pressed="false">radio</button>
+  </div>
+
+  <div class="pictures" id="pictures" aria-hidden="true">
+    <div class="card" id="card-a">
+      <img id="pic-a" src="illust-telephone.jpg" alt="" width="640" height="640" draggable="false">
+    </div>
+    <div class="card" id="card-b" hidden>
+      <img id="pic-b" src="illust-telephone.jpg" alt="" width="640" height="640" draggable="false">
+    </div>
+  </div>
+
+  <div class="sentence-wrap">
+    <p class="sentence" id="sentence" role="status">There <span class="verb">was</span> one <span class="noun">telephone</span>.</p>
+  </div>
+
+  <div class="controls">
+    <button type="button" id="minus" class="count-btn" aria-label="Minus 1" disabled>−1</button>
+    <button type="button" id="plus" class="count-btn" aria-label="Plus 1">+1</button>
+  </div>
+
+  <p class="hint">Tap +1 / −1<br><span class="zh" lang="zh-Hant">「撳 +1 / −1」</span></p>
+
+  <div class="pager">
+    <button type="button" id="prev">Previous</button>
+    <button type="button" id="next">Next</button>
+  </div>
+</main>
+<script>
+(function () {
+  var items = [
+    { word: "telephone", src: "illust-telephone.jpg" },
+    { word: "letter", src: "illust-letter.jpg" },
+    { word: "tram", src: "illust-tram.jpg" },
+    { word: "radio", src: "illust-radio.jpg" }
+  ];
+
+  var index = 0;
+  var count = 1;
+
+  var app = document.getElementById("app");
+  var pictures = document.getElementById("pictures");
+  var cardB = document.getElementById("card-b");
+  var picA = document.getElementById("pic-a");
+  var picB = document.getElementById("pic-b");
+  var sentence = document.getElementById("sentence");
+  var minusBtn = document.getElementById("minus");
+  var plusBtn = document.getElementById("plus");
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".item"));
+
+  function chip(className, text) {
+    var span = document.createElement("span");
+    span.className = className;
+    span.textContent = text;
+    return span;
+  }
+
+  function nounSpan(word, plural) {
+    var span = document.createElement("span");
+    span.className = "noun";
+    span.appendChild(document.createTextNode(word));
+    if (plural) span.appendChild(chip("ending", "s"));
+    return span;
+  }
+
+  function render() {
+    var item = items[index];
+    var plural = count === 2;
+
+    sentence.replaceChildren(
+      document.createTextNode("There "),
+      chip("verb", plural ? "were" : "was"),
+      document.createTextNode(plural ? " two " : " one "),
+      nounSpan(item.word, plural),
+      document.createTextNode(".")
+    );
+
+    if (picA.getAttribute("src") !== item.src) picA.src = item.src;
+    if (picB.getAttribute("src") !== item.src) picB.src = item.src;
+    cardB.hidden = !plural;
+    pictures.classList.toggle("pair", plural);
+
+    minusBtn.disabled = count === 1;
+    plusBtn.disabled = count === 2;
+    app.dataset.count = String(count);
+    app.dataset.item = item.word;
+
+    tabs.forEach(function (tab, i) {
+      tab.setAttribute("aria-pressed", i === index ? "true" : "false");
+    });
+  }
+
+  function setCount(next) {
+    if (next < 1 || next > 2 || next === count) return;
+    count = next;
+    render();
+  }
+
+  function setItem(next) {
+    index = (next + items.length) % items.length;
+    count = 1;
+    render();
+  }
+
+  minusBtn.addEventListener("click", function () { setCount(count - 1); });
+  plusBtn.addEventListener("click", function () { setCount(count + 1); });
+  document.getElementById("prev").addEventListener("click", function () { setItem(index - 1); });
+  document.getElementById("next").addEventListener("click", function () { setItem(index + 1); });
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      setItem(Number(tab.getAttribute("data-index")));
+    });
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
+    if (event.key === "+" || event.key === "=" || event.key === "ArrowRight") {
+      event.preventDefault();
+      setCount(count + 1);
+    } else if (event.key === "-" || event.key === "_" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      setCount(count - 1);
+    } else if (event.key === "ArrowDown" || event.key === "PageDown") {
+      event.preventDefault();
+      setItem(index + 1);
+    } else if (event.key === "ArrowUp" || event.key === "PageUp") {
+      event.preventDefault();
+      setItem(index - 1);
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
