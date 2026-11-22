@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!-- Uncle David Bot v=3 · follow-up questions use 3-part chips · was/were distractor only · cache-bust ?v=3 -->
-<!-- Classroom URL: https://jerrywang644-max.github.io/supermarket-race/uncle-david-bot/?v=3 -->
+<!-- Uncle David Bot v=4 · follow-up questions use 3-part chips · fixed trailing ? · cache-bust ?v=4 -->
+<!-- Classroom URL: https://jerrywang644-max.github.io/supermarket-race/uncle-david-bot/?v=4 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -412,10 +412,19 @@
   }
   .reorder-slots {
     min-height: 52px;
-    display: flex; flex-wrap: wrap; gap: 8px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
     padding: 10px; margin-bottom: 10px;
     border: 2px dashed rgba(176,122,40,.35);
     border-radius: 12px; background: #fffdf8;
+  }
+  .reorder-qmark {
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+    padding: 0 2px;
+    pointer-events: none;
+    user-select: none;
   }
   .reorder-bank {
     display: flex; flex-wrap: wrap; gap: 8px;
@@ -790,8 +799,8 @@ function chipPool(task) {
   return pool;
 }
 
-function questionFromChips(parts) {
-  const body = parts.join(" ").replace(/\?+$/, "").trim();
+function withQuestionMark(text) {
+  const body = String(text || "").trim().replace(/\?+$/, "");
   return body + "?";
 }
 
@@ -832,6 +841,11 @@ function renderReorderTask(task) {
       });
       slots.appendChild(chip);
     });
+    const qmark = document.createElement("span");
+    qmark.className = "reorder-qmark";
+    qmark.textContent = "?";
+    qmark.setAttribute("aria-hidden", "true");
+    slots.appendChild(qmark);
     bank.innerHTML = "";
     bankWords.forEach((w, idx) => {
       const chip = document.createElement("button");
@@ -865,7 +879,7 @@ function renderReorderTask(task) {
       feedback.textContent = "Great! Now ask Uncle David.";
       feedback.className = "reorder-feedback ok";
       box.querySelectorAll("button").forEach(b => b.disabled = true);
-      const asked = Object.assign({}, task, { q: questionFromChips(selected) });
+      const asked = Object.assign({}, task, { q: withQuestionMark(selected.join(" ")) });
       setTimeout(() => askItem(asked, () => {
         reorderIndex += 1;
         if (reorderIndex < REORDER.length) {
@@ -887,7 +901,7 @@ function askItem(item, onAfterAnswer) {
   if (busy) return;
   busy = true;
   clearChoices();
-  addBubble("you", item.q);
+  addBubble("you", withQuestionMark(item.q));
   setWaiting();
   startIllustCycle(item.imgs);
   setTimeout(() => {
